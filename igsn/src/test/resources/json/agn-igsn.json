@@ -1,0 +1,48 @@
+{
+    "igsn": "10273/XXAA345678",
+    "landingPage": "http://example.com/XXAA345678",
+    "localSampleID": "ABN 001C-leuco",
+    "sampleType": "Hand sample",
+    "analyte": "Mineral separate",
+    "lithologyType": "Amphibolite",
+    "lithologyComment": "Leucosome",
+    "locationCaptureType": "Unknown",
+    "lastKnownSampleArchiveLocation":"Curtin University, John de Laeter Centre",
+    "site": {
+      "locationKind": "outcrop location",
+      "locationName": "string",
+      "stratigraphicUnitName": "Boothby Orthogneiss",
+      "unitAge": "string"
+    },
+    "researchers": [
+      {"fullName":"Deji Ekundayo (NGSA)",
+        "researcherRole":["hasPrincipalInvestigator"]
+      }
+    ],
+    "location": {
+      "latLong": {
+        "latitude": 9.037444444,
+        "longitude": 7.506083333
+      },
+      "verticalDatum": "Ground level",
+      "elevation": 517,
+      "locComment":"090 02' 14.8\" N, 07o 30' 21.9\" E"
+    },
+    "funding":{
+    "fundingBody":"Nigerian Geological Survey Agency"},
+    "relatedEntities": [
+      {
+        "entityType": "sample",
+        "relatedEntityTitleName": "ABN 001C",
+        "relation": [
+          "isPartOf"
+        ],
+        "identifiers": [
+          {
+            "identifier": "10273/XXAA345677",
+            "identifierType": "igsn"
+          }
+        ]
+      }
+    ]
+  }

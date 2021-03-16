@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource xmlns="http://datacite.org/schema/kernel-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.2/metadata.xsd">
+    <identifier identifierType="DOI">10.80298/TEST_DOI_6029BA31EFED8</identifier>
+    <publisher>This is the publisher https://ror.org/038sjwq14</publisher>
+    <publicationYear>2001</publicationYear>
+    <resourceType resourceTypeGeneral="Dataset">Dataset</resourceType>
+    <titles>
+        <title>DRVS Test DOI 3 - Pass - Multiple creators one with ROR</title>
+    </titles>
+    <subjects>
+        <subject subjectScheme="anzsrc">06</subject>
+    </subjects>
+    <alternateIdentifiers>
+        <alternateIdentifier alternateIdentifierType="local id">llapax</alternateIdentifier>
+    </alternateIdentifiers>
+    <sizes>
+        <size>4.25TB</size>
+    </sizes>
+    <descriptions>
+        <description descriptionType="Other">Other description</description>
+    </descriptions>
+    <rightsList>
+        <rights rightsURI="http://rightsUri.com" rightsIdentifier="234345Rights">Some example rights</rights>
+    </rightsList>
+    <creators>
+        <creator>
+            <creatorName>Test User 1</creatorName>
+        </creator>
+        <creator>
+            <creatorName>Test User 2</creatorName>
+            <givenName>Test</givenName>
+            <familyName>User</familyName>
+        </creator>
+        <creator>
+            <creatorName>Organisation 1</creatorName>
+            <nameIdentifier nameIdentifierScheme="ror">https://ror.org/038sjwq14</nameIdentifier>
+        </creator>
+    </creators>
+    <fundingReferences>
+        <fundingReference>
+            <funderName>Funder 1</funderName>
+            <awardNumber>123T3</awardNumber>
+        </fundingReference>
+    </fundingReferences>
+</resource>

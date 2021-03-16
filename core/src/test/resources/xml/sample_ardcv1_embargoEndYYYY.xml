@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resources xmlns="https://identifiers.ardc.edu.au/schemas/ardc-igsn-desc"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://identifiers.ardc.edu.au/schemas/ardc-igsn-desc">
+    <resource registeredObjectType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/PhysicalSample">
+        <resourceIdentifier>10273/XX0TUIAYLV</resourceIdentifier>
+        <landingPage>https://demo.identifiers.ardc.edu.au/igsn/#/meta/XX0TUIAYLV</landingPage>
+        <isPublic embargoEnd="2021">true</isPublic>
+        <resourceTitle>This Tiltle also left blank on purpose</resourceTitle>
+        <alternateIdentifiers>
+            <alternateIdentifier alternateIdentifierType="local">AltID2134</alternateIdentifier>
+        </alternateIdentifiers>
+        <resourceTypes>
+            <resourceType>http://vocabulary.odm2.org/specimentype/core</resourceType>
+        </resourceTypes>
+        <materialTypes>
+            <materialType>http://vocabulary.odm2.org/medium/liquidOrganic</materialType>
+        </materialTypes>
+        <classifications>
+            <classification classificationURI="ClassificationUrl">Classification</classification>
+            <classification classificationURI=""/>
+        </classifications>
+        <purpose>Purpose</purpose>
+        <sampledFeatures>
+            <sampledFeature sampledFeatureURI="SampledFeatureURL">Sampled Feature</sampledFeature>
+            <sampledFeature/>
+        </sampledFeatures>
+        <location>
+            <locality localityURI="locality URL">Locality</locality>
+            <geometry srid="https://epsg.io/4326" verticalDatum="https://epsg.io/4326" geometryURI="GeoURL">POLYGON
+                ((10.689 -25.092, 34.595 -20.17, 38.814 -35.639, 13.502 -39.155, 10.689 -25.092))
+            </geometry>
+        </location>
+        <date>
+            <timePeriod>
+                <start>2020-07-30</start>
+                <end>2020-07-30</end>
+            </timePeriod>
+        </date>
+        <method methodURI="MethodURL">Method</method>
+        <campaign>Project</campaign>
+        <curationDetails>
+            <curation>
+                <curator>
+                    <curatorName>Joel Benn</curatorName>
+                    <curatorIdentifier curatorIdentifierType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/DOI">
+                        10.523546
+                    </curatorIdentifier>
+                </curator>
+                <curationDate>2020-08-05</curationDate>
+                <curationLocation>Curation Location</curationLocation>
+                <curatingInstitution institutionURI="CurationURL">Curation Inst</curatingInstitution>
+            </curation>
+        </curationDetails>
+        <contributors>
+            <contributor contributorType="http://registry.it.csiro.au/def/isotc211/CI_RoleCode/pointOfContact">
+                <contributorName>Sarah Contributor</contributorName>
+            </contributor>
+            <contributor contributorType="http://registry.it.csiro.au/def/isotc211/CI_RoleCode/owner">
+                <contributorName>Mark Adams Sozo CEO</contributorName>
+                <contributorIdentifier
+                        contributorIdentifierType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/ORCID">
+                    0000-0003-0318-3132
+                </contributorIdentifier>
+            </contributor>
+        </contributors>
+        <relatedResources>
+            <relatedResource relationType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/HasReferenceResource">
+                <relatedResourceTitle>Example Publication</relatedResourceTitle>
+                <relatedResourceIdentifier
+                        relatedResourceIdentifierType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/EISSN">
+                    eissn-sdoiuowre
+                </relatedResourceIdentifier>
+            </relatedResource>
+        </relatedResources>
+        <comments>Comments</comments>
+        <logDate eventType="updated">2020-08-03T12:05:12+10:00</logDate>
+    </resource>
+</resources>

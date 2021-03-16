@@ -1,0 +1,80 @@
+# Application Setup
+server.port=8085
+server.servlet.context-path=/igsn
+
+# Logging Setup
+logging.file.name=logs/igsn-registry.log
+
+# Application Setup
+app.name=IGSN Registry
+app.description=A metadata registry for IGSN
+app.version=@project.version@
+app.contact.name=admin
+app.contact.email=admin@localhost
+app.contact.url=https://ardc.edu.au
+app.url=http://localhost:${server.port}${server.servlet.context-path}
+app.portal-url=http://localhost:8085/igsn-portal/
+app.data-path=/tmp/igsn-registry/
+
+# languages
+spring.messages.basename=messages,config.i18n.messages
+spring.messages.encoding=UTF-8
+spring.messages.fallback-to-system-locale=true
+spring.messages.use-code-as-default-message=true
+
+# cache
+spring.cache.type=simple
+
+# Database Setup
+spring.datasource.url=jdbc:h2:mem:proddb
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.driverClassName=org.h2.Driver
+
+# h2 console
+spring.h2.console.enabled=true
+
+# JPA setup
+# set spring.jpa.hibernate.ddl-auto to create for initital run, update for subsequent
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+
+# allow error message to appear in HTTP response, defaults to never
+server.error.include-message=always
+
+# api documentation
+springdoc.swagger-ui.disable-swagger-default-url=true
+
+# actuators
+management.endpoints.web.exposure.include=health, info, metrics
+management.endpoint.metrics.enabled=true
+
+# keycloak
+keycloak.enabled=false
+keycloak.realm=
+keycloak.auth-server-url=
+keycloak.ssl-required=external
+keycloak.resource=
+keycloak-token-url=${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/token
+keycloak.credentials.secret=
+keycloak.use-resource-role-mappings=true
+keycloak.enable-basic-auth=true
+
+keycloak.cors=true
+keycloak.bearer-only=true
+
+keycloak.config.skipPattern=^/(/api/info).*
+
+keycloak.security-constraints[0].authRoles[0]=IGSN_USER
+keycloak.security-constraints[0].securityCollections[0].patterns[0]=/api/resources/*
+keycloak.security-constraints[0].securityCollections[0].patterns[1]=/api/me/
+keycloak.security-constraints[0].securityCollections[0].patterns[2]=/api/services/auth-check/
+keycloak.security-constraints[0].securityCollections[0].patterns[3]=/api/services/igsn/*
+keycloak.security-constraints[1].authRoles[0]=IGSN_ADMIN
+keycloak.security-constraints[1].securityCollections[0].patterns[0]=/api/admin/*
+
+keycloak-token-url=${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/token
+keycloak-admin.username=
+keycloak-admin.password=

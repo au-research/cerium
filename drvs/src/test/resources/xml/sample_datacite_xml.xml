@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<resource xmlns="http://datacite.org/schema/kernel-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://datacite.org/schema/kernel-3 http://schema.datacite.org/meta/kernel-3/metadata.xsd">
+    <identifier identifierType="DOI">10.5284/1015681</identifier>
+    <creators>
+        <creator>
+            <creatorName nameType="Personal">Miller, Elizabeth</creatorName>
+            <givenName>Elizabeth</givenName>
+            <familyName>Miller</familyName>
+            <nameIdentifier schemeURI="http://orcid.org/" nameIdentifierScheme="ORCID">0000-0001-5000-0007</nameIdentifier>
+            <affiliation>DataCite</affiliation>
+        </creator>
+    </creators>
+    <titles>
+        <title>Excavation of a Romano-British Cemetery at the water treatment plant, Saltersford, Grantham, Lincolnshire</title>
+    </titles>
+    <publisher>https://ror.org/01an7q238</publisher>
+    <publicationYear>1995</publicationYear>
+    <subjects>
+        <subject>Archaeology</subject>
+        <subject> 06</subject>
+    </subjects>
+    <language>en</language>
+    <resourceType resourceTypeGeneral="Text">Report</resourceType>
+    <alternateIdentifiers>
+        <alternateIdentifier alternateIdentifierType="ADS Grey Lit ID">13979</alternateIdentifier>
+    </alternateIdentifiers>
+    <relatedIdentifiers>
+        <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf">http://archaeologydataservice.ac.uk/archives/view/greylit/</relatedIdentifier>
+    </relatedIdentifiers>
+    <sizes>
+        <size>999 TB</size>
+    </sizes>
+    <formats>
+        <format>PDF</format>
+    </formats>
+    <rightsList>
+        <rights rightsURI="http://archaeologydataservice.ac.uk/advice/termsOfUseAndAccess">ADS Terms and Conditions apply to reuse</rights>
+    </rightsList>
+    <descriptions>
+        <description xml:lang="en-US" descriptionType="Abstract">
+           Description for Excavation of a Romano-British Cemetery at the water treatment plant, Saltersford, Grantham, Lincolnshir
+        </description>
+    </descriptions>
+    <geoLocations>
+        <geoLocation>
+            <geoLocationPoint>52.889561 -0.626316</geoLocationPoint>
+            <geoLocationPlace>ENGLAND, LINCOLNSHIRE, SOUTH KESTEVEN, LITTLE PONTON</geoLocationPlace>
+        </geoLocation>
+    </geoLocations>
+</resource>

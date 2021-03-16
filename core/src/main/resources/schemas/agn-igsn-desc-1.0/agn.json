@@ -1,0 +1,425 @@
+{
+  "$id": " https://identifiers.ardc.edu.au/igsn-schema/descriptive/1.0/ngsa.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Descriptive metadata schema for AusGeochem IGSNs",
+  "type": "array",
+  "title": "samples",
+  "additionalProperties": false,
+  "items": {
+    "type": "object",
+    "title": "sample",
+    "additionalProperties": false,
+    "properties": {
+      "igsn": {
+        "description": "International Geo-Sample Number; to be assigned by collector, analysts or, in cases where no IGSN exists at time of data upload, by the AGN/AusGeochem",
+        "$ref": "#/definitions/nonEmptyString",
+        "pattern": "^[0-9\\.]+\\/[A-Z]{2}[A-Za-z0-9\\-.]+$"
+      },
+      "landingPage": {
+        "description": "The landing page URL for the IGSN.",
+        "$ref": "#/definitions/nonEmptyString"
+      },
+      "localSampleID": {
+        "description": "sample ID-numbers assigned by collector",
+        "$ref": "#/definitions/nonEmptyString"
+      },
+      "sampleType": {
+        "description": "Type of sample (e.g. outcrop sample, bore hole, etc.)",
+        "$ref": "#/definitions/sampleTypes"
+      },
+      "analyte": {
+        "$ref": "#/definitions/analyteTypes"
+      },
+      "lithologyType": {
+        "description": "Lithology type of rock unit sample was collected from",
+        "$ref": "#/definitions/nonEmptyString"
+      },
+      "lithologyComment": {
+        "description": "Addional information about sample lithology",
+        "$ref": "#/definitions/nonEmptyString"
+      },
+      "locationCaptureType": {
+        "description": "How sample location was determined (e.g. GPS, published coordinates, georeferenced images, etc.) - same as Lithodat lookup table",
+        "$ref": "#/definitions/locationCaptureTypes"
+      },
+      "lastKnownSampleArchiveLocation": {
+        "description": "Last known archive where sample material is archived",
+        "$ref": "#/definitions/nonEmptyString"
+      },
+      "location": {
+        "required": [
+          "latLong"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "latLong": {
+            "$ref": "#/definitions/latLongCoordinates"
+          },
+          "elevation": {
+            "description": "Elevation of sample",
+            "type": "number"
+          },
+          "verticalDatum": {
+            "description": "Vertical datum (e.g. Mean Sea Level, Measured Depth, etc.) - same as Lithodat lookup table",
+            "$ref": "#/definitions/verticalDatumTypes"
+          },
+          "locComment": {
+            "description": "Addional information about sample location, such as outcrop info or physiographic feature",
+            "$ref": "#/definitions/nonEmptyString"
+          },
+          "ageMin": {
+            "description": "Minimum age of rock sample",
+            "type": "number"
+          },
+          "ageMax": {
+            "description": "Maximum age of rock sample",
+            "type": "number"
+          },
+          "depthMin": {
+            "description": "Minimum depth of rock sample; important for core, well or dredge samples",
+            "type": "number"
+          },
+          "depthMax": {
+            "description": "Maximum depth of rock sample; important for core, well or dredge samples",
+            "type": "number"
+          }
+        }
+      },
+      "site": {
+        "additionalProperties": false,
+        "properties": {
+          "locationName": {
+            "description": "Name of sampling location",
+            "$ref": "#/definitions/nonEmptyString"
+          },
+          "locationKind": {
+            "description": "Type of sampling location (e.g. outcrop, well location, etc.) - same as Lithodat lookup table",
+            "$ref": "#/definitions/locationKinds"
+          },
+          "stratigraphicUnitName": {
+            "description": "Geological name of rock unit sample was collected from",
+            "$ref": "#/definitions/stratigraphicUnitNames"
+          },
+          "unitAge": {
+            "description": "Age of rock unit sample was collected from",
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      },
+      "researchers": {
+        "description": "Researchers related to the sample",
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "$ref": "#/definitions/researcher"
+        }
+      },
+      "relatedPublications": {
+        "description": "Publications related to the sample",
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/publication"
+        }
+      },
+      "relatedEntities": {
+        "description": "Other entities related to the sample e.g. datasets, parent/child samples, organisations",
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/relatedEntity"
+        }
+      },
+      "funding": {
+        "description": "Funding information for the sample",
+        "type": "object",
+        "properties": {
+          "fundingBody": {
+            "description": "Organisation or body that provided funding for sample collection/preparation",
+            "$ref": "#/definitions/nonEmptyString"
+          },
+          "fundcomment": {
+            "$ref": "#/definitions/nonEmptyString"
+          },
+          "grantId": {
+            "description": "Funding/grant ID",
+            "$ref": "#/definitions/identifier"
+          }
+        },
+        "required": [
+          "fundingBody"
+        ]
+      }
+    },
+    "required": [
+      "igsn",
+      "landingPage",
+      "localSampleID",
+      "sampleType",
+      "analyte",
+      "lithologyType",
+      "location",
+      "researchers"
+    ]
+  },
+  "definitions": {
+    "researcher": {
+      "type": "object",
+      "required": [
+        "fullName",
+        "researcherRole"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fullName": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "nameType": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "givenName": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "researcherRole": {
+          "description": "The relationship between the sample and researcher",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        },
+        "identifiers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/identifier"
+          }
+        }
+      }
+    },
+    "relatedEntity": {
+      "type": "object",
+      "required": [
+        "identifiers",
+        "relation",
+        "entityType",
+        "relatedEntityTitleName"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "relatedEntityTitleName": {
+          "description": "The name or title of the related entity",
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "relation": {
+          "description": "The relationship between the sample and entity",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        },
+        "entityType": {
+          "description": "The type of entity.",
+          "$ref": "#/definitions/relatedEntityTypes"
+        },
+        "identifiers": {
+          "description": "Unique identifiers for the entity.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/identifier"
+          }
+        }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "required": [
+        "identifier"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "referenceTitle": {
+          "description": "Title of publication",
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "referenceAuthors": {
+          "description": "Author(s) and year of reference (Kohlmann et al., 2000)",
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "referenceJournal": {
+          "description": "Journal of publication",
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "referenceYear": {
+          "description": "Year of publication",
+          "type": "number"
+        },
+        "identifiers": {
+          "description": "Identifiers for publication. E.g. Reference DOI",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/identifier"
+          }
+        }
+      }
+    },
+    "identifier": {
+      "type": "object",
+      "required": [
+        "identifier",
+        "identifierType"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "identifier": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "identifierType": {
+          "$ref": "#/definitions/identifierTypes"
+        }
+      }
+    },
+    "latLongCoordinates": {
+      "type": "object",
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "latLongPrecision_m": {
+          "description": "Precision of lat/long",
+          "type": "number"
+        }
+      }
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verticalDatumTypes": {
+      "enum": [
+        "Unknown",
+        "True Vertical Depth",
+        "Measured Depth",
+        "Kelly Bushing",
+        "Ground level",
+        "Drilling Rig Floor",
+        "Rotary table",
+        "Mean Sea Level ",
+        "Sea Bottom",
+        "TVDSS",
+        "Casing Bowl Flange"
+      ]
+    },
+    "sampleTypes": {
+      "enum": [
+        "Unknown",
+        "Hand sample",
+        "Drill core",
+        "Cuttings",
+        "Boulder",
+        "Dredge sample",
+        "Fieldstone"
+      ]
+    },
+    "analyteTypes": {
+      "enum": [
+        "Unknown",
+        "Hand specimen",
+        "Mount",
+        "Thin section",
+        "Powder",
+        "Mineral separate",
+        "Core (polished)",
+        "Rock slab (polished)",
+        "New"
+      ]
+    },
+    "locationCaptureTypes": {
+      "enum": [
+        "Unknown",
+        "Location by sat image",
+        "Location by Google Earth",
+        "Georeferenced image",
+        "Location derived from location decription",
+        "Published coordinates",
+        "GPS"
+      ]
+    },
+    "locationKinds": {
+      "enum": [
+        "Unknown",
+        "well location",
+        "outcrop location",
+        "section location",
+        "soil sample location"
+      ]
+    },
+    "stratigraphicUnitNames": {
+      "enum": [
+        "Unknown",
+        "Boothby Orthogneiss",
+        "Nolans Dam Metamorphics"
+      ]
+    },
+    "identifierTypes": {
+      "enum": [
+        "abn",
+        "arc",
+        "ark",
+        "au-anl:peau",
+        "doi",
+        "ean13",
+        "eissn",
+        "handle",
+        "igsn",
+        "infouri",
+        "isbn",
+        "isil",
+        "isni",
+        "issn",
+        "istc",
+        "lissn",
+        "local",
+        "mediaType",
+        "nhmrc",
+        "orcid",
+        "pubMedId",
+        "purl",
+        "researcherID",
+        "ror",
+        "upc",
+        "uri",
+        "urn",
+        "viaf"
+      ]
+    },
+    "relatedEntityTypes": {
+      "enum": [
+        "dataset",
+        "publication",
+        "person",
+        "organisation",
+        "sample",
+        "model",
+        "instrument",
+        "service",
+        "website",
+        "other"
+      ]
+    }
+  }
+}

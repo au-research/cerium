@@ -1,0 +1,45 @@
+{"@context": ["http://schema.org/",
+                "https://raw.githubusercontent.com/IGSN/igsn-json/master/schema.igsn.org/json/registration/v0.1/context.jsonld"],
+    "@id": "http://hdl.handle.net/10273/XXABXTDOJB71",
+    "@igsn" : "10273/XXABXTDOJB71",
+
+    "registrant": {"@type":"registrant", "name": "ARDC",
+     "identifiers": [
+      {
+        "id": "https://ror.org/038sjwq14",
+        "kind": "ror"
+      }
+    ]},
+    "igsnvoc:log": [
+          {
+        "igsnvoc:@type": "registered",
+        "igsnvoc:timestamp": "2002"
+        }
+    ],
+    "description" :{
+    "@context": [{"objectType": "http://pid.geoscience.gov.au/def/voc/igsn-codelists/"},
+                 {"materialType": "http://vocabulary.odm2.org/medium/"},
+                 {"sampleType": "http://vocabulary.odm2.org/specimentype/"},
+                 {"abstract": "http://purl.org/dc/terms/abstract"},
+                 {"classifications": "https://igsn.csiro.au/schemas/3.0/classifications"}],
+    "@type":"igsn",
+    "objectType"  : "Sample",
+    "URL" : "https://test.identifiers.ardc.edu.au/igsn/#/meta/XXABXTDOJB71",
+    "@id": "http://hdl.handle.net/10273/XXABXTDOJB71",
+    "landingPage" : "https://test.identifiers.ardc.edu.au/igsn/#/meta/XXABXTDOJB71",
+    "title" : "JB M2M Test",
+    "curator" : "CSIRO",
+    "curator" : "Curtin",
+    "contributor" : "Adam Brown",
+    "contributor" : "Victor Tey",
+    "classifications" : ["Some phrases for classification","maybe gold or silver"],
+    "sampleType" : ["http://vocabulary.odm2.org/specimentype/corePiece","http://vocabulary.odm2.org/specimentype/core"],
+    "materialType" : ["http://vocabulary.odm2.org/medium/air","http://vocabulary.odm2.org/medium/particulate"],
+"location":{
+    "@type": "Place",
+"address": "Canning vale",
+    "geo" : {
+    "@type": "GeoShape",
+    "polygon": "POLYGON ((127.05688476563 -20.5224609375, 124.24438476563 -28.2568359375, 143.22875976563 -32.1240234375, 142.17407226563 -20.8740234375, 127.05688476563 -20.5224609375))"
+    }}
+    }}

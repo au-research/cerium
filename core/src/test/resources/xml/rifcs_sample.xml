@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="Breast Cancer Tissue Bank">
+        <key>abctb.org.au 19</key>
+        <originatingSource>http://abctb.org.au/</originatingSource>
+        <collection type="collection">
+            <identifier type="local">abctb.org.au 19</identifier>
+            <name type="primary">
+                <namePart>BCTB FFPE Microscope Images</namePart>
+            </name>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>https://abctb.org.au/abctbNew2/researchspecimenquery.aspx</value>
+                    </electronic>
+                </address>
+            </location>
+            <relatedObject>
+                <key>abctb.org.au 9</key>
+                <relation type="isPartOf"/>
+            </relatedObject>
+            <relatedObject>
+                <key>abctb.org.au 2</key>
+                <relation type="supports"/>
+            </relatedObject>
+            <relatedObject>
+                <key>abctb.org.au 1</key>
+                <relation type="isManagedBy"/>
+            </relatedObject>
+            <subject type="anzsrc-for">9201</subject>
+            <subject type="anzsrc-for">9201102 Cancer and Related Disorders</subject>
+            <subject type="anzsrc-for">9201507 Women's Health</subject>
+            <description type="brief">This BCTB subcollection consists of microscope images of FFPE tissue samples, scanned with a Hamamatsu Nanozoomer. Partial low-resolution images are available through the Research Query page on the BCTB website. Full images may be made available to authorised researchers.</description>
+            <description type="rights">Limited information about items in the BCTB collections, and small images, are available publicly through the search tool on the Research Query web page.  Researchers who would like to seek direct access to samples and full-size images can find details of the procedure to follow at https://abctb.org.au/abctbNew2/researchers.aspx .</description>
+        </collection>
+    </registryObject>
+</registryObjects>

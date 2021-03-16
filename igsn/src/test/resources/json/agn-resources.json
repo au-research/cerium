@@ -1,0 +1,79 @@
+[
+  {
+    "igsn": "10273/XXAA345678",
+    "landingPage": "http://example.com/XXAA345678",
+    "localSampleID": "MLF 003",
+    "sampleType": "Hand sample",
+    "analyte": "Mount",
+    "lithologyType": "Meta-alkali-feldspar-granite",
+    "lithologyComment": "Muscovite-biotite gneiss",
+    "locationCaptureType": "Location by sat image",
+    "site": {
+      "locationKind": "well location",
+      "locationName": "string",
+      "stratigraphicUnitName": "Boothby Orthogneiss"
+    },
+    "researchers": [
+      {
+        "fullName": "Binta Etsu (NGSA)",
+        "researcherRole": [
+          "principalInvestigator"
+        ]
+      }
+    ],
+    "location": {
+      "latLong": {
+        "latitude": 11.77136111,
+        "longitude": 7.770527778
+      },
+      "verticalDatum": "Measured Depth",
+      "elevation": 421
+    }
+  },
+  {
+    "igsn": "10273/XXAA12345",
+    "landingPage": "http://example.com",
+    "localSampleID": "23432lksdf",
+    "sampleType": "Hand sample",
+    "analyte": "Thin section",
+    "lithologyType": "Foid-bearing-alkali-feldspar-syenite",
+    "lithologyComment": "Example comment",
+    "locationCaptureType": "Location by sat image",
+    "site": {
+      "locationKind": "well location",
+      "locationName": "string",
+      "stratigraphicUnitName": "Boothby Orthogneiss",
+      "unitAge": "string"
+    },
+    "researchers": [
+      {
+        "fullName": "Example Researcher",
+        "researcherRole": [
+          "principalInvestigator"
+        ]
+      }
+    ],
+    "location": {
+      "latLong": {
+        "latitude": 45,
+        "longitude": 55
+      },
+      "verticalDatum": "Measured Depth"
+    },
+    "relatedEntities": [
+      {
+        "identifiers": [
+          {
+            "identifier": "10.4225/7554578",
+            "identifierType": "doi"
+          }
+        ],
+        "relation": [
+          "isBasedOn"
+        ],
+        "entityType": "dataset",
+        "relatedEntityTitleName": "Example dataset"
+      }
+    ]
+  }
+]

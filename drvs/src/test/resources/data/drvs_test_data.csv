@@ -1,0 +1,138 @@
+﻿Metadata Concept,Collection Capacity,Local Collection ID, Application Research Disciplines,Title,Description,Data Controller/s,Collection ID,Actionable Digital Registry entry,Owner/s Contributors,Merit,License,Collection type,Publication Year,DOI
+,113,test/AA-LOD,040499; 040503;,Australian Coastal Ocean Radar Network radar and oceanographic data sets,"These are in order of generation from radar to oceanographic products not in order of priority for archiving at
+Townsville. Item 1 is currently not archived anywhere. Item 3 is likely to be the first priority. 1. Raw HF
+radar data i.e. the voltages measured at the receiver from each antenna after mixer processing stages 2.
+Range-resolved radar data for each antenna 3. Doppler spectra with or without beam-forming (to resolve
+azimuth) depending on the type of radar used. 4. Radial velocities i.e. the component of the surface current
+along a direction from the measurement position to the radar. 5. Vector currents obtained by combining data
+from two radars. Wave data including significant waveheight, mean and peak period and direction,
+directional spectrum and derived wind data.",Brendan Davey - https://orcid.org/0000-0002-1482-7119,,,,,,,,10.25903/5f7bc4cd8bc4d
+,1032,rets,020106;,Vela Pulsar Single Pulse Archive,"Vela Pulsar Single Pulse Archive - Currently the largest single pulse archive of pulsar data in the world. Focusing on the bright
+southern hemisphere pulsar - J0835-4510.",Jim Palfreyman - https://orcid.org/0000-0001-8691-8039,https://doi.org/10.25959/100.00030030,,,,,,,
+,333,tcf,04; 05; 06;,Climate Futures,"The Climate Futures Project has developed fine-scale regional climate projections for Tasmania to 2100 as
+part of the Climate Futures for Tasmania project (2007-2010). Their role in the Landscapes and Policy Hub
+is to generate similar fine-scale resolution climate projections for the Australian Alps and work with hub
+researchers and land managers to apply these unique regional climate projections to the conservation of
+biodiversity. Professor Nathan Bindoff leads the Climate Futures team and key contributors are Dr Bec
+Harris (Climate Research Fellow), Dr Greg Lee (Climate Modeller) and Paul Fox-Hughes (Bushfire Weather
+Analyst). In consultation with land managers and hub researchers, they are generating ecological indices that
+can be used with multi-model projections of future climate in Tasmania and the Australian Alps. Using the
+new climate projections, researchers, planners and managers will have a greater capacity to explore the likely
+implications of climate change on priority species, communities and threatening processes. Other contact
+names, Matt Cracknell, Stuart Corney, Chris White, Thomas Remenyi",Tom Remenyi - https://orcid.org/0000-0002-4145-9323,,,,,,,,10.25903/5f713cd732757
+,294,aussie,090902; 0201;,AuScope Geodetic VLBI - AUSTRAL experiments,"The AUSTRAL observing program was started in 2011, performing geodetic and astrometric very long baseline interferometry (VLBI) sessions using the new Australian AuScope VLBI antennas at Hobart, Katherine, and Yarragadee. These sessions are organised and performed by the operations centre in Hobart and support innovative research on the observations and operations at the University of Tasmania, in the fields of geodesy, astrometry and astronomy. The telescopes also regularly participate in global-scale VLBI experiments organised through the international VLBI service (IVS).",Jamie McCallum University of Tasmania: (https://ror.org/01nfmeh72),,,,,,,,
+,257,gfat,040104; 040602; 040105; 040503;,Cryospheric data from the Antarctic/Southern Ocean,"Recently an increasing rate of change in the Southern Hemisphere's cryospheric components has been observed. For example, Arctic sea ice has been thinning dramatically during recent decades, and with it ice age and summer ice extent has reduced. Compared to the Arctic, observations of Antarctic sea ice are few, and while a recent increase in annual maximum sea-ice extent has been observed, little observations exist of its thickness. Satellite-derived information on the state and any variability of the cryosphere system provide an invaluable tool to map the circum-Antarctic system on a regular and sustainable basis. Bringing together a unique suite of dataset, including active/passive microwave, scatterometers, visible, for the region south of 55oS will provide a crucial base for any long-term monitoring and verification of numerical models, as well as for scientific case studies and logistics project. The value of the proposed data holding will be that it is anticipated to be a unique archive of cryosphere-relevant satellite data, as data providers update their own data holdings. For example, the European Space Agency holds its data in a rolling archive, which previously was overwritten every 7 days. In their renewed space programme they aim to hold data for 2 months from their acquisitions. With increasing data capture the data providers will rely more and more on users to quickly access and to safely archive their data. [This is an uncurated collection of collections and other data that UTas will target for a curation and publication effort]",Petra Heil - https://orcid.org/0000-0003-2078-0342,,,,,,,,10.25903/5f617fb6d6e0e
+,163,gres,04;,Intergrated Marine Observing System,"Australia's Integrated Marine Observing System (IMOS) was established in 2007 under the National
+Collaborative Research Infrastructure Strategy (NCRIS), and was extended and enhanced through the
+Education Investment Fund (EIF) in 2009, and extended under the Collaborative Research Infrastructure
+Scheme (CRIS) and NCRIS in 2013. IMOS is designed to be a fully-integrated national array of observing
+equipment to monitor the open oceans and coastal marine environment around Australia, covering physical,
+chemical and biological variables. All IMOS data is freely and openly available through the IMOS Ocean
+Portal for the benefit of Australian marine and climate science as a whole. IMOS observations are guided by
+societal needs for improved ocean information, and focused through science planning undertaken
+collaboratively across the Australian marine and climate science community. There are are five major
+research themes that unify IMOS science plans and related observations: Multi-decadal ocean change;
+Climate variability and weather extremes; Major boundary currents and interbasin flows; Continental shelf
+processes; and Ecosystem responses.",Sebastien Mancini - https://orcid.org/0000-0002-5822-5275,,,,,,,,
+,112,vimar,050299;040503;,Marine Virtual Laboratory Models,"The Marine Virtual Laboratory (MARVL) is a modelling and observation framework designed to accelerate
+the time taken to establish and set up a numerical model simulation for a given spatial and temporal domain.
+By stepping through a menu-driven browser a user can choose from a set of five coastal ocean hydrodynamic
+and wave models, define the spatial extent (in Australian waters) and desired spatial resolution and the
+temporal extent (subject to available dataset span) of a simulation, choose from a set of datasets for the
+definition of initial and forcing fields, and request observational data for validation. These assembled
+datasets can then be packaged together to be used on a computer of choice. This data collection for MARVL
+consists of a) input datasets: several ocean model re-analyses obtained from different sources and used for
+initial and lateral boundary conditions, several atmospheric model re-analyses for surface forcing,
+bathymetry datasets, observation datasets, and b) output datasets: initially the assembled model bundled
+datasets, but, also model simulation output datasets once MARVL is configured to submit jobs to a cloud
+environment (planned in 2014).",Brendan Davey - https://orcid.org/0000-0002-1482-7119,,,,,,,,10.25903/5f45d97cc5081
+,74,hwar,040105;,Weather at Home,"Weather@home ANZ is a citizen science distributed computing project being run as part of the global
+""weatherathome"" project. This is a brand new experiment in which a highly detailed limited area (regional)
+climate model is embedded within the less detailed 'driving' global model. This highly detailed model is able
+to tell us in unprecedented detail about potential changes to patterns of weather as climate changes in the
+future. In the initial experiment launched in 2011, the project team released this regional modelling
+capability for three regions: Europe, Southern Africa and the Western USA. This capability has been
+extended to other regions around the world and the first such new region to be developed is the Australasian
+region encompassing Australia, New Zealand and surrounding areas. This particular part of the project will
+be called "" weatherathome ANZ "" and receives the support of the University of Oxford (U.K.), the
+University of Melbourne (Australia) and NIWA",Sue Rosier - https://ror.org/04hxcaz34,,,,,,,,
+,68,cap,04; 05; 06; 07,TPAC Digital Library Collection,[This is an uncurated collection of collections and other data that UTas will target for a curation and publication effort],Brendan Davey - https://orcid.org/0000-0002-1482-7119,,,,,,,,10.25903/5f519dc27a7f7
+,43,llapax,0201;,Scale and Structure of the Milky Way,"This collection is associated with data being collected as part of my ARC Discovery project DP180101061, which is using the UTas radio telescope array to make trigonometric parallax measurements of young, high-mass stars to investigate the scale and structure of the Millky Way.",Simon Ellingsen - https://orcid.org/0000-0002-1363-5457,,,,,,,,
+,20,liquids,0405;,Squiddle collection archive.,"New and improved online and in-field platforms for exploration, management and annotation of georeferenced images & video. https://squidle.org",Sebastien Mancini - https://orcid.org/0000-0002-5822-5275,,,,,,,,10.25903/5f51960d7a7f6
+,17,aae,050206;,EnviSat Asar Archive,"This collection will host: 1) archive of ESA's (European Space Agency) Envisat ASAR data (2004 - 2012) of
+its GMM and WSM mode imagery for the region south of 55oS. 2) a data collection of geolocated ASAR
+imagery. 3) a repository of derived ice-displacement data.",Petra Heil - https://orcid.org/0000-0003-2078-0342,,,,,,,,
+,15,meg,04;,Global Ecosystem Model,Underpinning dataset for the 'The Fisheries and Marine Ecosystem Model Intercomparison Project (Fish-MIP)'. ISIMIP aims to improve global and regional risk management by advancing knowledge of the risks of climate change through integrating climate impacts across sectors and scales in a multi-impact model framework.,Julia Blanchard - https://orcid.org/0000-0003-0532-4824,,,,,,,,10.25903/5f4f18fd61010
+,60,sams,04;,IMAS Data Collections,"IMAS Portal collections, quite a numner of datasets covering oceans and Cryosphere, ecology and biodiversity, fisheries and aquaculture, climate change, ocean-earth science and ocean-antarctic governance.",Peter Walsh - https://orcid.org/0000-0003-4998-0188,,,,,,,,
+,7,cees,0602; 050101;,Climate impacts on Australian species,"The collection here represents information (raw and modelled) the impacts of climate on spatiotemporal
+patterns of Tasmanian species distribution and abundance. The data was aggregated, modelled and
+summarized for the purposes of generation of manuscripts and informing key stakeholders about the past,
+present and potential future impacts on tasmanian species.",Chris Johnson - http://orcid.org/0000-0002-9719-3771,,,,,,,,10.25903/5eebf8f419abf
+,5,vurs,0405;,Global archive data Collections.,"GlobalArchive is an online centralised repository of fish image annotation, stereo calibration and associated information that provides the ability to upload data with flexible file formats. It is designed to receive standardised datatable formats directly from EventMeasure (EM) software or from any other image annotation records or historical data sets and provides the ability to explore, query and share this data with other users across different projects and institutions. GlobalArchive is designed for working with annotation data that has already been generated via external sources. It solves the problem of data synthesis providing a centralised repository to work with and query the data, and also provides advanced sharing capability to allow for synthesis and collaboration between users and organisations. GlobalArchive was conceived by Timothy Langlois at the University of Western Australia and brought to life by Ariell Friedman at Greybits Engineering in Sydney.",Sebastien Mancini - https://orcid.org/0000-0002-5822-5275,,,,,,,,
+,5,djes,040499; 090902;,Global GPS data,"This dataset includes GNSS (mainly GPS) data for continuous and campaign sites globally, with a focus on
+sites of interest for studies of vertical land motion. Our particular focus is on vertical land motion at or near
+to tide gauges and for studies of glacial isostatic adjustment. Raw GPS data are stored, mainly as obtained
+from public archives, alongside site metadata in IGS site log format. Products derived from the GPS data, in
+the form of site time series and velocities are stored in Solution Independent Exchange Format (SINEX) and
+in many cases as ascii time series or ascii velocities.",Matt KIng - https://orcid.org/0000-0001-5611-9498, ,,,,,,,10.25903/5f31f85aa8011
+,5,raas,040102;040104;040107;040108;040199;,Bureau of Meteorology Atmospheric high-resolution Regional Reanalysis for Australia,"The Bureau of Meteorology Atmospheric high-resolution Regional Reanalysis for Australia (BARRA) is the first of its kind for the Australian region. The Bureau of Meteorology is making a major investment into this new dataset because of the important benefits it offers to Australia. A meteorological ""reanalysis"" takes all available observations and uses a weather model to consistently fill in the fine detail, both at the surface where people live and in the atmosphere as well. Reanalysis datasets are extremely valuable because they provide a consistent method of analysing the atmosphere over a number of years or decades giving greater understanding of the weather over Australia, including extreme events. This greater understanding allows for better planning and management to reduce risks for the future.
+
+The regional reanalysis suite is based on the Australian Community Climate Earth-System Simulator (ACCESS) which is developed in close collaboration between the Bureau, CSIRO and Australian universities. The region covered by the reanalysis, shown below, is the Australian continent, and the surrounding region including parts of southeast Asia, New Zealand, and south to the ice edge of the Antarctic continent.
+
+
+The reanalysis over the Australian domain is provided with a resolution of approximately 12 km and extends over 70 levels up to 80 km into the atmosphere. For a small number of subdomains, the 12-km reanalysis is downscaled to a 1.5 km resolution.",Tom Remenyi - https://orcid.org/0000-0002-4145-9323,,,,,,,,
+,1,pets,060205; 050202;,Reef Life Survey benthic photo-quadrats,"The Reef Life Survey (RLS) program has enabled the collection of marine biodiversity data on shallow reef
+habitat to be expanded to large scales (global, and on-going through time) through the participation of
+trained volunteer SCUBA divers. The RLS database now contains data from >2,200 sites worldwide, and is
+continually growing through time-series information from monitoring activities at numerous locations
+around Australia. A core standard component of RLS biodiversity survey methods is collection of imagery of
+attached marine life on the seabed (photo-quadrats). The RLS photo-quadrat collection contains
+photographic images taken by RLS divers with a digital camera at regular intervals along 50 m transect lines
+set at each of these sites. With extensive coverage of the shallow, inshore and offshore reef systems around
+Australia to a depth of 42 m (mostly in the range of 1-20 m), it usefully complements other marine imagery
+collections such as those from deep water collected by Autonomous Underwater vehicles (AUV). It also
+extends to over 40 other countries and all major ocean basins, making it possible to answer many large-scale
+research questions (such as looking at biogeographic patterns and gradients with environmental variables.
+With most data focused in coastal regions, it is also of great value for research and management foci on
+patterns related to human impacts. The collection currently includes >81,000 images, and is continually
+growing as new surveys are done by RLS divers.",Rick Stuart-Smith - https://orcid.org/0000-0002-8874-0083,,,,,,,,10.25903/5f4c3d49d28d7
+,1,dco,040501;,"Ocean Colour Data - NASA Moderate
+Resolution Imaging Spectroradiometer","MODIS (Moderate Resolution Imaging Spectroradiometer) is a key instrument aboard the Aqua earth
+observing satellite. MODIS-Aqua views the entire Earth's surface every 1 to 2 days, acquiring data in 36
+spectral groups of wavelengths. These data will improve our understanding of global dynamics and
+processes occurring in the oceans and in the lower atmosphere. MODIS is playing a vital role in the
+development of validated, global, interactive Earth system models able to predict global change accurately
+enough to assist policy makers in making sound decisions concerning the protection of our environment. The
+data stored here are the quality controlled level 3 radiometery data and derived geophysical variables
+mapped to a uniform space/time grid scale, as disseminated by NASA, along with tailored Southern Ocean
+specific products developed by the data owner and manager.",Peter Strutton - https://orcid.org/0000-0002-2395-9471,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,

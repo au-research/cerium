@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource xmlns="http://datacite.org/schema/kernel-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.2/metadata.xsd">
+    <identifier identifierType="DOI">10.80298/TEST_DOI_602B5EBDB2FA4</identifier>
+    <publisher>https://ror.org/038sjwq14</publisher>
+    <publicationYear>2001</publicationYear>
+    <resourceType resourceTypeGeneral="Text">Report</resourceType>
+    <titles>
+        <title xml:lang="en" titleType="AlternativeTitle">DRVS Test DOI 17 - Pass - Only Rights identifier and scheme</title>
+    </titles>
+    <subjects>
+        <subject subjectScheme="for">0601</subject>
+    </subjects>
+    <dates>
+        <date dateType="Created">2020-11-10</date>
+        <date dateType="Updated">2021-02-15</date>
+    </dates>
+    <alternateIdentifiers>
+        <alternateIdentifier alternateIdentifierType="local ID">gres</alternateIdentifier>
+    </alternateIdentifiers>
+    <sizes>
+        <size>1612477 TB</size>
+    </sizes>
+    <descriptions>
+        <description descriptionType="Other">Other description</description>
+    </descriptions>
+    <creators>
+        <creator>
+            <creatorName>Test User 1</creatorName>
+        </creator>
+        <creator>
+            <creatorName>Test User 2</creatorName>
+            <givenName>Test</givenName>
+            <familyName>User</familyName>
+        </creator>
+        <creator>
+            <creatorName>Organisation 1</creatorName>
+            <nameIdentifier nameIdentifierScheme="orcid">0000-2323-2356-5654</nameIdentifier>
+        </creator>
+        <creator>
+            <creatorName nameType="Personal">Hendry, Natalie</creatorName>
+            <givenName>Natalie</givenName>
+            <familyName>Hendry</familyName>
+            <nameIdentifier nameIdentifierScheme="orcid">0000-2443-2356-5654</nameIdentifier>
+        </creator>
+        <creator>
+            <creatorName nameType="Personal">Flore, Jacinthe</creatorName>
+            <givenName>Jacinthe</givenName>
+            <familyName>Flore</familyName>
+        </creator>
+        <creator>
+            <creatorName>Averyl Gaylor</creatorName>
+        </creator>
+        <creator>
+            <creatorName>Thomas Shafee</creatorName>
+            <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org">0000-0002-2298-7593</nameIdentifier>
+        </creator>
+        <creator>
+            <creatorName>BK Kerenga</creatorName>
+        </creator>
+        <creator>
+            <creatorName>Tatiana Soares-da-Costa</creatorName>
+        </creator>
+        <creator>
+            <creatorName>DJ Craik</creatorName>
+        </creator>
+    </creators>
+    <rightsList>
+        <rights rightsIdentifier="rightsID" rightsIdentifierScheme="rightsRIS">fish</rights>
+    </rightsList>
+    <fundingReferences>
+        <fundingReference>
+            <funderName>Funder 1</funderName>
+            <awardNumber>123T3</awardNumber>
+        </fundingReference>
+    </fundingReferences>
+</resource>

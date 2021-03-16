@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:resources xmlns:ns2="https://igsn.csiro.au/schemas/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://igsn.csiro.au/schemas/3.0 https://identifiers.ardc.edu.au/igsn/schemas/3.0/igsn-csiro-v3.0.xsd">
+    <ns2:resource registeredObjectType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/PhysicalSample">
+        <ns2:resourceIdentifier>XXAA45CJ1N</ns2:resourceIdentifier>
+        <ns2:landingPage>https://test.identifiers.ardc.edu.au/igsn/#/meta/XXAA45CJ1N</ns2:landingPage>
+        <ns2:isPublic>true</ns2:isPublic>
+        <ns2:resourceTitle>It's a good title (fit for a King)</ns2:resourceTitle>
+        <ns2:resourceTypes>
+            <ns2:resourceType>http://vocabulary.odm2.org/specimentype/core</ns2:resourceType>
+        </ns2:resourceTypes>
+        <ns2:materialTypes>
+            <ns2:materialType>http://vocabulary.odm2.org/medium/mineral</ns2:materialType>
+        </ns2:materialTypes>
+        <ns2:location>
+            <ns2:locality/>
+            <ns2:geometry srid="https://epsg.io/4283"></ns2:geometry>
+        </ns2:location>
+        <ns2:curationDetails>
+            <ns2:curation>
+                <ns2:curator>Leo Monus (0000-0002-5668-8794)</ns2:curator>
+                <ns2:curatingInstitution/>
+            </ns2:curation>
+        </ns2:curationDetails>
+        <ns2:logDate eventType="updated">2020-08-11T11:12:14+10:00</ns2:logDate>
+    </ns2:resource>
+</ns2:resources>
+

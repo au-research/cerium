@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns="https://identifiers.ardc.edu.au/schemas/ardc-igsn-desc"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://identifiers.ardc.edu.au/schemas/ardc-igsn-desc https://identifiers.ardc.edu.au/igsn-schema/descriptive/1.0/resource.xsd">
+    <resource registeredObjectType="http://pid.geoscience.gov.au/def/voc/ga/igsncode/PhysicalSample">
+        <resourceIdentifier>10273/XXAB000C0</resourceIdentifier>
+        <landingPage>https://test.identifiers.ardc.edu.au/igsn/#/meta/XXAB000C0</landingPage>
+        <isPublic>false</isPublic>
+        <resourceTitle>zircon "sample" (Sample 9796 9249 / IGSN XXAB000C0) from the Neal McNaughton Legacy Collection SHRIMP mount 97-43 (IGSN XXAB000BY)</resourceTitle>
+        <resourceTypes>
+            <resourceType>http://vocabulary.odm2.org/specimentype/other</resourceType>
+        </resourceTypes>
+        <materialTypes>
+            <materialType>http://vocabulary.odm2.org/medium/mineral</materialType>
+        </materialTypes>
+        <classifications>
+            <classification>igneous {} [ } ]granitic/meta-igneous felsic intrusive (biotite monzogranite)</classification>
+        </classifications>
+        <sampledFeatures>
+            <sampledFeature>Yilgarn Craton Granites</sampledFeature>
+        </sampledFeatures>
+        <location>
+            <locality>\]</locality>
+            <geometry srid="https://epsg.io/4326">POINT (122.1837 -31.8288)</geometry>
+        </location>
+        <curationDetails>
+            <curation>
+                <curator>
+                    <curatorName>Geological Survey of Western Australia</curatorName>
+                </curator>
+                <curationDate>2019-06-24</curationDate>
+                <curationLocation>Bentley</curationLocation>
+                <curatingInstitution institutionURI="http://www.curtin.edu.au">Curtin University</curatingInstitution>
+            </curation>
+        </curationDetails>
+        <contributors>
+            <contributor contributorType="http://registry.it.csiro.au/def/isotc211/CI_RoleCode/pointOfContact">
+                <contributorName>Neal McNaughton</contributorName>
+            </contributor>
+        </contributors>
+        <comments>Data has been provided by the Neal McNaughton Legacy Collection.</comments>
+        <logDate eventType="registered">1997</logDate>
+    </resource>
+</resources>

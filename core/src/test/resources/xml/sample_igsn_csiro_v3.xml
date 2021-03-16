@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resources xmlns="https://igsn.csiro.au/schemas/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://igsn.csiro.au/schemas/3.0 https://igsn.csiro.au/schemas/3.0/igsn-csiro-v3.0.xsd">
+    <resource registeredObjectType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/PhysicalSample">
+        <resourceIdentifier>CSTSTDOCO1</resourceIdentifier>
+        <landingPage>http://example.com.au/abcde</landingPage>
+        <isPublic>true</isPublic>
+        <resourceTitle>A title worthy for kings</resourceTitle>
+        <alternateIdentifiers>
+            <alternateIdentifier>Another identifer option</alternateIdentifier>
+            <alternateIdentifier>And again another identifer</alternateIdentifier>
+        </alternateIdentifiers>
+        <resourceTypes>
+            <resourceType>http://vocabulary.odm2.org/specimentype/core</resourceType>
+            <resourceType>http://vocabulary.odm2.org/specimentype/corePiece</resourceType>
+        </resourceTypes>
+        <materialTypes>
+            <materialType>http://vocabulary.odm2.org/medium/particulate</materialType>
+            <materialType>http://vocabulary.odm2.org/medium/air</materialType>
+        </materialTypes>
+        <classifications>
+            <classification classificationURI="http://www.classification.com/tin">Some phrases for classification</classification>
+            <classification classificationURI="http://www.classification.com/gold">maybe gold or silver</classification>
+        </classifications>
+        <purpose>This is a test resource for demo multi</purpose>
+        <sampledFeatures>
+            <sampledFeature sampledFeatureURI="http://www.samplefeature.com/uri/abcde">A sample feature sitting somewhere</sampledFeature>
+            <sampledFeature sampledFeatureURI="http://www.samplefeature.com/uri/hfsgfs">A lalala land</sampledFeature>
+            <sampledFeature sampledFeatureURI="http://www.samplefeature.com/uri/gfnbgdgfd">Curry for dinner</sampledFeature>
+        </sampledFeatures>
+        <location>
+            <locality localityURI="http://google.map/perth">Canning vale</locality>
+            <geometry srid="https://epsg.io/4326" verticalDatum="https://epsg.io/4326" geometryURI="http://www.altova.com">POLYGON ((127.05688476563 -20.5224609375, 124.24438476563 -28.2568359375, 143.22875976563 -32.1240234375, 142.17407226563 -20.8740234375, 127.05688476563 -20.5224609375))</geometry>
+        </location>
+        <date>
+            <timePeriod>
+                <start>2003</start>
+                <end>2002</end>
+            </timePeriod>
+        </date>
+        <method methodURI="http://method.com/collection">Lab sampling</method>
+        <campaign>a</campaign>
+        <curationDetails>
+            <curation>
+                <curator>Curtin</curator>
+                <curationDate>2001-12</curationDate>
+                <curationLocation>Bentley</curationLocation>
+                <curatingInstitution institutionURI="http://www.curtin.org">Curtin University</curatingInstitution>
+            </curation>
+            <curation>
+                <curator>CSIRO</curator>
+                <curationDate>2001-12</curationDate>
+                <curationLocation>In the lab somewhere</curationLocation>
+                <curatingInstitution institutionURI="http://csiro.au">ARRC</curatingInstitution>
+            </curation>
+        </curationDetails>
+        <contributors>
+            <contributor contributorType="http://registry.it.csiro.au/def/isotc211/CI_RoleCode/pointOfContact">
+                <contributorName>Victor Tey</contributorName>
+                <contributorIdentifier contributorIdentifierType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/ORCID">Contributor to something</contributorIdentifier>
+            </contributor>
+            <contributor contributorType="http://registry.it.csiro.au/def/isotc211/CI_RoleCode/originator">
+                <contributorName>Adam Brown</contributorName>
+                <contributorIdentifier contributorIdentifierType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/EISSN">this has to mean something</contributorIdentifier>
+            </contributor>
+        </contributors>
+        <relatedResources>
+            <relatedResource relatedResourceIdentifierType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/ARK" relationType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/HasDigitalRepresentation">A related resource somewhere</relatedResource>
+            <relatedResource relatedResourceIdentifierType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/DOI" relationType="http://pid.geoscience.gov.au/def/voc/igsn-codelists/IsMemberOf">A related resource somewhere</relatedResource>
+        </relatedResources>
+        <comments>This is a comment fit for kings</comments>
+        <logDate eventType="registered">2002</logDate>
+    </resource>
+</resources>

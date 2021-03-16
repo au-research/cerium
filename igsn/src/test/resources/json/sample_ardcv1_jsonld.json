@@ -1,0 +1,50 @@
+{
+  "description": {
+    "classifications": [
+      "Classification",
+      ""
+    ],
+    "curator": "Joel Benn",
+    "@type": "igsn",
+    "landingPage": "https://demo.identifiers.ardc.edu.au/igsn/#/meta/XX0TUIAYLV",
+    "materialType": ["http://vocabulary.odm2.org/medium/liquidOrganic"],
+    "location": {
+      "geo": {
+        "polygon": "POLYGON ((10.689 -25.092, 34.595 -20.17, 38.814 -35.639, 13.502 -39.155, 10.689 -25.092))",
+        "@type": "GeoShape"
+      },
+      "address": "Locality",
+      "@type": "Place"
+    },
+    "@id": "http://hdl.handle.net/10273/XX0TUIAYLV",
+    "title": "This Tiltle also left blank on purpose",
+    "sampleType": ["http://vocabulary.odm2.org/specimentype/core"],
+    "@context": [
+      {"objectType": "http://pid.geoscience.gov.au/def/voc/igsn-codelists/"},
+      {"materialType": "http://vocabulary.odm2.org/medium/"},
+      {"sampleType": "http://vocabulary.odm2.org/specimentype/"},
+      {"abstract": "http://purl.org/dc/terms/abstract"},
+      {"classifications": "https://igsn.csiro.au/schemas/3.0/classifications"}
+    ],
+    "URL": "https://demo.identifiers.ardc.edu.au/igsn/#/meta/XX0TUIAYLV",
+    "objectType": "Sample"
+  },
+  "igsnvoc:log": [{
+    "igsnvoc:timestamp": "2020-08-03T12:05:12+10:00",
+    "igsnvoc:@type": "updated"
+  }],
+  "@id": "http://hdl.handle.net/10273/XX0TUIAYLV",
+  "registrant": {
+    "@type": "registrant",
+    "identifiers": [{
+      "kind": "ror",
+      "id": "https://ror.org/038sjwq14"
+    }],
+    "name": "ARDC"
+  },
+  "@context": [
+    "http://schema.org/",
+    "https://raw.githubusercontent.com/IGSN/igsn-json/master/schema.igsn.org/json/registration/v0.1/context.jsonld"
+  ],
+  "@igsn": "10273/XX0TUIAYLV"
+}

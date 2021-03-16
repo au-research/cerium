@@ -1,0 +1,134 @@
+[
+  {
+    "id": "ardc-igsn-desc-1.0",
+    "name": "ARDC IGSN Descriptive v1.0",
+    "description": "XML Schema v1.0 for registering resources with the ARDC IGSN service",
+    "type": "igsn-description",
+    "@type": "XMLSchema",
+    "providers": {
+      "Visibility": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1VisibilityProvider",
+      "Fragment": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1FragmentProvider",
+      "Identifier": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1IdentifierProvider",
+      "Title": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1TitleProvider",
+      "LandingPage": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1LandingPageProvider",
+      "OAI": "ardc.cerium.core.common.provider.OAIProvider",
+      "EmbargoEnd": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1EmbargoEndProvider",
+      "Status": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1StatusProvider"
+    },
+    "transforms": {
+      "ardc-igsn-desc-1.0-jsonld": "ardc.cerium.core.igsn.transform.ardcv1.ARDCv1ToJSONLDTransformer",
+      "igsn-reg-1.0" : "ardc.cerium.core.igsn.transform.ardcv1.ARDCv1ToRegistrationMetadataTransformer",
+      "oai_dc": "ardc.cerium.core.igsn.transform.ardcv1.ARDCv1ToOAIDCTransformer"
+    },
+    "xml": {
+      "namespace": "https://identifiers.ardc.edu.au/schemas/ardc-igsn-desc",
+      "schemaLocation": "https://identifiers.ardc.edu.au/igsn-schema/descriptive/1.0/resource.xsd",
+      "localSchemaLocation": "schemas/ardc-igsn-description-1.0/resource.xsd"
+    }
+  },
+  {
+    "id": "ardc-igsn-desc-1.0-jsonld",
+    "name": "ARDC IGSN Descriptive v1.0 JSON-LD",
+    "description": "JSON Schema v1.0 for registering resources with the ARDC IGSN service",
+    "@type": "JSONSchema",
+    "class": "json"
+  },
+  {
+  	"id":"agn-igsn-desc-1.0",
+  	"name":"AGN IGSN Descriptive Schema v1.0",
+  	"description":"Descriptive metadata schema for AusGeochem IGSNs",
+  	"@type":"JSONSchema",
+  	"class":"json",
+  	"json":{
+  	  "namespace":"https://identifiers.ardc.edu.au/igsn-schema/descriptive/1.0/ngsa.json",
+      "schemaLocation": "https://identifiers.ardc.edu.au/igsn-schema/descriptive/1.0/ngsa.json",
+      "localSchemaLocation": "schemas/agn-igsn-desc-1.0/agn.json"
+  	}
+ },
+ {
+    "id": "csiro-igsn-desc-3.0",
+    "name": "CSIRO IGSN Descriptive v3.0",
+    "description": "XML Schema v3.0 for registering resources with the CSIRO IGSN service.",
+    "type": "igsn-description",
+    "@type": "XMLSchema",
+   "providers": {
+     "Visibility": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1VisibilityProvider",
+     "Fragment": "ardc.cerium.core.igsn.provider.csirov3.CSIROv3FragmentProvider",
+     "Identifier": "ardc.cerium.core.igsn.provider.csirov3.CSIROv3IdentifierProvider",
+     "Title": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1TitleProvider",
+     "LandingPage": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1LandingPageProvider",
+     "OAI": "ardc.cerium.core.common.provider.OAIProvider",
+     "EmbargoEnd": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1EmbargoEndProvider",
+     "Status": "ardc.cerium.core.igsn.provider.ardcv1.ARDCv1StatusProvider"
+   },
+   "transforms": {
+     "ardc-igsn-desc-1.0": "ardc.cerium.core.igsn.transform.csirov3.CSIROv3ToARDCv1Transformer",
+     "ardc-igsn-desc-1.0-jsonld": "ardc.cerium.core.igsn.transform.csirov3.CSIROv3ToJSONLDTransformer",
+     "igsn-reg-1.0" : "ardc.cerium.core.igsn.transform.csirov3.CSIROv3ToRegistrationMetadataTransformer",
+     "oai_dc": "ardc.cerium.core.igsn.transform.csirov3.CSIROv3ToOAIDCTransformer"
+   },
+    "xml": {
+      "namespace": "https://igsn.csiro.au/schemas/3.0",
+      "schemaLocation": "https://igsn.csiro.au/schemas/3.0/igsn-csiro-v3.0.xsd",
+      "localSchemaLocation": "schemas/csiro-igsn-description-3.0/igsn-csiro-v3.0.xsd"
+    }
+  },
+  {
+    "id": "igsn-desc-1.0",
+    "name": "IGSN Descriptive v1.0",
+    "description": "IGSN Description Metadata is intended to describe the core elements of a specimen. The set of attributes is seen as the \"birth certificate\" of a specimens and should not contain stateful attributes, where possible. The base document for the development are the notes from the IGSN Metadata Kernel Workshop held in Los Angeles in September 2015.",
+    "type": "igsn-description",
+    "@type": "XMLSchema",
+    "xml": {
+      "namespace": "http://schema.igsn.org/description/1.0",
+      "schemaLocation": "http://schema.igsn.org/description/1.0 http://schema.igsn.org/description/1.0/resource.xsd",
+      "localSchemaLocation": "schemas/igsn-description-1.0/resource.xsd"
+    }
+  },
+  {
+    "id": "igsn-reg-1.0",
+    "name": "IGSN Registration v1.0",
+    "description": "IGSN Registration Metadata version 1.0",
+    "type": "igsn-description",
+    "@type": "XMLSchema",
+    "xml": {
+      "namespace": "http://schema.igsn.org/registration/1.0",
+      "schemaLocation": "http://schema.igsn.org/registration/1.0 http://schema.igsn.org/registration/1.0/igsn.xsd",
+      "localSchemaLocation": "schemas/igsn-registration-1.0/resource.xsd"
+    }
+  },
+  {
+    "id": "oai_dc",
+    "name": "OAI Dublin Core",
+    "description": "Dublin Core for OAI-PMH",
+    "type": "",
+    "@type": "XMLSchema",
+    "xml": {
+      "namespace": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+      "schemaLocation": "http://www.openarchives.org/OAI/2.0/oai_dc.xsd"
+    },
+    "providers": {
+      "OAI": "ardc.cerium.core.common.provider.OAIProvider"
+    }
+  },
+  {
+    "id": "igsn_list",
+    "name": "Text File containing list of Identifiers",
+    "description": "Text File containing list of Identifiers",
+    "type": "",
+    "@type": "TextSchema",
+    "providers": {
+      "Identifier": "ardc.cerium.core.common.provider.text.LineContentProvider"
+    }
+  },
+  {
+    "id": "drvs-submission",
+    "name": "DRVS Submission schema",
+    "description": "CSV Submission Schema for Data Retention Validation Service",
+    "type": "",
+    "@type": "JSONSchema",
+    "providers": {
+      "Title": "ardc.cerium.core.drvs.provider.DRVSSubmissionTitleProvider"
+    }
+  }
+]

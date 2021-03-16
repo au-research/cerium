@@ -11,7 +11,7 @@
       "Identifier": "ardc.cerium.igsn.provider.ardcv1.ARDCv1IdentifierProvider",
       "Title": "ardc.cerium.igsn.provider.ardcv1.ARDCv1TitleProvider",
       "LandingPage": "ardc.cerium.igsn.provider.ardcv1.ARDCv1LandingPageProvider",
-      "OAI": "ardc.cerium.core.common.provider.OAIProvider",
+      "OAI": "ardc.cerium.oai.provider.OAIProvider",
       "EmbargoEnd": "ardc.cerium.igsn.provider.ardcv1.ARDCv1EmbargoEndProvider",
       "Status": "ardc.cerium.igsn.provider.ardcv1.ARDCv1StatusProvider"
     },

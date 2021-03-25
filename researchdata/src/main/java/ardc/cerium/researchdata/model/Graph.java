@@ -17,11 +17,15 @@ public class Graph {
 	private Vertex originNode;
 
 	public void addVertex(Vertex vertex) {
-		this.vertices.add(vertex);
+		if (!this.vertices.contains(vertex)) {
+			this.vertices.add(vertex);
+		}
 	}
 
 	public void addEdge(Edge edge) {
-		this.edges.add(edge);
+		if (!this.edges.contains(edge)) {
+			this.edges.add(edge);
+		}
 	}
 
 }

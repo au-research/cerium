@@ -1,10 +1,12 @@
 package ardc.cerium.researchdata.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Edge {
 
 	private final String type;

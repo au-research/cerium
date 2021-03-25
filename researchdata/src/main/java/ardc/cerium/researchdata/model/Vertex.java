@@ -1,5 +1,6 @@
 package ardc.cerium.researchdata.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Vertex {
 
 	@Property("identifier")

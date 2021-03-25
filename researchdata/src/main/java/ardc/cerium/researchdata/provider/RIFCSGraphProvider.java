@@ -19,10 +19,16 @@ public class RIFCSGraphProvider {
         RegistryObjects registryObjects = RIFCSParser.parse(xml);
         Graph graph = new Graph();
 
+        if (registryObjects == null || registryObjects.getRegistryObjects().size() == 0) {
+            // log something gone wrong with parsing here
+            return graph;
+        }
+
         registryObjects.getRegistryObjects().forEach(registryObject -> {
             // key is a vertex and is the originNode
             String key = registryObject.getKey();
             Vertex originNode = new Vertex(key, RIFCS_KEY_IDENTIFIER_TYPE);
+            originNode.addLabel(Vertex.Label.RegistryObject);
             graph.addVertex(originNode);
 
             // every identifier is a vertex & isSameAs
@@ -30,6 +36,7 @@ public class RIFCSGraphProvider {
             if (identifiers != null && identifiers.size() > 0) {
                 registryObject.getIdentifiers().forEach(identifier -> {
                     Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
+                    identifierNode.addLabel(Vertex.Label.Identifier);
                     graph.addVertex(identifierNode);
                     graph.addEdge(new Edge(originNode, identifierNode, RELATION_SAME_AS));
                 });
@@ -40,6 +47,7 @@ public class RIFCSGraphProvider {
             if (relatedObjects != null && relatedObjects.size() > 0) {
                 relatedObjects.forEach(relatedObject -> {
                     Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
+                    relatedObjectNode.addLabel(Vertex.Label.RegistryObject);
                     graph.addVertex(relatedObjectNode);
                     relatedObject.getRelation().forEach(relation -> {
                         Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
@@ -60,6 +68,7 @@ public class RIFCSGraphProvider {
                             : new ArrayList<>();
                     relatedInfoIdentifiers.forEach(relatedInfoIdentifier -> {
                         Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(), relatedInfoIdentifier.getType());
+                        relatedInfoNode.addLabel(Vertex.Label.Identifier);
                         graph.addVertex(relatedInfoNode);
                         relatedInfoRelations.forEach(relatedInfoRelation -> {
                             Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());

@@ -35,6 +35,7 @@ public class GraphService {
     }
 
     public void ingestVertex(Vertex vertex) {
+        // todo update the vertex
         if (!vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
                 vertex.getIdentifierType())) {
             vertexRepository.save(vertex);

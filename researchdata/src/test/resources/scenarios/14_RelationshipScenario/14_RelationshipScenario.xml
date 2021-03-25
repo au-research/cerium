@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:extRif="http://ands.org.au/standards/rif-cs/extendedRegistryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>AUTCollection1R_14</key>
+
+        <originatingSource type="">http://demo.ands.org.au/registry/orca/register_my_data</originatingSource>
+        <collection dateModified="2013-04-10T23:51:55Z" type="collection">
+
+<!-- TITLE -->
+<name type="primary">
+    <namePart>Relationship scenario _14</namePart>
+</name>
+            <description type="local">&amp;lt;p&amp;gt;This is a local statement for the colleciton&amp;lt;/p&amp;gt;</description>
+            <rights>
+                <rightsStatement rightsUri="http://www.rightsuri.com">Rights Statement Rights Statement</rightsStatement>
+                <licence rightsUri="http://www.rightsuri.com" type="AusGOALRestrictive">LicenceLicenceLicence</licence>
+                <accessRights rightsUri="http://www.rightsuri.com">Access Rights</accessRights>
+            </rights>
+<!-- IDENTIFIERS -->
+<identifier type="local">nla.AUTCollection1R_14</identifier>
+
+            <dates type="dc.available">
+                <date dateFormat="W3CDTF" type="dateFrom">2013-02-07T00:00:00Z</date>
+            </dates>
+            <dates type="dc.issued">
+                <date dateFormat="W3CDTF" type="dateFrom">2022-03-03T00:00:00Z</date>
+            </dates>
+            <location dateFrom="2013-02-14T00:00:00Z" dateTo="2013-03-02T00:00:00Z">
+                <address>
+                    <electronic target="landingPage" type="url">
+                        <value>https://demo.ands.org.au</value>
+                        <title>My Landing Page for the data</title>
+                    </electronic>
+                    <physical type="postalAddress">
+                        <addressPart type="addressLine">&amp;lt;p&amp;gt; 123 Example St&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; Canberra ACT 2131&amp;lt;/p&amp;gt;</addressPart>
+                    </physical>
+                    <electronic target="directDownload" type="url">
+                        <value>https://dl.dropboxusercontent.com/u/49073372/RIF16WithError.xml</value>
+                        <title>My Direct Download link</title>
+                        <mediaType>XML</mediaType>
+                        <byteSize>3KB</byteSize>
+                    </electronic>
+                </address>
+                <spatial type="kmlPolyCoords">119.707031,-20.468189 152.753906,-32.101190 119.707031,-20.468189</spatial>
+            </location>
+            <coverage>
+                <temporal>
+                    <date dateFormat="W3CDTF" type="dateFrom">2013-01-30T00:00:00Z</date>
+                    <date dateFormat="W3CDTF" type="dateTo">2017-03-03T00:00:00Z</date>
+                </temporal>
+                <spatial type="kmlPolyCoords">143.085938,-22.917923</spatial>
+                <spatial type="kmlPolyCoords">121.640625,-35.173808 150.644531,-20.961440 117.246094,-14.093957 110.390625,-26.273714 127.441406,-20.961440 128.847656,-27.527758 121.640625,-35.173808</spatial>
+            </coverage>
+            <coverage>
+                <spatial type="text">Some place in Australia</spatial>
+            </coverage>
+
+<!-- RELATIONSHIPS -->
+
+<!--<relatedObject>
+    <key>AUTestingRecordsRelations_14</key>
+    <relation type="isOutputof"/>
+</relatedObject>
+<relatedObject>
+    <key>AUTestingRecordssdfsdf43434d_14</key>
+    <relation type="isProducedBy"/>
+</relatedObject>
+<relatedObject>
+    <key>http://nla.gov.au/nla.party-AUTR_14</key>
+    <relation type="isEnrichedBy"/>
+</relatedObject>-->
+<!--
+<relatedInfo type="party">
+    <title>Example party 9</title>
+<identifier type="local">http://nla.gov.au/nla.party-AUT_14</identifier>
+    <relation type="isManagedBy"/>
+</relatedInfo>
+<relatedInfo type="party">
+    <title>Example party 9</title>
+<identifier type="local">http://nla.gov.au/nla.party-AUT9</identifier>
+    <relation type="isOwnedBy"/>
+</relatedInfo>-->
+            <subject type="local">localSubject</subject>
+            <subject type="anzsrc-seo">830201</subject>
+            <subject type="anzsrc-for">0303</subject>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="doi">10.123123123R</identifier>
+                    <title>Citation Title</title>
+                    <version>V0.2</version>
+                    <placePublished>Australia</placePublished>
+                    <publisher>Some Example Publisher</publisher>
+                    <url>http://www.exapmle.com</url>
+                    <context>Context</context>
+                    <contributor seq="1">
+                        <namePart type="given">Joe Blogs</namePart>
+                    </contributor>
+                    <date type="created">12-12-2001</date>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+<!-- ### PARTIES ### -->
+<!-- ### SERVICES ### -->
+<!-- ### ACTIVITIES ### -->
+
+<!-- ### COLLECTIONS ### -->
+
+<registryObject group="AUTestingRecordsRelationships">
+        <key>AUTestingRecordsNestedx100IMOS/86ec0cee-0620-3724-963a-d0432495584d2-_14</key>
+        <originatingSource> Indian National Centre for Ocean Information Services (INCOIS) </originatingSource>
+        <collection type="dataset">
+            <identifier type="uri"> http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=86ec0cee-0620-3724-963a-d0432495584d AUTbx12_14</identifier>
+            <identifier type="local">nla.AUTCollection1R_14</identifier>
+            <name type="primary">
+                <namePart>(AUTestingRecords) Example Collection _14</namePart>
+            </name>
+            <dates type="created">
+                <date type="dateFrom" dateFormat="W3CDTF">2014-09-09T06:10:16</date>
+            </dates>
+<!-- RELATED OBJECTS -->
+<!--<relatedObject>
+    <key>AUTCollection1R_14</key>
+    <relation type="isDescribedBy"/>
+</relatedObject>-->
+
+            <location>
+                <address>
+          <electronic type="url">
+            <value> http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=86ec0cee-0620-3724-963a-d0432495584d </value>
+          </electronic>
+        </address>
+            </location>
+            <subject type="local">oceans</subject>
+            <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+            <subject type="local">Oceans | Salinity/density | Salinity</subject>
+            <subject type="local">Oceans | Ocean Pressure | Water Pressure</subject>
+            <subject type="local">Profiling Float | Autonomous Profiling Float</subject>
+            <description type="full"> This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 2901092 managed by the Indian National Centre for Ocean Information Services (INCOIS).Argo is a major international collaborative project to observe the world's oceans and help scientists understand ocean processes and the ocean's roles in climate. The data collected also improves our ability to forecast climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to satellites along with the float's position. The float then dives and starts a new cycle. The Argo float, WMO 2901092 was first deployed on the 2008-08-24T18:00:00 at launch location (Latitude : -1.0 ; Longitude : 81.53). The variables available for this Argo float are : Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the 2013-12-08T14:23:56 at the following location (Latitude : -5.073 ; Longitude : 102.708). </description>
+            <coverage>
+                <spatial type="iso19139dcmiBox"> northlimit=0.856; southlimit=-6.3; westlimit=80.355; eastLimit=104.202; projection=WGS84 </spatial>
+                <spatial type="text"> northlimit=0.856; southlimit=-6.3; westlimit=80.355; eastLimit=104.202; projection=WGS84 </spatial>
+            </coverage>
+            <coverage>
+                <temporal>
+                    <date type="dateFrom" dateFormat="W3CDTF">2008-08-26T00:23:32</date>
+                    <date type="dateTo" dateFormat="W3CDTF">2013-12-08T14:23:56</date>
+                </temporal>
+            </coverage>
+            <rights>
+                <rightsStatement> Argo Data (Temperature and Salinity profiles) are freely available without any restriction, via the internet Global Data Centres (GDACs) and the GTS of WMO. Please support Argo by acknowledging your use of Argo data with the following words: "These data where collected and made freely available by the International Argo project and the national initiatives that contribute to it. (http://www.argo.net). Argo is a pilot programme of the Global Ocean Observing System." </rightsStatement>
+            </rights>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="uri">http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=86ec0cee-0620-3724-963a-d0432495584d AUTbx1</identifier>
+                    <title>INCOIS - Argo float, WMO 2901092</title>
+                    <date type="created">2014</date>
+                    <contributor>
+                        <namePart> Indian National Centre for Ocean Information Services (INCOIS) </namePart>
+                    </contributor>
+                    <publisher>Integrated Marine Observing System (IMOS)</publisher>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+</registryObjects>

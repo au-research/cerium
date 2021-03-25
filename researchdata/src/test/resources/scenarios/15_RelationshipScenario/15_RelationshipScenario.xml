@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:extRif="http://ands.org.au/standards/rif-cs/extendedRegistryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+       
+<!-- ### COLLECTIONS ### -->
+
+    <registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>C1_15</key>
+
+        <originatingSource type="">http://demo.ands.org.au/registry/orca/register_my_data</originatingSource>
+        <collection dateModified="2013-04-10T23:51:55Z" type="collection">
+
+<!-- TITLE -->
+<name type="primary">
+    <namePart>Relationship scenario _15</namePart>
+</name>
+            <description type="local">&amp;lt;p&amp;gt;This is a local statement for the colleciton&amp;lt;/p&amp;gt;</description>
+            <rights>
+                <rightsStatement rightsUri="http://www.rightsuri.com">Rights Statement Rights Statement</rightsStatement>
+                <licence rightsUri="http://www.rightsuri.com" type="AusGOALRestrictive">LicenceLicenceLicence</licence>
+                <accessRights rightsUri="http://www.rightsuri.com">Access Rights</accessRights>
+            </rights>
+<!-- IDENTIFIERS -->
+<identifier type="local">CI_ID1_15</identifier>
+
+            <dates type="dc.available">
+                <date dateFormat="W3CDTF" type="dateFrom">2013-02-07T00:00:00Z</date>
+            </dates>
+            <dates type="dc.issued">
+                <date dateFormat="W3CDTF" type="dateFrom">2022-03-03T00:00:00Z</date>
+            </dates>
+            <location dateFrom="2013-02-14T00:00:00Z" dateTo="2013-03-02T00:00:00Z">
+                <address>
+                    <electronic target="landingPage" type="url">
+                        <value>https://demo.ands.org.au</value>
+                        <title>My Landing Page for the data</title>
+                    </electronic>
+                    <physical type="postalAddress">
+                        <addressPart type="addressLine">&amp;lt;p&amp;gt; 123 Example St&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; Canberra ACT 2131&amp;lt;/p&amp;gt;</addressPart>
+                    </physical>
+                    <electronic target="directDownload" type="url">
+                        <value>https://dl.dropboxusercontent.com/u/49073372/RIF16WithError.xml</value>
+                        <title>My Direct Download link</title>
+                        <mediaType>XML</mediaType>
+                        <byteSize>3KB</byteSize>
+                    </electronic>
+                </address>
+                <spatial type="kmlPolyCoords">119.707031,-20.468189 152.753906,-32.101190 119.707031,-20.468189</spatial>
+            </location>
+            <coverage>
+                <temporal>
+                    <date dateFormat="W3CDTF" type="dateFrom">2013-01-30T00:00:00Z</date>
+                    <date dateFormat="W3CDTF" type="dateTo">2017-03-03T00:00:00Z</date>
+                </temporal>
+                <spatial type="kmlPolyCoords">143.085938,-22.917923</spatial>
+                <spatial type="kmlPolyCoords">121.640625,-35.173808 150.644531,-20.961440 117.246094,-14.093957 110.390625,-26.273714 127.441406,-20.961440 128.847656,-27.527758 121.640625,-35.173808</spatial>
+            </coverage>
+            <coverage>
+                <spatial type="text">Some place in Australia</spatial>
+            </coverage>
+
+<!-- RELATIONSHIPS -->
+
+<relatedObject>
+    <key>A1_15</key>
+    <relation type="isOutputof"/>
+</relatedObject>
+<relatedObject>
+    <key>S1_15</key>
+    <relation type="isProducedBy"/>
+</relatedObject>
+<relatedObject>
+    <key>P1_15</key>
+    <relation type="isEnrichedBy"/>
+</relatedObject>
+<!--
+<relatedInfo type="party">
+    <title>Example party 9</title>
+<identifier type="local">P1_ID1_15</identifier>
+    <relation type="isManagedBy"/>
+</relatedInfo>
+<relatedInfo type="party">
+    <title>Example party 9</title>
+<identifier type="local">http://nla.gov.au/nla.party-AUT9</identifier>
+    <relation type="isOwnedBy"/>
+</relatedInfo>-->
+            <subject type="local">localSubject</subject>
+            <subject type="anzsrc-seo">830201</subject>
+            <subject type="anzsrc-for">0303</subject>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="doi">10.123123123R</identifier>
+                    <title>Citation Title</title>
+                    <version>V0.2</version>
+                    <placePublished>Australia</placePublished>
+                    <publisher>Some Example Publisher</publisher>
+                    <url>http://www.exapmle.com</url>
+                    <context>Context</context>
+                    <contributor seq="1">
+                        <namePart type="given">Joe Blogs</namePart>
+                    </contributor>
+                    <date type="created">12-12-2001</date>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+
+
+<registryObject group="AUTestingRecordsRelationships">
+        <key>C2_15</key>
+        <originatingSource> Indian National Centre for Ocean Information Services (INCOIS) </originatingSource>
+        <collection type="dataset">
+            <identifier type="uri">C2_ID1_15</identifier>
+            <name type="primary">
+                <namePart>(AUTestingRecords) Example Collection 2 _15</namePart>
+            </name>
+            <dates type="created">
+                <date type="dateFrom" dateFormat="W3CDTF">2014-09-09T06:10:16</date>
+            </dates>
+<!-- RELATED OBJECTS -->
+<relatedObject>
+    <key>C1_15</key>
+    <relation type="isDescribedBy"/>
+</relatedObject>
+
+            <location>
+                <address>
+          <electronic type="url">
+            <value> http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=86ec0cee-0620-3724-963a-d0432495584d </value>
+          </electronic>
+        </address>
+            </location>
+            <subject type="local">oceans</subject>
+            <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+            <subject type="local">Oceans | Salinity/density | Salinity</subject>
+            <subject type="local">Oceans | Ocean Pressure | Water Pressure</subject>
+            <subject type="local">Profiling Float | Autonomous Profiling Float</subject>
+            <description type="full"> This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 2901092 managed by the Indian National Centre for Ocean Information Services (INCOIS).Argo is a major international collaborative project to observe the world's oceans and help scientists understand ocean processes and the ocean's roles in climate. The data collected also improves our ability to forecast climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to satellites along with the float's position. The float then dives and starts a new cycle. The Argo float, WMO 2901092 was first deployed on the 2008-08-24T18:00:00 at launch location (Latitude : -1.0 ; Longitude : 81.53). The variables available for this Argo float are : Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the 2013-12-08T14:23:56 at the following location (Latitude : -5.073 ; Longitude : 102.708). </description>
+            <coverage>
+                <spatial type="iso19139dcmiBox"> northlimit=0.856; southlimit=-6.3; westlimit=80.355; eastLimit=104.202; projection=WGS84 </spatial>
+                <spatial type="text"> northlimit=0.856; southlimit=-6.3; westlimit=80.355; eastLimit=104.202; projection=WGS84 </spatial>
+            </coverage>
+            <coverage>
+                <temporal>
+                    <date type="dateFrom" dateFormat="W3CDTF">2008-08-26T00:23:32</date>
+                    <date type="dateTo" dateFormat="W3CDTF">2013-12-08T14:23:56</date>
+                </temporal>
+            </coverage>
+            <rights>
+                <rightsStatement> Argo Data (Temperature and Salinity profiles) are freely available without any restriction, via the internet Global Data Centres (GDACs) and the GTS of WMO. Please support Argo by acknowledging your use of Argo data with the following words: "These data where collected and made freely available by the International Argo project and the national initiatives that contribute to it. (http://www.argo.net). Argo is a pilot programme of the Global Ocean Observing System." </rightsStatement>
+            </rights>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="uri">http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=86ec0cee-0620-3724-963a-d0432495584d AUTbx1</identifier>
+                    <title>INCOIS - Argo float, WMO 2901092</title>
+                    <date type="created">2014</date>
+                    <contributor>
+                        <namePart> Indian National Centre for Ocean Information Services (INCOIS) </namePart>
+                    </contributor>
+                    <publisher>Integrated Marine Observing System (IMOS)</publisher>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingRecords">
+        <key>C3_15</key>
+        <originatingSource>http://catalogue.aodn.org.au/geonetwork/srv/en</originatingSource>
+        <collection type="dataset">
+
+            <name type="primary">
+                <namePart type="full">(AUTestingRecords)Example Collection 3 _15</namePart>
+            </name>
+            <identifier type="local">CI_ID1_15</identifier>
+            <location>
+                <address>
+          <electronic type="url">
+            <value>
+            http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=f23546e6-ed0d-349b-bb8d-d786a24b3c48
+            </value>
+          </electronic>
+        </address>
+            </location>
+            <coverage>
+                <spatial type="iso19139dcmiBox">
+            northlimit=5.401; southlimit=-2.837; westlimit=135.754; eastLimit=175.507; projection=WGS84
+            </spatial>
+            </coverage>
+
+<relatedObject>
+    <key>P2_15</key>
+    <relation type="isEnrichedBy"/>
+</relatedObject>
+<relatedObject>
+    <key>S2_15</key>
+    <relation type="isProducedBy"/>
+</relatedObject>
+
+
+            <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+            <subject type="local">Oceans | Salinity/density | Salinity</subject>
+            <subject type="local">Oceans | Ocean Pressure | Water Pressure</subject>
+            <subject type="local">Profiling Float | Autonomous Profiling Float</subject>
+            <subject type="anzsrc-for">0104</subject>
+            <subject type="anzsrc-for">0105</subject>
+            <subject type="anzsrc-for">0103</subject>
+            <subject type="anzsrc-for">04</subject>
+            <subject type="anzsrc-for">9699</subject>
+            <description type="brief">
+            This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 5902127 managed by the Atlantic Oceanographic and Meteorological Laboratory (AOML). Argo is a major international collaborative project to observe the world's oceans and help scientists understand ocean processes and the ocean's roles in climate. The data collected also improves our ability to forecast climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to satellites along with the float's position. The float then dives and starts a new cycle. The Argo float, WMO 5902127 was first deployed on the 2009-03-25T05:29:00 at launch location (Latitude : 5.003333568572998 ; Longitude : 148.375). The variables available for this Argo float are : Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the 2014-09-01T23:54:10 at the following location (Latitude : -2.756 ; Longitude : 172.857).
+            </description>
+            <description type="brief">
+            The Argo data system has three levels of quality control. The first level is the real-time system that performs a set of agreed, automated, checks on all float measurements. The real time quality control procedures are described in the Argo Quality Control Manual, available from the Argo Information Centre (http://wo.jcommops.org/cgi-bin/WebObjects/Argo). Quality flags are: 0 - no quality control done 1 - good data 2 - good data with some suspicious features 3 - bad data that are potentially correctable 4 - bad data that is not correctable The second level of quality control is done in delayed mode, after the profiles are more than 6 months old. Profiles undergo rigorous semi-automated and manually supervised tests to detect and correct drift in salinity and to detect drift in pressure. To accurately detect these drifts, 6 months of data is required. These procedures are also described in the Argo quality control manual.
+            </description>
+            <description type="rights">
+            Argo Data (Temperature and Salinity profiles) are freely available without any restriction, via the internet Global Data Centres (GDACs) and the GTS of WMO. Please support Argo by acknowledging your use of Argo data with the following words: "These data where collected and made freely available by the International Argo project and the national initiatives that contribute to it. (http://www.argo.net). Argo is a pilot programme of the Global Ocean Observing System."
+            </description>
+        
+        </collection>
+    </registryObject>
+
+<!-- ### PARTIES ### -->
+
+
+<registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>P1_15</key>
+
+        <originatingSource type="">nla.gov.au</originatingSource>
+        <party type="group">
+<!-- TITLE -->
+<name type="primary">
+    <namePart>(AUTestingRecords) Example related party _15</namePart>
+</name>
+
+            <description type="brief">&amp;lt;p&amp;gt;A party for all&amp;lt;/p&amp;gt;</description>
+<!-- IDENTIFIER -->
+<identifier type="local">P1_ID1_15</identifier>
+
+<!--<relatedObject>
+    <key>C1_15</key>
+    <relation type="isOwnerOf"/>
+</relatedObject>-->
+<!--<relatedInfo type="party">
+    <title>Collection 4</title>
+    <identifier type="local">CI_ID1_15</identifier>
+    <relation type="isOwnerOf"/>
+</relatedInfo>-->
+
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>http://www.unsw.edu.au/a</value>
+                    </electronic>
+                </address>
+            </location>
+        </party>
+    </registryObject>
+
+
+    <registryObject group="AUTestingRecords">
+        <key>P2_15</key>
+        <originatingSource>http://www.proteomebrowser.org</originatingSource>
+        <party type="group">
+            <name type="primary">
+                <namePart type="">(AUTestingRecords)Example party 2 _15.</namePart>
+            </name>
+            <identifier type="local">P2_ID1_15</identifier>
+            <location>
+                <address>
+          <electronic type="url">
+            <value>http://www.proteinatlas.org/about/organization</value>
+          </electronic>
+          <electronic type="email">
+            <value>contact@proteinatlas.org</value>
+          </electronic>
+        </address>
+            </location>
+            <description type="full">
+&amp;lt;p&amp;gt;The Swedish Human Protein Atlas project, funded by the Knut and Alice Wallenberg Foundation, has been set up to allow for a systematic exploration of the human proteome using Antibody-Based Proteomics. This is accomplished by combining high-throughput generation of affinity-purified antibodies with protein profiling in a multitude of tissues and cells assembled in tissue microarrays. Confocal microscopy analysis using human cell lines is performed for more detailed protein localization. The program hosts the Human Protein Atlas portal with expression profiles of human proteins in tissues and cells.&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt;The main sites are located at AlbaNova and SciLifeLab, KTH - Royal Institute of Technology, Stockholm, Sweden, the Rudbeck Laboratory, Uppsala University, Uppsala, Sweden and Lab Surgpath, Mumbai, India. The main objective of the resource centre is to produce specific antibodies to human target proteins using a high-throughput production method involving the cloning and protein expression of Protein Epitope Signature Tags (PrESTs). After purification, the antibodies are used to study expression profiles in cells and tissues and for functional analysis of the corresponding proteins in a wide range of platforms. The Stockholm sites are responsible for generating high-quality antibodies and to perform the immunofluorescence analysis, the Uppsala site is responsible for large-scale protein profiling in tissues and cells using immunohistochemistry and the Mumbai site for the annotation of the immunohistochemistry images.&amp;lt;/p&amp;gt;
+</description>
+            <subject type="anzsrc-for">110702</subject>
+        </party>
+    </registryObject>
+
+<!-- ### SERVICES ### -->
+
+<registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>S1_15</key>
+    <originatingSource>http://www.ga.gov.au</originatingSource>
+    <service type="software">
+<!-- IDENTIFIER -->
+<identifier type="local">S1_ID1_15</identifier>
+        
+<!-- TITLE -->
+<name type="primary">
+    <namePart>(AUTestingRecords) Example Service _15</namePart>
+</name>
+        <location>
+            <address>
+                <electronic target="landingPage" type="url">
+                    <value>http://www.ga.gov.au/metadata-gateway/metadata/record/83292/
+                    </value>
+                </electronic>
+            </address>
+        </location>
+        <subject type="local">Web Service</subject>
+        <subject type="local">marine</subject>
+        <subject type="local">marine_coastal</subject>
+        <subject type="local">Earth Sciences</subject>
+        <subject type="anzsrc-for">04</subject>
+        <description type="brief">This map service contains the extents of the multibeam bathymetry data held by GA, as at August 2012, which lies within the boundaries of Australia's Extended Continental Shelf, as well as some data in international waters.
+        </description>
+        <rights>
+            <rightsStatement>© Commonwealth of Australia (Geoscience Australia) Multibeam_50m_Bathymetry_20122012publication83292
+            </rightsStatement>
+        </rights>
+        <rights>
+            <licence rightsUri="http://creativecommons.org/licenses/by/4.0" type="CC-BY">Creative Commons Attribution 4.0 International Licence
+            </licence>
+        </rights>
+    </service>
+</registryObject>
+
+<registryObject group="AUTestingRecords">
+        <key>S2_15</key>
+        <originatingSource>http://services.ands.org.au/home/orca/register_my_data</originatingSource>
+        <service type="search-http">
+            <name type="primary">
+                <namePart type="">(AUTestingRecords)Example Service 2 _15</namePart>
+            </name>
+            <description type="rights">&amp;lt;p&amp;gt;
+                All website content copyright University of Sydney Library. The texts and images in the Australian Federation Full Text Database are not to be used for commercial purposes without permission.&amp;lt;/p&amp;gt;
+            </description>
+                        <description type="accessRights">&amp;lt;p&amp;gt;
+                All items in the collection are freely available to search, view and download for the purposes of private study and research.&amp;lt;/p&amp;gt;
+            </description>
+            <description type="brief">&amp;lt;p&amp;gt;
+                This website enables students, researchers and the public to search or browse the TEI XML and PDF format documents Australian Federation Fulltext Database. The Australian Federation Full Text Database provides access to a collection of digitised versions of the key texts that record the making of the Australian Commonwealth, including historical documents such as the National Debates, the Debates of the Federal Conventions and People&amp;rsquo;s Conferences. Documents are available in TEI XML and PDF format, and are fully indexed and full-text searchable. The digitisation of the core collection was funded by the Centenary of Federation in 2001. The digital reproduction of the works of Robert Garran was undertaken with the kind permission of Mrs Win Garran, Deakin, ACT.&amp;lt;/p&amp;gt;
+            </description>
+            <location>
+                <address>
+          <electronic type="url">
+            <value>http://adc.library.usyd.edu.au/index.jsp?database=ozfed&amp;page=home</value>
+          </electronic>
+        </address>
+            </location>
+            <subject type="local">Constitutional law -- Australia</subject>
+            <subject type="anzsrc-for">210303</subject>
+            <subject type="local">Federal government -- Australia</subject>
+            <subject type="local">Constitutional history -- Australia</subject>
+            <subject type="anzsrc-for">180108</subject>
+            <accessPolicy>http://adc.library.usyd.edu.au/index.jsp?database=&amp;content=collections/ozlit/text/contact.html</accessPolicy>
+        </service>
+    </registryObject>
+
+<!-- ### ACTIVITIES ### -->
+<registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>A1_15</key>
+        <originatingSource>arc.gov.au/general/searchable_data.htm</originatingSource>
+        <activity type="grant">
+<!-- TITLE -->
+<name type="primary">
+    <namePart>(AUTestingRecords) Example actiity _15</namePart>
+</name>
+
+<!-- IDENTIFIER -->
+<identifier type="purl">A1__ID1_15</identifier>
+<identifier type="arc">A1__ID2_15</identifier>
+
+<!--<relatedObject>
+    <key>C1_15</key>
+    <relation type="isOwnerOf"/>
+</relatedObject>-->
+<!--<relatedInfo type="party">
+    <title>Collection 4</title>
+    <identifier type="local">CI_ID1_15</identifier>
+    <relation type="isOwnerOf"/>
+</relatedInfo>-->
+
+            <subject type="anzsrc-for">0906</subject>
+            <subject type="local">control under communication constraints</subject>
+            <subject type="local">state estimation</subject>
+            <subject type="local">system identification</subject>
+            <description type="local">
+            (LOCAL) Design and analysis of performance optimised the Uppsala site is responsible for large-scale protein profiling in tissues and cells using immunohistochemistry and the Mumbai site for the annotation of the immunohistochemistry images. networked system identification, estimation and control algorithms will make the implementation of large scale wireless sensor and actuator networks a distinct possibility, thus contributing to significant technological advances in critical areas such as health care, defence and industrial automation.
+            </description>
+            <description type="fundingAmount">$300,000</description>
+            <description type="fundingScheme">Discovery Projects</description>
+            <description type="researchers">
+            Prof Subhrakanti Dey; A/Prof Erik Weyer; A/Prof Girish Narayanan Nair
+            </description>
+            <existenceDates>
+                <startDate dateFormat="W3CDTF">2012</startDate>
+                <endDate dateFormat="W3CDTF">2014</endDate>
+            </existenceDates>
+        </activity>
+    </registryObject>
+
+</registryObjects>

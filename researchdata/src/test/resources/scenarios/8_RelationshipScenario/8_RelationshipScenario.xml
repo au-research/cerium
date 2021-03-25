@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:extRif="http://ands.org.au/standards/rif-cs/extendedRegistryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>AUTCollection1R8</key>
+
+        <originatingSource type="">http://demo.ands.org.au/registry/orca/register_my_data</originatingSource>
+        <collection dateModified="2013-04-10T23:51:55Z" type="collection">
+
+<!-- TITLE -->
+<name type="primary">
+    <namePart>Relationship scenario 8</namePart>
+</name>
+            <description type="local">&amp;lt;p&amp;gt;This is a local statement for the colleciton&amp;lt;/p&amp;gt;</description>
+            <rights>
+                <rightsStatement rightsUri="http://www.rightsuri.com">Rights Statement Rights Statement</rightsStatement>
+                <licence rightsUri="http://www.rightsuri.com" type="AusGOALRestrictive">LicenceLicenceLicence</licence>
+                <accessRights rightsUri="http://www.rightsuri.com">Access Rights</accessRights>
+            </rights>
+<!-- IDENTIFIERS -->
+<identifier type="local">nla.AUTCollection1R8</identifier>
+
+            <dates type="dc.available">
+                <date dateFormat="W3CDTF" type="dateFrom">2013-02-07T00:00:00Z</date>
+            </dates>
+            <dates type="dc.issued">
+                <date dateFormat="W3CDTF" type="dateFrom">2022-03-03T00:00:00Z</date>
+            </dates>
+            <location dateFrom="2013-02-14T00:00:00Z" dateTo="2013-03-02T00:00:00Z">
+                <address>
+                    <electronic target="landingPage" type="url">
+                        <value>https://demo.ands.org.au</value>
+                        <title>My Landing Page for the data</title>
+                    </electronic>
+                    <physical type="postalAddress">
+                        <addressPart type="addressLine">&amp;lt;p&amp;gt; 123 Example St&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; Canberra ACT 2131&amp;lt;/p&amp;gt;</addressPart>
+                    </physical>
+                    <electronic target="directDownload" type="url">
+                        <value>https://dl.dropboxusercontent.com/u/49073372/RIF16WithError.xml</value>
+                        <title>My Direct Download link</title>
+                        <mediaType>XML</mediaType>
+                        <byteSize>3KB</byteSize>
+                    </electronic>
+                </address>
+                <spatial type="kmlPolyCoords">119.707031,-20.468189 152.753906,-32.101190 119.707031,-20.468189</spatial>
+            </location>
+            <coverage>
+                <temporal>
+                    <date dateFormat="W3CDTF" type="dateFrom">2013-01-30T00:00:00Z</date>
+                    <date dateFormat="W3CDTF" type="dateTo">2017-03-03T00:00:00Z</date>
+                </temporal>
+                <spatial type="kmlPolyCoords">143.085938,-22.917923</spatial>
+                <spatial type="kmlPolyCoords">121.640625,-35.173808 150.644531,-20.961440 117.246094,-14.093957 110.390625,-26.273714 127.441406,-20.961440 128.847656,-27.527758 121.640625,-35.173808</spatial>
+            </coverage>
+            <coverage>
+                <spatial type="text">Some place in Australia</spatial>
+            </coverage>
+
+<!-- RELATIONSHIPS -->
+
+<!--<relatedObject>
+    <key>http://nla.gov.au/nla.party-AUTR8</key>
+    <relation type="isManagedBy"/>
+    <relation type="isOwnedBy"/>
+</relatedObject>-->
+<relatedInfo type="party">
+    <title>Example party 8</title>
+<identifier type="local">http://nla.gov.au/nla.party-AUT8</identifier>
+    <relation type="isManagedBy"/>
+    <relation type="isOwnedBy"/>
+</relatedInfo>
+
+            <subject type="local">localSubject</subject>
+            <subject type="anzsrc-seo">830201</subject>
+            <subject type="anzsrc-for">0303</subject>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="doi">10.123123123R</identifier>
+                    <title>Citation Title</title>
+                    <version>V0.2</version>
+                    <placePublished>Australia</placePublished>
+                    <publisher>Some Example Publisher</publisher>
+                    <url>http://www.exapmle.com</url>
+                    <context>Context</context>
+                    <contributor seq="1">
+                        <namePart type="given">Joe Blogs</namePart>
+                    </contributor>
+                    <date type="created">12-12-2001</date>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+<registryObject group="AUTestingRecordsRelationships">
+<!-- KEY -->
+<key>http://nla.gov.au/nla.party-AUTR8</key>
+
+        <originatingSource type="">nla.gov.au</originatingSource>
+        <party type="group">
+<!-- TITLE -->
+<name type="primary">
+    <namePart>(AUTestingRecords) Example related party 8</namePart>
+</name>
+
+            <description type="brief">&amp;lt;p&amp;gt;A party for all&amp;lt;/p&amp;gt;</description>
+
+<identifier type="local">http://nla.gov.au/nla.party-AUT8</identifier>
+
+<!--<relatedObject>
+    <key>AUTCollection1R2</key>
+    <relation type="hasCollector"/>
+</relatedObject>-->
+<!--<relatedInfo type="party">
+    <title>Collection 4</title>
+    <identifier type="local">nla.AUTCollection1R4</identifier>
+    <relation type="isCollectorOf"/>
+</relatedInfo>-->
+
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>http://www.unsw.edu.au/a</value>
+                    </electronic>
+                </address>
+            </location>
+        </party>
+    </registryObject>
+</registryObjects>

@@ -15,36 +15,36 @@ import java.util.Collection;
 @Service
 public class MyceliumService {
 
-	private static final Logger log = LoggerFactory.getLogger(MyceliumService.class);
-
 	@Autowired
 	GraphService graphService;
 
 	@Autowired
 	RelationIndexingService relationIndexingService;
 
-	public void ingest(String xml) {
+	public void ingest(String payload) {
 
-		// supports rifcs for now
+		// only supports rifcs for now, obtain the graph data from the payload
 		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
-		Graph graph = graphProvider.get(xml);
+		Graph graph = graphProvider.get(payload);
 
 		// insert into neo4j graph
 		graphService.ingestGraph(graph);
 
-		// todo queue indexing originNode
-		Vertex origin = graph.getOriginNode();
-		int limit = 100;
-		int offset = 0;
-		Collection<RelationDocument> batch = graphService.getRelationships(origin.getIdentifier(),
-				origin.getIdentifierType(), limit, offset);
-
-		while (!batch.isEmpty()) {
-			relationIndexingService.indexRelations(batch);
-			log.info("Indexed {} relations", batch.size());
-			offset += limit;
-			batch = graphService.getRelationships(origin.getIdentifier(), origin.getIdentifierType(), limit, offset);
-		}
+		// todo consider if indexing to relations core is even required
+		// todo fix indexing graph with originNode in mind
+		// todo queue
+//		Vertex origin = graph.getOriginNode();
+//		int limit = 100;
+//		int offset = 0;
+//		Collection<RelationDocument> batch = graphService.getRelationships(origin.getIdentifier(),
+//				origin.getIdentifierType(), limit, offset);
+//
+//		while (!batch.isEmpty()) {
+//			relationIndexingService.indexRelations(batch);
+//			log.info("Indexed {} relations", batch.size());
+//			offset += limit;
+//			batch = graphService.getRelationships(origin.getIdentifier(), origin.getIdentifierType(), limit, offset);
+//		}
 	}
 
 }

@@ -42,4 +42,9 @@ class RIFCSGraphProviderTest {
         assertThat(isSameAsEdge.getTo().getIdentifier())
 				.isEqualTo("AODN:a439fbc6-9150-470b-a8db-1a8fd4DCIdasdf336d2AUT");
 	}
+
+    @Test
+	void multipleRegistryObjects() {
+
+	}
 }

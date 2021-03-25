@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="AUTestingRecords">
+        <key>AUTestingRecords2DCIRecords6</key>
+        <originatingSource>http://www.aims.gov.au/</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">AODN:a439fbc6-9150-470b-a8db-1a8fd4DCIdasdf336d2AUT</identifier>
+            <name type="primary">
+                <namePart type="full">(AUTestingRecords) Collection(dataset) with relatedInfo party (isManagedBy)
+                </namePart>
+            </name>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>
+                            http://catalogue.aodn.org.au/geonetwork/srv/en/metadata.show?uuid=a439fbc6-9150-470b-a8db-1a8fd4d336d2
+                        </value>
+                    </electronic>
+                </address>
+            </location>
+            <coverage>
+                <spatial type="iso19139dcmiBox">
+                    northlimit=-9.68; southlimit=-28.99; westlimit=111.61; eastLimit=129.99; projection=WGS84
+                </spatial>
+            </coverage>
+            <subject type="local">Biosphere | Aquatic Habitat | Benthic Habitat</subject>
+            <subject type="local">Land Surface | Landscape | Landscape Ecology</subject>
+            <subject type="local">Oceans | Marine Biology | Marine Habitat</subject>
+            <subject type="anzsrc-for">0104</subject>
+            <subject type="anzsrc-for">0105</subject>
+            <subject type="anzsrc-for">0103</subject>
+            <subject type="anzsrc-for">04</subject>
+            <subject type="anzsrc-for">9699</subject>
+            <description type="brief">
+                This product (i.e. an Access database and csv files) contains data (longitude, latitude and physical
+                data) that explains the predicted spatial patterns of benthic habitats for demersal fish and benthic
+                invertebrates in the NWMR. Predicted patterns for habitats represent point data on a 0.01 decimal degree
+                grid covering most of the NWMR (approximately 600,000 square km). Source:
+                http://www.marine.csiro.au/marq/edd_search.Browse_Citation?txtSession=8593
+            </description>
+            <description type="brief">This is an original derivation.</description>
+            <description type="rights">
+                The data may be copied for distribution within DEWHA for their internal business operations, but may not
+                be provided to third parties. Enquiries from third parties should be directed to Nick Ellis. See contact
+                details below.
+            </description>
+            <relatedInfo type="collection">
+                <identifier type="doi">10.664586-12221</identifier>
+                <relation type="hasAssociationWith">
+                    <description>Relation Description</description>
+                    <url>https://something.something</url>
+                </relation>
+                <notes>An invalid doi</notes>
+            </relatedInfo>
+            <relatedInfo type="party">
+                <identifier type="uri">http://dciParties.com/DCIPartyRecords2</identifier>
+                <relation type="isManagedBy"/>
+                <notes>An invalid doi</notes>
+            </relatedInfo>
+        </collection>
+    </registryObject>
+</registryObjects>

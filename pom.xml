@@ -13,6 +13,7 @@
         <module>drvs</module>
         <module>igsn</module>
         <module>oai</module>
+        <module>researchdata</module>
     </modules>
 
     <build>

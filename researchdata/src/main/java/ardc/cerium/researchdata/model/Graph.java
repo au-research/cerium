@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -14,12 +15,14 @@ public class Graph {
 
 	private List<Edge> edges = new ArrayList<>();
 
-	private Vertex originNode;
-
 	public void addVertex(Vertex vertex) {
 		if (!this.vertices.contains(vertex)) {
 			this.vertices.add(vertex);
 		}
+	}
+
+	public void addVertex(Vertex... vertices) {
+		this.vertices.addAll(Arrays.asList(vertices));
 	}
 
 	public void addEdge(Edge edge) {

@@ -83,7 +83,8 @@ public class GraphService {
 				edge.getTo().getIdentifierType(), edge.getType());
 
 		// todo relationship properties, description, url
-		// todo re-create the relationship or update existing relationship with the same type
+		// todo re-create the relationship or update existing relationship with the same
+		// type
 
 		neo4jClient.query(cypher).run();
 
@@ -99,6 +100,22 @@ public class GraphService {
 		// .bind(edge.getTo().getIdentifierType()).to("toIDType")
 		// .bind(edge.getType()).to("relationType")
 		// .run();
+	}
+
+	/**
+	 * Finds all nodes that has the isSameAs variable length matching
+	 * @param identifier the String format of the identifier Value
+	 * @param identifierType the IdentifierType of the origin node identifierValue
+	 * @return the unique {@link Collection<Vertex>} that matches the query
+	 */
+	public Collection<Vertex> getSameAs(String identifier, String identifierType) {
+		return neo4jClient
+				.query("MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
+						+ "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates) \n"
+						+ "WITH collect(origin) + collect(duplicates) as identicals\n" + "UNWIND identicals as n\n"
+						+ "RETURN distinct n;")
+				.bind(identifier).to("identifier").bind(identifierType).to("identifierType").fetchAs(Vertex.class)
+				.mappedBy(((typeSystem, record) -> Neo4jClientBiFunctionHelper.toVertex(record, "n"))).all();
 	}
 
 }

@@ -19,10 +19,18 @@ public class Edge {
 
 	private String url;
 
+	private Origin origin = Origin.Explicit;
+
 	public Edge(Vertex from, Vertex to, String type) {
 		this.from = from;
 		this.to = to;
 		this.type = type;
+	}
+
+	public enum Origin {
+
+		Explicit, Implicit
+
 	}
 
 }

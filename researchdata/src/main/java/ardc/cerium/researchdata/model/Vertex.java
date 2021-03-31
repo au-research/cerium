@@ -25,6 +25,17 @@ public class Vertex {
 	@DynamicLabels
 	private List<String> labels;
 
+	private String type;
+
+	private String classification;
+
+	private int registryObjectId;
+
+	// model DataSource as a Relation?
+	private String dataSourceKey;
+
+	private Status status = Status.Published;
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -39,8 +50,16 @@ public class Vertex {
 		labels.add(label.toString());
 	}
 
+    public boolean hasLabel(Label label) {
+		return labels.contains(label.toString());
+	}
+
 	public enum Label {
 		Vertex, RegistryObject, Identifier
+	}
+
+	public enum Status {
+		Published, Draft
 	}
 
 }

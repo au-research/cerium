@@ -4,9 +4,15 @@ import ardc.cerium.researchdata.model.RelationDocument;
 import ardc.cerium.researchdata.model.Vertex;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.value.ListValue;
+import org.neo4j.driver.internal.value.NodeValue;
 import org.neo4j.driver.internal.value.PathValue;
 import org.neo4j.driver.internal.value.RelationshipValue;
+import org.neo4j.driver.types.Node;
 import org.springframework.data.neo4j.core.Neo4jClient;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * A set of useful BiFunction used in retrieving contents from Cypher Queries. Used
@@ -40,8 +46,24 @@ public class Neo4jClientBiFunctionHelper {
 	 * @return the {@link Vertex} derived from the resulting {@link Value}
 	 */
 	public static Vertex toVertex(Record record, String returnCallSign) {
+		Node value = record.get(returnCallSign).asNode();
+		Vertex vertex = new Vertex(value.get("identifier").asString(), value.get("identifierType").asString());
+		for (String label : value.labels()) {
+			vertex.addLabel(Vertex.Label.valueOf(label));
+		}
+		return vertex;
+	}
+
+	public static Vertex toVertexCollection(Record record, String returnCallSign) {
 		Value value = record.get(returnCallSign);
-		return new Vertex(value.get("identifier").asString(), value.get("identifierType").asString());
+		if (value instanceof ListValue) {
+			for (Value v : value.values()) {
+			    Node n = v.asNode();
+				Vertex vertex = new Vertex(n.get("identifier").asString(), n.get("identifierType").asString());
+				return vertex;
+			}
+		}
+		return null;
 	}
 
 	/**

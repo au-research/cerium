@@ -8,6 +8,7 @@ import ardc.cerium.core.common.service.VersionService;
 import ardc.cerium.core.common.util.XMLUtil;
 import ardc.cerium.researchdata.harvester.RDAHarvester;
 import ardc.cerium.researchdata.model.RegistryObject;
+import ardc.cerium.researchdata.provider.RIFCSGraphProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class RDAHarvestingService {
     @Autowired
     ApplicationProperties applicationProperties;
 
+    @Autowired
+	MyceliumService myceliumService;
+
     public void harvest(String host) {
         int limit = 100;
         int offset = 0;
@@ -52,7 +56,14 @@ public class RDAHarvestingService {
                 String rifcs = harvester.harvestRIFCS(registryObject.getRegistryObjectId());
 
                 // todo use Supplier<T> pattern to yield registryObject and rifcs?
-                saveFile(registryObject, rifcs);
+                //saveFile(registryObject, rifcs);
+
+                try {
+                    myceliumService.ingest(rifcs);
+                } catch (Exception e) {
+                    log.error("Failed to ingest {} due to {}", registryObject.getRegistryObjectId(), e.getMessage());
+                }
+
             }
 
             // next page

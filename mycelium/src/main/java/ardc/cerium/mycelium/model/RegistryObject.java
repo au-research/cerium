@@ -1,4 +1,4 @@
-package ardc.cerium.researchdata.model;
+package ardc.cerium.mycelium.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,4 +21,6 @@ public class RegistryObject {
 
     @JsonProperty("class")
     private String classification;
+
+    private String rifcs;
 }

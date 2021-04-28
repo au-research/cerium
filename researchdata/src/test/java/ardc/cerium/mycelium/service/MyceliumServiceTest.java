@@ -76,7 +76,7 @@ class MyceliumServiceTest extends Neo4jTest {
 
 		graph.addVertex(a, b, c, i1, i2);
 
-		// (a)-[:isSameAs]->(i1)<-[:isSameAs]-(c)-[:isSameAs]->(i2)<-[:isSameAs]-(c)
+		// (a)-[:isSameAs]->(i1)<-[:isSameAs]-(b)-[:isSameAs]->(i2)<-[:isSameAs]-(c)
 		graph.addEdge(new Edge(a, i1, RIFCSGraphProvider.RELATION_SAME_AS));
 		graph.addEdge(new Edge(b, i1, RIFCSGraphProvider.RELATION_SAME_AS));
 		graph.addEdge(new Edge(b, i2, RIFCSGraphProvider.RELATION_SAME_AS));

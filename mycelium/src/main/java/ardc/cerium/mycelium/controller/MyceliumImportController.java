@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author Minh Duc Nguyen
  */
 @RestController
-@RequestMapping(value = "/api/services/import")
+@RequestMapping(value = "/api/services/")
 @Slf4j
 public class MyceliumImportController {
 

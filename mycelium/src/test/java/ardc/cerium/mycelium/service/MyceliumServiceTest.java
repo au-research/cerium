@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.Neo4jTest;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
@@ -7,13 +8,14 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Import({ MyceliumService.class, GraphService.class })
+@Import({ MyceliumService.class, GraphService.class})
 class MyceliumServiceTest extends Neo4jTest {
 
 	@Autowired
@@ -21,6 +23,9 @@ class MyceliumServiceTest extends Neo4jTest {
 
 	@Autowired
 	GraphService graphService;
+
+	@MockBean
+	RequestService requestService;
 
 	@Test
 	void getDuplicateRegistryObjectTest() {

@@ -1,7 +1,8 @@
 package ardc.cerium.mycelium.controller;
 
+import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.service.MyceliumService;
-import ardc.cerium.mycelium.task.ImportNeo4jTask;
+import ardc.cerium.mycelium.task.ImportTask;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.ResponseEntity;
@@ -41,12 +42,16 @@ public class MyceliumImportController {
 	 * @return something
 	 */
 	@PostMapping("/import")
-	public ResponseEntity<?> importHandler(@RequestBody String xml) {
-		// todo determine input and output
+	public ResponseEntity<Request> importHandler(@RequestBody String xml) {
+		// create new Request, store the xml
+		Request request = myceliumService.createImportRequest(xml);
+		request.setStatus(Request.Status.ACCEPTED);
 
-		myceliumService.ingest(xml);
+		ImportTask importTask = new ImportTask(request, myceliumService);
+		importTask.run();
 
-		return ResponseEntity.ok("Done");
+		myceliumService.save(request);
+		return ResponseEntity.ok(request);
 	}
 
 	/**
@@ -67,7 +72,7 @@ public class MyceliumImportController {
 		ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
 		for (File file : filesList) {
 			String xml = FileUtils.readFileToString(file, "UTF-8");
-			threadPoolExecutor.execute(new ImportNeo4jTask(xml, myceliumService));
+			threadPoolExecutor.execute(new ImportTask(xml, myceliumService));
 		}
 
 		// todo determine return type

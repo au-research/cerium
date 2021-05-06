@@ -13,18 +13,8 @@ import java.nio.file.Paths;
 public class ImportTask implements Runnable {
 
 	private final MyceliumService myceliumService;
-	private String xml;
 
-	/**
-	 * Instantiation with an XML string. Provides the ability to run this task without a
-	 * Request
-	 * @param xml the XML string payload to ingest
-	 * @param myceliumService the {@link MyceliumService}
-	 */
-	public ImportTask(String xml, MyceliumService myceliumService) {
-		this.xml = xml;
-		this.myceliumService = myceliumService;
-	}
+	private String xml;
 
 	/**
 	 * Instantiation with an Import {@link Request}. The XML will be obtained from the

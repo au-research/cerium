@@ -50,33 +50,9 @@ public class MyceliumImportController {
 		ImportTask importTask = new ImportTask(request, myceliumService);
 		importTask.run();
 
+		request.setStatus(Request.Status.COMPLETED);
 		myceliumService.save(request);
 		return ResponseEntity.ok(request);
-	}
-
-	/**
-	 * Import from a local directory path. Currently used for load testing purposes
-	 * @param directory the path to the local directory, contains a flat list of XML files
-	 * to be imported
-	 * @return something
-	 * @throws IOException when the directory is not readable
-	 */
-	@PostMapping("/import-local")
-	public ResponseEntity<?> importLocal(@RequestBody String directory) throws IOException {
-		File directoryPath = new File(directory);
-		File[] filesList = directoryPath.listFiles();
-		assert filesList != null;
-		log.info("Obtaining {} files from path {}", filesList.length, directory);
-
-		// multi thread this
-		ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
-		for (File file : filesList) {
-			String xml = FileUtils.readFileToString(file, "UTF-8");
-			threadPoolExecutor.execute(new ImportTask(xml, myceliumService));
-		}
-
-		// todo determine return type
-		return ResponseEntity.ok("Done");
 	}
 
 }

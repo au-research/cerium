@@ -26,13 +26,16 @@ public class Vertex {
 	private List<String> labels;
 
 	@Property("objectType")
-	private String type;
+	private String objectType;
 
 	@Property("objectClass")
 	private String objectClass;
 
-	@Property("public")
-	private boolean isPublic = true;
+	@Property("visible")
+	private boolean visible = true;
+
+	@Property("url")
+	private String url;
 
 	@Id
 	@GeneratedValue

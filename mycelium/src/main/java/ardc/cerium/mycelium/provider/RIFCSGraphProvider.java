@@ -88,9 +88,6 @@ public class RIFCSGraphProvider {
 					});
 				});
 			}
-
-			// todo primary links
-			// todo reverse links
 		});
 
 		return graph;

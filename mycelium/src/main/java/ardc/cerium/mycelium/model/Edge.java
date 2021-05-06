@@ -19,18 +19,20 @@ public class Edge {
 
 	private String url;
 
-	private Origin origin = Origin.Explicit;
+	private String origin;
+
+	private boolean isReverse = false;
+
+	private boolean isImplicit = false;
+
+	private boolean isPublic = true;
+
+	private boolean isInternal = true;
 
 	public Edge(Vertex from, Vertex to, String type) {
 		this.from = from;
 		this.to = to;
 		this.type = type;
-	}
-
-	public enum Origin {
-
-		Explicit, Implicit
-
 	}
 
 }

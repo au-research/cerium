@@ -12,11 +12,11 @@ import java.util.stream.Collectors;
 @Service
 public class MyceliumService {
 
-	@Autowired
-	GraphService graphService;
+	private final GraphService graphService;
 
-	// @Autowired
-	// RelationIndexingService relationIndexingService;
+	public MyceliumService(GraphService graphService) {
+		this.graphService = graphService;
+	}
 
 	public void ingest(String payload) {
 
@@ -27,23 +27,8 @@ public class MyceliumService {
 		// insert into neo4j graph
 		graphService.ingestGraph(graph);
 
-		// todo consider if indexing to relations core is even required
-		// todo fix indexing graph with originNode in mind
-		// todo queue
-		// Vertex origin = graph.getOriginNode();
-		// int limit = 100;
-		// int offset = 0;
-		// Collection<RelationDocument> batch =
-		// graphService.getRelationships(origin.getIdentifier(),
-		// origin.getIdentifierType(), limit, offset);
-		//
-		// while (!batch.isEmpty()) {
-		// relationIndexingService.indexRelations(batch);
-		// log.info("Indexed {} relations", batch.size());
-		// offset += limit;
-		// batch = graphService.getRelationships(origin.getIdentifier(),
-		// origin.getIdentifierType(), limit, offset);
-		// }
+		// todo reverse links generations
+		// todo implicit links generations
 	}
 
 	/**

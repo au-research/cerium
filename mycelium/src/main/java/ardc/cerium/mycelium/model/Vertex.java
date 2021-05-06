@@ -25,16 +25,14 @@ public class Vertex {
 	@DynamicLabels
 	private List<String> labels;
 
+	@Property("objectType")
 	private String type;
 
-	private String classification;
+	@Property("objectClass")
+	private String objectClass;
 
-	private int registryObjectId;
-
-	// model DataSource as a Relation?
-	private String dataSourceKey;
-
-	private Status status = Status.Published;
+	@Property("public")
+	private boolean isPublic = true;
 
 	@Id
 	@GeneratedValue
@@ -55,11 +53,7 @@ public class Vertex {
 	}
 
 	public enum Label {
-		Vertex, RegistryObject, Identifier
-	}
-
-	public enum Status {
-		Published, Draft
+		Vertex, RegistryObject, Identifier, DataSource
 	}
 
 }

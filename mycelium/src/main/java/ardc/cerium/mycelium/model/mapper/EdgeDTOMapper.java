@@ -38,13 +38,13 @@ public class EdgeDTOMapper {
                     edgeDTO.setReverse(relationship.get("isReverse").asBoolean());
                 }
                 if (!relationship.get("isImplicit").isNull()) {
-                    edgeDTO.setReverse(relationship.get("isImplicit").asBoolean());
+                    edgeDTO.setImplicit(relationship.get("isImplicit").asBoolean());
                 }
                 if (!relationship.get("isPublic").isNull()) {
-                    edgeDTO.setReverse(relationship.get("isPublic").asBoolean());
+                    edgeDTO.setPublic(relationship.get("isPublic").asBoolean());
                 }
                 if (!relationship.get("isInternal").isNull()) {
-                    edgeDTO.setReverse(relationship.get("isInternal").asBoolean());
+                    edgeDTO.setInternal(relationship.get("isInternal").asBoolean());
                 }
                 return edgeDTO;
             }

@@ -2,11 +2,16 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,9 +19,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Slf4j
@@ -25,6 +34,7 @@ public class MyceliumService {
 	public static final String IMPORT_REQUEST_TYPE = "mycelium-import";
 
 	private final GraphService graphService;
+
 	private final RequestService requestService;
 
 	public MyceliumService(GraphService graphService, RequestService requestService) {
@@ -43,7 +53,6 @@ public class MyceliumService {
 
 	/**
 	 * Create a new Import Request with data path, log path and xml stored as payload
-	 *
 	 * @param xml the XML payload
 	 * @return the created {@link Request}
 	 */
@@ -77,7 +86,8 @@ public class MyceliumService {
 		try {
 			Files.createFile(Paths.get(payloadPath));
 			Files.writeString(Paths.get(payloadPath), xml);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			log.error("Failed to write to payload path: {} with content {}", payloadPath, xml);
 		}
 
@@ -95,6 +105,18 @@ public class MyceliumService {
 
 		// todo reverse links generations
 		// todo implicit links generations
+	}
+
+	/**
+	 * Search for relationships.
+	 * @param criteriaList a list of {@link SearchCriteria} to start the search in
+	 * @param pageable the pagination and sorting provided by {@link Pageable}
+	 * @return a {@link PageImpl} of {@link Relationship}
+	 */
+	public Page<Relationship> search(List<SearchCriteria> criteriaList, Pageable pageable) {
+		List<Relationship> result = new ArrayList<>(graphService.search(criteriaList, pageable));
+		int total = graphService.searchCount(criteriaList);
+		return new PageImpl<>(result, pageable, total);
 	}
 
 	/**

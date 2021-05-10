@@ -5,17 +5,22 @@ import ardc.cerium.mycelium.Neo4jTest;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
+import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Import({ MyceliumService.class, GraphService.class})
+@Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class })
 class MyceliumServiceTest extends Neo4jTest {
 
 	@Autowired
@@ -54,7 +59,7 @@ class MyceliumServiceTest extends Neo4jTest {
 		assertThat(duplicates.size()).isEqualTo(3);
 
 		// all of them should be RegistryObject, no identifier allowed
-        assertThat(duplicates.stream().allMatch(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))).isTrue();
+		assertThat(duplicates.stream().allMatch(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))).isTrue();
 
 		// B and C turns up
 		assertThat(duplicates.stream().anyMatch(vertex -> vertex.getIdentifier().equals("B"))).isTrue();
@@ -100,9 +105,9 @@ class MyceliumServiceTest extends Neo4jTest {
 		assertThat(duplicates.stream().anyMatch(vertex -> vertex.getIdentifier().equals("B"))).isTrue();
 		assertThat(duplicates.stream().anyMatch(vertex -> vertex.getIdentifier().equals("C"))).isTrue();
 
-        // B and C should also have the same amount of duplicates
-        assertThat(myceliumService.getDuplicateRegistryObject(b).size()).isEqualTo(3);
-        assertThat(myceliumService.getDuplicateRegistryObject(c).size()).isEqualTo(3);
+		// B and C should also have the same amount of duplicates
+		assertThat(myceliumService.getDuplicateRegistryObject(b).size()).isEqualTo(3);
+		assertThat(myceliumService.getDuplicateRegistryObject(c).size()).isEqualTo(3);
 	}
 
 }

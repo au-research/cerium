@@ -5,9 +5,12 @@ import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.RelationDocument;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
+import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -17,7 +20,7 @@ import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Import(GraphService.class)
+@Import({GraphService.class, VertexMapper.class, EdgeDTOMapper.class, ModelMapper.class})
 class GraphServiceTest extends Neo4jTest {
 
 	@Autowired

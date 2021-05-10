@@ -56,7 +56,7 @@ public class APIRestControllerAdvice {
 	 * @param locale the injected Locale for the service
 	 * @return ResponseEntity
 	 */
-	@ExceptionHandler(value = { SchemaNotSupportedException.class, VersionContentAlreadyExistsException.class })
+	@ExceptionHandler(value = { SchemaNotSupportedException.class, VersionContentAlreadyExistsException.class, ContentNotSupportedException.class })
 	public ResponseEntity<Object> handleBadRequest(APIException ex, HttpServletRequest request, Locale locale) {
 		String message = messageSource.getMessage(ex.getMessageID(), ex.getArgs(), locale);
 		APIExceptionResponse response = new APIExceptionResponse(message, HttpStatus.BAD_REQUEST, request);

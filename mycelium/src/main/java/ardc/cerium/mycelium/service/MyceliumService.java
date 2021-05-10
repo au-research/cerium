@@ -4,6 +4,9 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.service.RequestService;
+import ardc.cerium.core.common.util.Helpers;
+import ardc.cerium.core.common.util.XMLUtil;
+import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,6 +96,35 @@ public class MyceliumService {
 		}
 
 		return request;
+	}
+
+	public void validateRequest(Request request) {
+
+		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
+		if (payloadPath == null) {
+			throw new ContentNotSupportedException("Inaccessible payload file");
+		}
+
+		// validate payload
+		String payload;
+		try {
+			payload = Helpers.readFile(payloadPath);
+		} catch (IOException e) {
+			throw new ContentNotSupportedException("Inaccessible payload file");
+		}
+
+		// test payload is empty
+		if (payload.isBlank()) {
+			throw new ContentNotSupportedException("Payload is empty");
+		}
+
+		// test payload is well formed xml
+		Element domDocument = XMLUtil.getDomDocument(payload);
+		if (domDocument == null) {
+			throw new ContentNotSupportedException("Payload is not well-formed XML");
+		}
+
+		// todo test payload is rifcs
 	}
 
 	public void ingest(String payload) {

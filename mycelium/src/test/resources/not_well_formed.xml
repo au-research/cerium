@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="AUTestingRecords">
+        <key>AUTestingRecords2AltRecords1</key>
+        <originatingSource type="">http://researchdata.ands.org.au/registry/orca/register_my_data</originatingSource>
+        <collection type="collection" dateModified="2013-02-04T01:52:49Z" dateAccessioned="2013-01-17T00:00:00Z">
+            <name type="primary">
+                <namePart>(AUTestingRecords)Altmetrics Collection(collection) with everything</namePart>
+            </name>
+            <identifier type="uri">http://researchonline.federation.edu.au:8080/vital/access/HandleResolver/1959.17/420DsdfCI06AUTba1 </identifier>

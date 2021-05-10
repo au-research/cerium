@@ -40,6 +40,7 @@ public class ImportAPIController {
 		// create new Request, store the xml
 		Request request = myceliumService.createImportRequest(xml);
 		request.setStatus(Request.Status.ACCEPTED);
+		myceliumService.validateRequest(request);
 
 		ImportTask importTask = new ImportTask(request, myceliumService);
 		importTask.run();

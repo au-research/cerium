@@ -24,7 +24,10 @@ public class ImportTask implements Runnable {
 	 */
 	public ImportTask(Request request, MyceliumService myceliumService) {
 		this.myceliumService = myceliumService;
+		parseRequest(request);
+	}
 
+	public void parseRequest(Request request) {
 		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
 		try {
 			this.xml = Files.readString(Paths.get(payloadPath));
@@ -38,7 +41,6 @@ public class ImportTask implements Runnable {
 	public void run() {
 		try {
 			myceliumService.ingest(xml);
-
 			// todo update Request status and/or logging
 		}
 		catch (Exception e) {

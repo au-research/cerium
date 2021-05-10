@@ -24,7 +24,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @RestController
 @RequestMapping(value = "/api/services/")
 @Slf4j
-public class MyceliumImportController {
+public class ImportAPIController {
 
 	// todo ? import-bulk to import multiple XML documents at the same time, wrapped?
 	// todo ? import-remote to import from a remote endpoint, ie RDA?
@@ -32,7 +32,7 @@ public class MyceliumImportController {
 
 	private final MyceliumService myceliumService;
 
-	public MyceliumImportController(MyceliumService myceliumService) {
+	public ImportAPIController(MyceliumService myceliumService) {
 		this.myceliumService = myceliumService;
 	}
 

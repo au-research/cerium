@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/search/relationships")
 @Slf4j
-public class MyceliumRelationshipsAPI {
+public class RelationshipsAPIController {
 
 	@Autowired
 	MyceliumService myceliumService;

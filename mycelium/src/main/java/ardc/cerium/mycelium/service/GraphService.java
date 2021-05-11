@@ -176,7 +176,7 @@ public class GraphService {
 	 * Finds all nodes that has the isSameAs variable length matching
 	 * @param identifier the String format of the identifier Value
 	 * @param identifierType the IdentifierType of the origin node identifierValue
-	 * @return the unique {@link Collection<Vertex>} that matches the query
+	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
 	 */
 	public Collection<Vertex> getSameAs(String identifier, String identifierType) {
 		return neo4jClient

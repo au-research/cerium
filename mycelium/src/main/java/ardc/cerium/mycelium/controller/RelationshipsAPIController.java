@@ -7,7 +7,6 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.service.MyceliumService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -25,19 +24,27 @@ import java.util.List;
 @Slf4j
 public class RelationshipsAPIController {
 
-	@Autowired
-	MyceliumService myceliumService;
+	private final MyceliumService myceliumService;
+
+	public RelationshipsAPIController(MyceliumService myceliumService) {
+		this.myceliumService = myceliumService;
+	}
 
 	@GetMapping("")
 	@PageableOperation
 	public ResponseEntity<?> search(@Parameter(hidden = true) @PageableDefault(size = 100) Pageable pageable,
 			@Parameter(name = "fromIdentifierValue",
-					description = "From Identifier Value") @RequestParam(required = false) String fromIdentifierValue) {
+					description = "From Identifier Value") @RequestParam(required = false) String fromIdentifierValue,
+			@Parameter(name = "fromIdentifierType",
+					description = "From Identifier Type") @RequestParam(required = false) String fromIdentifierType) {
 
 		// builds the criteriaList
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		if (fromIdentifierValue != null) {
-			criteriaList.add(new SearchCriteria("fromIdentifierValue", "C1", SearchOperation.EQUAL));
+			criteriaList.add(new SearchCriteria("fromIdentifierValue", fromIdentifierValue, SearchOperation.EQUAL));
+		}
+		if (fromIdentifierType != null) {
+			criteriaList.add(new SearchCriteria("fromIdentifierType", fromIdentifierType, SearchOperation.EQUAL));
 		}
 
 		// obtain the paginated result from myceliumService

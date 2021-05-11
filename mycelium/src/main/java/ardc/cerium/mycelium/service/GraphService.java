@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,6 +82,7 @@ public class GraphService {
 		String cypherQuery = getRelationshipCypherQuery(criteriaList);
 		cypherQuery += " return from, to, collect(r) as relations skip " + pageable.getOffset() + " limit "
 				+ pageable.getPageSize() + ";";
+		log.debug("CypherQuery(search): {}", cypherQuery);
 
 		// perform the query
 		return neo4jClient.query(cypherQuery).fetchAs(Relationship.class).mappedBy((typeSystem, record) -> {
@@ -118,22 +120,32 @@ public class GraphService {
 	public int searchCount(List<SearchCriteria> criteriaList) {
 		String cypherQuery = getRelationshipCypherQuery(criteriaList);
 		cypherQuery += " return count(*) as total";
+		log.debug("CypherQuery(count): {}", cypherQuery);
+
 		return neo4jClient.query(cypherQuery).fetchAs(Integer.class).one().get();
 	}
 
 	/**
 	 * A cypher query constructor used by {@link #search(List, Pageable)} and {@link #searchCount(List)}.
 	 * This cypher query is not completed (missing the return statement) that should be filled in afterwards
+	 *
+	 * todo consider refactoring to use cypher-dsl once the StringBuilder gets too crowded
 	 * @param criteriaList a list of {@link SearchCriteria} filters
 	 * @return the cypher query {@link String}
 	 */
 	public String getRelationshipCypherQuery(List<SearchCriteria> criteriaList) {
-		// todo consider refactor to use cypher-dsl instead of string concatenation
-		StringBuilder cypherQuery = new StringBuilder("match (from:RegistryObject)-[r]->(to) ");
+		StringBuilder cypherQuery = new StringBuilder("MATCH (from:RegistryObject)-[r]->(to) ");
+
+		List<String> wheres = new ArrayList<>();
 		for (SearchCriteria criteria : criteriaList) {
 			if (criteria.getKey().equals("fromIdentifierValue")) {
-				cypherQuery.append("where from.identifier = \"").append(criteria.getValue()).append("\"");
+				wheres.add(String.format("from.identifier = \"%s\"", criteria.getValue()));
+			} else if (criteria.getKey().equals("fromIdentifierType")) {
+				wheres.add(String.format("from.identifierType = \"%s\"", criteria.getValue()));
 			}
+		}
+		if (wheres.size() > 0) {
+			cypherQuery.append(" WHERE ").append(String.join(" AND ", wheres));
 		}
 		return cypherQuery.toString();
 	}
@@ -157,19 +169,6 @@ public class GraphService {
 		// type
 
 		neo4jClient.query(cypher).run();
-
-		// binding Relationship doesn't work
-		// neo4jClient.query("MATCH (from:Vertex {identifier: $fromID, identifierType:
-		// $fromIDType}) WITH from \n"
-		// + "MATCH (to:Vertex {identifier: $toID, identifierType: $toIDType}) WITH from,
-		// to\n"
-		// + "MERGE (from)-[r:$relationType]->(to) RETURN type(r);")
-		// .bind(edge.getFrom().getIdentifier()).to("fromID")
-		// .bind(edge.getFrom().getIdentifierType()).to("fromIDType")
-		// .bind(edge.getTo().getIdentifier()).to("toID")
-		// .bind(edge.getTo().getIdentifierType()).to("toIDType")
-		// .bind(edge.getType()).to("relationType")
-		// .run();
 	}
 
 	/**

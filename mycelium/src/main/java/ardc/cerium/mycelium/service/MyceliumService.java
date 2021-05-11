@@ -153,11 +153,11 @@ public class MyceliumService {
 	}
 
 	/**
-	 * Finds a {@link Collection<Vertex>} of RegistryObject that is considered identical.
+	 * Finds a {@link Collection} of {@link Vertex} of RegistryObject that is considered identical.
 	 * Identical Registry object shares the same Identifier (isSameAs to the same
 	 * Identifier). This property is transitive
 	 * @param origin the {@link Vertex} to start the search in
-	 * @return a {@link Collection<Vertex>} that contains all the identical {@link Vertex}
+	 * @return a {@link Collection} of {@link Vertex} that contains all the identical {@link Vertex}
 	 */
 	public Collection<Vertex> getDuplicateRegistryObject(Vertex origin) {
 		Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(origin.getIdentifier(),

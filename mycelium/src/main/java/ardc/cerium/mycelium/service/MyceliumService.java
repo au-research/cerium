@@ -29,8 +29,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
 @Service
 @Slf4j
 public class MyceliumService {
@@ -109,7 +107,8 @@ public class MyceliumService {
 		String payload;
 		try {
 			payload = Helpers.readFile(payloadPath);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new ContentNotSupportedException("Inaccessible payload file");
 		}
 
@@ -153,11 +152,12 @@ public class MyceliumService {
 	}
 
 	/**
-	 * Finds a {@link Collection} of {@link Vertex} of RegistryObject that is considered identical.
-	 * Identical Registry object shares the same Identifier (isSameAs to the same
-	 * Identifier). This property is transitive
+	 * Finds a {@link Collection} of {@link Vertex} of RegistryObject that is considered
+	 * identical. Identical Registry object shares the same Identifier (isSameAs to the
+	 * same Identifier). This property is transitive
 	 * @param origin the {@link Vertex} to start the search in
-	 * @return a {@link Collection} of {@link Vertex} that contains all the identical {@link Vertex}
+	 * @return a {@link Collection} of {@link Vertex} that contains all the identical
+	 * {@link Vertex}
 	 */
 	public Collection<Vertex> getDuplicateRegistryObject(Vertex origin) {
 		Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(origin.getIdentifier(),

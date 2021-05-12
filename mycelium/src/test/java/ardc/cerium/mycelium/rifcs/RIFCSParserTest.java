@@ -1,4 +1,4 @@
-package ardc.cerium.mycelium;
+package ardc.cerium.mycelium.rifcs;
 
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;

@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -137,6 +138,10 @@ public class GraphService {
 		StringBuilder cypherQuery = new StringBuilder("MATCH (from:RegistryObject)-[r]->(to) ");
 
 		List<String> wheres = new ArrayList<>();
+
+		// isSameAs relationship to be excluded
+		wheres.add(String.format("type(r) <> \"%s\"", RIFCSGraphProvider.RELATION_SAME_AS));
+
 		for (SearchCriteria criteria : criteriaList) {
 			if (criteria.getKey().equals("fromIdentifierValue")) {
 				wheres.add(String.format("from.identifier = \"%s\"", criteria.getValue()));

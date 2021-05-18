@@ -1,27 +1,34 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.service.RequestService;
-import ardc.cerium.mycelium.Neo4jTest;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
+import org.neo4j.harness.Neo4j;
+import org.neo4j.harness.Neo4jBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@DataNeo4jTest
 @Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class })
-class MyceliumServiceTest extends Neo4jTest {
+class MyceliumServiceTest {
+
+	private static Neo4j embeddedDatabaseServer;
 
 	@Autowired
 	MyceliumService myceliumService;
@@ -31,6 +38,25 @@ class MyceliumServiceTest extends Neo4jTest {
 
 	@MockBean
 	RequestService requestService;
+
+	@BeforeAll
+	static void initializeNeo4j() {
+
+		embeddedDatabaseServer = Neo4jBuilders.newInProcessBuilder().withDisabledServer().build();
+	}
+
+	@AfterAll
+	static void stopNeo4j() {
+		embeddedDatabaseServer.close();
+	}
+
+	@DynamicPropertySource
+	static void neo4jProperties(DynamicPropertyRegistry registry) {
+
+		registry.add("spring.neo4j.uri", embeddedDatabaseServer::boltURI);
+		registry.add("spring.neo4j.authentication.username", () -> "neo4j");
+		registry.add("spring.neo4j.authentication.password", () -> null);
+	}
 
 	@Test
 	void getDuplicateRegistryObjectTest() {

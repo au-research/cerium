@@ -66,7 +66,7 @@ public class RelationLookupService {
 	 * Obtain the generated look up table
 	 * @return lookupTable
 	 */
-	public Map<String, RelationLookupEntry> getLookupTable() {
+	public static Map<String, RelationLookupEntry> getLookupTable() {
 		return lookupTable;
 	}
 
@@ -75,7 +75,7 @@ public class RelationLookupService {
 	 * @param relationType the relationType to check
 	 * @return true|false whether the relationType is included
 	 */
-	public boolean contains(String relationType) {
+	public static boolean contains(String relationType) {
 		return lookupTable.containsKey(relationType);
 	}
 
@@ -84,7 +84,7 @@ public class RelationLookupService {
 	 * @param relationType the String relationType
 	 * @return the {@link RelationLookupEntry} from the lookup table
 	 */
-	public RelationLookupEntry resolve(String relationType) {
+	public static RelationLookupEntry resolve(String relationType) {
 		if (lookupTable.containsKey(relationType)) {
 			return lookupTable.get(relationType);
 		}
@@ -96,12 +96,12 @@ public class RelationLookupService {
 	 * @param relationType the relationType
 	 * @return the reverse String of the relationType
 	 */
-	public String getReverse(String relationType) {
+	public static String getReverse(String relationType) {
 		if (lookupTable.containsKey(relationType)) {
 			RelationLookupEntry entry = lookupTable.get(relationType);
 			return entry.getReverseRelationType();
 		}
-		return null;
+		return relationType;
 	}
 
 }

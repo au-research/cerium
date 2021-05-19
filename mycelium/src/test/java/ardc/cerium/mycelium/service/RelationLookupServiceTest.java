@@ -21,13 +21,13 @@ class RelationLookupServiceTest {
 	@Test
 	void itLoadsLookupTableProperly() throws IOException {
 		relationLookupService.loadLookupTable();
-		assertThat(relationLookupService.getLookupTable()).isNotNull();
-		assertThat(relationLookupService.getLookupTable().size()).isGreaterThan(0);
+		assertThat(RelationLookupService.getLookupTable()).isNotNull();
+		assertThat(RelationLookupService.getLookupTable().size()).isGreaterThan(0);
 	}
 
 	@Test
 	void itCanResolveARelationByType() {
-		RelationLookupEntry entry = relationLookupService.resolve("isPartOf");
+		RelationLookupEntry entry = RelationLookupService.resolve("isPartOf");
 		assertThat(entry).isNotNull();
 		assertThat(entry).isInstanceOf(RelationLookupEntry.class);
 		assertThat(entry.getReverseRelationType()).isEqualTo("hasPart");
@@ -35,13 +35,13 @@ class RelationLookupServiceTest {
 
 	@Test
 	void itCanTellIfARelationExistsInTheLookupTable() {
-		assertThat(relationLookupService.contains("isPartOf")).isTrue();
-		assertThat(relationLookupService.contains("weird relation")).isFalse();
+		assertThat(RelationLookupService.contains("isPartOf")).isTrue();
+		assertThat(RelationLookupService.contains("weird relation")).isFalse();
 	}
 
 	@Test
 	void itCanGetReverseRelation() {
-		assertThat(relationLookupService.getReverse("isPartOf")).isEqualTo("hasPart");
-		assertThat(relationLookupService.getReverse("weird relation")).isNull();
+		assertThat(RelationLookupService.getReverse("isPartOf")).isEqualTo("hasPart");
+		assertThat(RelationLookupService.getReverse("weird relation")).isEqualTo("weird relation");
 	}
 }

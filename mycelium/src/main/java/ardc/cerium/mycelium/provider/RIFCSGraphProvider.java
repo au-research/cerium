@@ -5,6 +5,9 @@ import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
+import ardc.cerium.mycelium.service.RelationLookupService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +65,9 @@ public class RIFCSGraphProvider {
 					relatedObject.getRelation().forEach(relation -> {
 						Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
 						graph.addEdge(edge);
+
+						// reversed edge for relatedObject relationships
+						graph.addEdge(getReversedEdge(edge));
 					});
 				});
 			}
@@ -84,6 +90,9 @@ public class RIFCSGraphProvider {
 						relatedInfoRelations.forEach(relatedInfoRelation -> {
 							Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
 							graph.addEdge(edge);
+
+							// reversed edge for relatedInfo relationships
+							graph.addEdge(getReversedEdge(edge));
 						});
 					});
 				});
@@ -91,6 +100,20 @@ public class RIFCSGraphProvider {
 		});
 
 		return graph;
+	}
+
+	/**
+	 * Obtain the reversed form of an Edge
+	 *
+	 * The reversed edge and flipped from & to, and the relationType is also flipped if
+	 * possible
+	 * @param edge the {@link Edge} to reverse
+	 * @return the reversed {@link Edge}
+	 */
+	public Edge getReversedEdge(Edge edge) {
+		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), RelationLookupService.getReverse(edge.getType()));
+		reversedEdge.setReverse(true);
+		return reversedEdge;
 	}
 
 }

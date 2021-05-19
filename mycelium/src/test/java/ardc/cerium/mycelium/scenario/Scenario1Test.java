@@ -27,10 +27,10 @@ public class Scenario1Test {
 				.filter(vertex -> vertex.getLabels().contains(Vertex.Label.RegistryObject.toString())).count())
 						.isEqualTo(2);
 
-		// there are 4 edges with 1 being the hasCollector connecting 2 registryObject
+		// there are 4 edges with 1 being the hasCollector connecting 2 registryObject (not counting reversed)
 		List<Edge> edges = graph.getEdges();
-		assertThat(edges.size()).isEqualTo(4);
-		assertThat(edges.stream().filter(edge -> edge.getType().equals("hasCollector")).count()).isEqualTo(1);
+		assertThat(edges.stream().filter(edge -> !edge.isReverse()).count()).isEqualTo(4);
+		assertThat(edges.stream().filter(edge -> edge.getType().equals("hasCollector") && !edge.isReverse()).count()).isEqualTo(1);
 	}
 
 	// todo scenario1_integration - test the data gets into neo4j, SOLR and available for searching

@@ -105,8 +105,7 @@ public class RIFCSGraphProvider {
 	/**
 	 * Obtain the reversed form of an Edge
 	 *
-	 * The reversed edge and flipped from & to, and the relationType is also flipped if
-	 * possible
+	 * The reversed edge and flipped from, to and the relationType is also flipped
 	 * @param edge the {@link Edge} to reverse
 	 * @return the reversed {@link Edge}
 	 */

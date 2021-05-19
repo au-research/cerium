@@ -1,0 +1,5 @@
+relationType,reverseRelationType,text,collectionText,partyText,serviceText,activityText
+hasPart,isPartOf,"Has part","Contains","Has part","Includes","Includes"
+isPartOf,hasPart,"Is part of","Part of","Part of","Part of","Part of"
+describes,isDescribedBy,Describes,Describes,Describes,Describes,Describes
+isDescribedBy,describes,Described by,Described by,Described by,Described by,Described by

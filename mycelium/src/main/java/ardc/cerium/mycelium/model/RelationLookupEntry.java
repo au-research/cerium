@@ -14,8 +14,8 @@ public class RelationLookupEntry {
     @CsvBindByName(column = "reverseRelationType")
     private String reverseRelationType;
 
-    @CsvBindByName(column = "text")
-    private String text;
+    @CsvBindByName(column = "defaultText")
+    private String defaultText;
 
     @CsvBindByName(column = "collectionText")
     private String collectionText;

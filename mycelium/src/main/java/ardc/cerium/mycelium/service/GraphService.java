@@ -12,6 +12,8 @@ import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.Node;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -39,7 +41,8 @@ public class GraphService {
 
 	private final EdgeDTOMapper edgeDTOMapper;
 
-	public GraphService(VertexRepository vertexRepository, Neo4jClient neo4jClient, VertexMapper vertexMapper, EdgeDTOMapper edgeDTOMapper) {
+	public GraphService(VertexRepository vertexRepository, Neo4jClient neo4jClient, VertexMapper vertexMapper,
+			EdgeDTOMapper edgeDTOMapper) {
 		this.vertexRepository = vertexRepository;
 		this.neo4jClient = neo4jClient;
 		this.vertexMapper = vertexMapper;
@@ -72,7 +75,6 @@ public class GraphService {
 
 	/**
 	 * search the neo4j database based on a list of criteria and pagination
-	 *
 	 * @param criteriaList a list of {@link SearchCriteria} to start the search in
 	 * @param pageable the pagination and sorting provided by {@link Pageable}
 	 * @return a {@link Collection} of {@link Relationship}
@@ -99,8 +101,7 @@ public class GraphService {
 			// convert collect(r) as relations to List<Edge> for Relationship
 			List<EdgeDTO> edges = record.get("relations").asList().stream()
 					.map(rel -> (org.neo4j.driver.types.Relationship) rel)
-					.map(rel -> edgeDTOMapper.getConverter().convert(rel))
-					.collect(Collectors.toList());
+					.map(rel -> edgeDTOMapper.getConverter().convert(rel)).collect(Collectors.toList());
 
 			// build and return the Relationship
 			Relationship relationship = new Relationship();
@@ -114,7 +115,6 @@ public class GraphService {
 
 	/**
 	 * Provide the total found based on a list of criteria
-	 *
 	 * @param criteriaList a list of {@link SearchCriteria} filters
 	 * @return the total count of related objects that matches the search criteria
 	 */
@@ -127,8 +127,9 @@ public class GraphService {
 	}
 
 	/**
-	 * A cypher query constructor used by {@link #search(List, Pageable)} and {@link #searchCount(List)}.
-	 * This cypher query is not completed (missing the return statement) that should be filled in afterwards
+	 * A cypher query constructor used by {@link #search(List, Pageable)} and
+	 * {@link #searchCount(List)}. This cypher query is not completed (missing the return
+	 * statement) that should be filled in afterwards
 	 *
 	 * todo consider refactoring to use cypher-dsl once the StringBuilder gets too crowded
 	 * @param criteriaList a list of {@link SearchCriteria} filters
@@ -145,7 +146,8 @@ public class GraphService {
 		for (SearchCriteria criteria : criteriaList) {
 			if (criteria.getKey().equals("fromIdentifierValue")) {
 				wheres.add(String.format("from.identifier = \"%s\"", criteria.getValue()));
-			} else if (criteria.getKey().equals("fromIdentifierType")) {
+			}
+			else if (criteria.getKey().equals("fromIdentifierType")) {
 				wheres.add(String.format("from.identifierType = \"%s\"", criteria.getValue()));
 			}
 		}
@@ -161,19 +163,29 @@ public class GraphService {
 	 * @param edge the {@link Edge} to ingest
 	 */
 	public void ingestEdge(Edge edge) {
-		// building a cypher string and just run it
-		String cypher = String.format(
-				"MATCH (from:Vertex {identifier: '%s', identifierType: '%s'}) \n" + "WITH from \n"
-						+ "MATCH (to:Vertex {identifier: '%s', identifierType: '%s'}) \n" + "WITH from, to\n"
-						+ "MERGE (from)-[r:%s]->(to) RETURN type(r);",
-				edge.getFrom().getIdentifier(), edge.getFrom().getIdentifierType(), edge.getTo().getIdentifier(),
-				edge.getTo().getIdentifierType(), edge.getType());
 
-		// todo relationship properties, description, url
-		// todo re-create the relationship or update existing relationship with the same
-		// type
+		org.neo4j.cypherdsl.core.Node from = Cypher.node("Vertex").named("from");
+		org.neo4j.cypherdsl.core.Node to = Cypher.node("Vertex").named("to");
 
-		neo4jClient.query(cypher).run();
+		org.neo4j.cypherdsl.core.Relationship relation = from.relationshipTo(to, edge.getType()).named("r");
+
+		Statement statement = Cypher.match(from).match(to)
+				.where(from.property("identifier").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifier())))
+				.and(from.property("identifierType").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifierType())))
+				.and(to.property("identifier").isEqualTo(Cypher.literalOf(edge.getTo().getIdentifier())))
+				.and(to.property("identifierType").isEqualTo(Cypher.literalOf(edge.getTo().getIdentifierType())))
+				.merge(relation)
+				.set(
+						relation.property("reverse").to(Cypher.literalOf(edge.isReverse())),
+						relation.property("internal").to(Cypher.literalOf(edge.isInternal())),
+						relation.property("public").to(Cypher.literalOf(edge.isPublic())),
+						relation.property("implicit").to(Cypher.literalOf(edge.isImplicit()))
+				)
+				.returning("r").build();
+
+		String cypherQuery = statement.getCypher();
+
+		neo4jClient.query(cypherQuery).run();
 	}
 
 	/**

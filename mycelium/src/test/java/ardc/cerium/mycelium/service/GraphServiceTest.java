@@ -11,12 +11,17 @@ import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.value.ListValue;
+import org.neo4j.driver.internal.value.RelationshipValue;
+import org.neo4j.driver.types.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.core.Neo4jClient;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -65,15 +70,46 @@ class GraphServiceTest extends Neo4jTest {
 		graphService.ingestEdge(edge);
 
 		// it exists in neo4j
-		RelationDocument result = neo4jClient
-				.query("MATCH (n:Vertex {identifier: $fromID, identifierType: $fromIDType})-[r]->() RETURN r")
+		Collection<Relationship> result = neo4jClient
+				.query("MATCH (n:`Vertex` {identifier: $fromID, identifierType: $fromType})-[r]->() RETURN r")
 				.bind("fromNode").to("fromID")
-				.bind(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE).to("fromIDType")
-				.fetchAs(RelationDocument.class)
-				.mappedBy((typeSystem, record) -> Neo4jClientBiFunctionHelper.toRelationDocument(record, "r"))
-				.one().orElse(null);
+				.bind(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE).to("fromType")
+				.fetchAs(Relationship.class)
+				.mappedBy((typeSystem, record) -> record.get("r").asRelationship())
+				.all();
 		assertThat(result).isNotNull();
-		assertThat(result.getRelationType()).isEqualTo("isRelatedTo");
+
+		// only 1 relation between them
+		assertThat(result.size()).isEqualTo(1);
+		Relationship theRelationship = new ArrayList<>(result).get(0);
+		assertThat(theRelationship.hasType("isRelatedTo")).isTrue();
+
+		// the default properties are set
+		assertThat(theRelationship.get("reverse")).isNotNull();
+		assertThat(theRelationship.get("implicit")).isNotNull();
+		assertThat(theRelationship.get("internal")).isNotNull();
+		assertThat(theRelationship.get("public")).isNotNull();
+
+		// the default properties have the default values
+		assertThat(theRelationship.get("reverse").asBoolean()).isFalse();
+		assertThat(theRelationship.get("implicit").asBoolean()).isFalse();
+		assertThat(theRelationship.get("internal").asBoolean()).isTrue();
+		assertThat(theRelationship.get("public").asBoolean()).isTrue();
+
+		// when ingest again (make sure the operation is idempotent
+		graphService.ingestEdge(edge);
+		graphService.ingestEdge(edge);
+
+		// there still only 1 edge
+		Collection<Relationship> resultAgain = neo4jClient
+				.query("MATCH (n:`Vertex` {identifier: $fromID, identifierType: $fromType})-[r]->() RETURN r")
+				.bind("fromNode").to("fromID")
+				.bind(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE).to("fromType")
+				.fetchAs(Relationship.class)
+				.mappedBy((typeSystem, record) -> record.get("r").asRelationship())
+				.all();
+		assertThat(resultAgain).isNotNull();
+		assertThat(resultAgain.size()).isEqualTo(1);
 	}
 
 	@Test

@@ -19,7 +19,9 @@ public class Edge {
 
 	private String url;
 
-	private String origin;
+	// todo consider making this into enumeration
+	// possible values: Direct, Duplicate, GrantsNetwork, PrimaryKey
+	private String origin = "Direct";
 
 	private boolean isReverse = false;
 

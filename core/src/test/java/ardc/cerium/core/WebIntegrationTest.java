@@ -50,7 +50,6 @@ public abstract class WebIntegrationTest extends IntegrationTest {
 			identifierRepository.deleteAll();
 			embargoRepository.deleteAll();
 			recordRepository.deleteAll();
-
 		}
 		catch(Exception e)
 		{

@@ -6,8 +6,6 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +20,8 @@ public class RIFCSGraphProvider {
 	public static final String RIFCS_KEY_IDENTIFIER_TYPE = "ro:key";
 
 	public static final String RELATION_SAME_AS = "isSameAs";
+
+	public static final String RELATION_RELATED_TO = "isRelatedTo";
 
 	/**
 	 * Obtain the {@link Graph} data for a given RIFCS XML payload
@@ -110,7 +110,8 @@ public class RIFCSGraphProvider {
 	 * @return the reversed {@link Edge}
 	 */
 	public Edge getReversedEdge(Edge edge) {
-		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), RelationLookupService.getReverse(edge.getType()));
+		String reversedRelationType = RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO);
+		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), reversedRelationType);
 		reversedEdge.setReverse(true);
 		return reversedEdge;
 	}

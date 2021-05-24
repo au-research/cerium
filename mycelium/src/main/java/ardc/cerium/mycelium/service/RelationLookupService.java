@@ -101,7 +101,20 @@ public class RelationLookupService {
 			RelationLookupEntry entry = lookupTable.get(relationType);
 			return entry.getReverseRelationType();
 		}
-		return relationType;
+		return null;
+	}
+
+	/**
+	 * Get Reverse with a default reverse.
+	 *
+	 * Similar to {@link #getReverse(String)} but with a default return value if the lookup table doesn't contain the key
+	 * @param relationType the RelationType
+	 * @param defaultValue the default value
+	 * @return the reverse String of the relationType
+	 */
+	public static String getReverse(String relationType, String defaultValue) {
+		String reversedRelationType = getReverse(relationType);
+		return reversedRelationType == null ? defaultValue : reversedRelationType;
 	}
 
 }

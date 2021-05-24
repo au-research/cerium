@@ -42,6 +42,11 @@ class RelationLookupServiceTest {
 	@Test
 	void itCanGetReverseRelation() {
 		assertThat(RelationLookupService.getReverse("isPartOf")).isEqualTo("hasPart");
-		assertThat(RelationLookupService.getReverse("weird relation")).isEqualTo("weird relation");
+		assertThat(RelationLookupService.getReverse("weird relation")).isEqualTo(null);
+	}
+
+	@Test
+	void itCanGetReverseRelationWithDefaultValue() {
+		assertThat(RelationLookupService.getReverse("weird relation", "isRelatedPerhaps")).isEqualTo("isRelatedPerhaps");
 	}
 }

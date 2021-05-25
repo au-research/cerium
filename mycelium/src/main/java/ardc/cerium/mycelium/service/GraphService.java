@@ -12,9 +12,12 @@ import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.Node;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
@@ -88,29 +91,7 @@ public class GraphService {
 		log.debug("CypherQuery(search): {}", cypherQuery);
 
 		// perform the query
-		return neo4jClient.query(cypherQuery).fetchAs(Relationship.class).mappedBy((typeSystem, record) -> {
-
-			// convert from to fromVertex
-			Node fromNode = record.get("from").asNode();
-			Vertex fromVertex = vertexMapper.getConverter().convert(fromNode);
-
-			// convert to to toVertex
-			Node toNode = record.get("to").asNode();
-			Vertex toVertex = vertexMapper.getConverter().convert(toNode);
-
-			// convert collect(r) as relations to List<Edge> for Relationship
-			List<EdgeDTO> edges = record.get("relations").asList().stream()
-					.map(rel -> (org.neo4j.driver.types.Relationship) rel)
-					.map(rel -> edgeDTOMapper.getConverter().convert(rel)).collect(Collectors.toList());
-
-			// build and return the Relationship
-			Relationship relationship = new Relationship();
-			relationship.setFrom(fromVertex);
-			relationship.setTo(toVertex);
-			relationship.setRelations(edges);
-
-			return relationship;
-		}).all();
+		return getRelationships(cypherQuery);
 	}
 
 	/**
@@ -176,6 +157,7 @@ public class GraphService {
 				.and(to.property("identifierType").isEqualTo(Cypher.literalOf(edge.getTo().getIdentifierType())))
 				.merge(relation)
 				.set(
+						relation.property("origin").to(Cypher.literalOf(edge.getOrigin())),
 						relation.property("reverse").to(Cypher.literalOf(edge.isReverse())),
 						relation.property("internal").to(Cypher.literalOf(edge.isInternal())),
 						relation.property("public").to(Cypher.literalOf(edge.isPublic())),
@@ -204,4 +186,96 @@ public class GraphService {
 				.mappedBy(((typeSystem, record) -> Neo4jClientBiFunctionHelper.toVertex(record, "n"))).all();
 	}
 
+	/**
+	 * Obtain all relations for a given Vertex
+	 *
+	 * All outbound relations are returned except {@link RIFCSGraphProvider#RELATION_SAME_AS}
+	 * @param vertex the {@link Vertex} to obtain Relationship from
+	 * @param pageable the {@link Pageable} for pagination
+	 * @return a collection of {@link Relationship}
+	 */
+	public Collection<Relationship> allRelationsFromVertex(Vertex vertex, Pageable pageable) {
+		org.neo4j.cypherdsl.core.Node from = Cypher.node("Vertex").named("from");
+		org.neo4j.cypherdsl.core.Node to = Cypher.node("Vertex").named("to");
+		org.neo4j.cypherdsl.core.Relationship relation = from.relationshipTo(to).named("r");
+
+		Statement statement = Cypher.match(relation)
+				.where(from.property("identifier").isEqualTo(Cypher.literalOf(vertex.getIdentifier())))
+				.and(from.property("identifierType").isEqualTo(Cypher.literalOf(vertex.getIdentifierType())))
+				.and(Functions.type(relation).isNotEqualTo(Cypher.literalOf(RIFCSGraphProvider.RELATION_SAME_AS)))
+				.returning(Functions.collect(relation).as("relations"), from.as("from"), to.as("to"))
+				.skip(pageable.getOffset()).limit(pageable.getPageSize())
+				.build();
+
+		String cypherQuery = statement.getCypher();
+
+		return getRelationships(cypherQuery);
+	}
+
+	/**
+	 * Get a Collection of Relationship given a cypherQuery.
+	 *
+	 * Requires the cypherQuery to have a return statement of from, to and relations where the from and to are {@link Node} and relations is a collection of {@link org.neo4j.driver.types.Relationship}
+	 * @param cypherQuery a proper well formatted cypherQuery
+	 * @return a {@link Collection} of {@link Relationship}
+	 */
+	private Collection<Relationship> getRelationships(String cypherQuery) {
+		return neo4jClient.query(cypherQuery).fetchAs(Relationship.class).mappedBy((typeSystem, record) -> {
+
+			// convert from to fromVertex
+			Node fromNode = record.get("from").asNode();
+			Vertex fromVertex = vertexMapper.getConverter().convert(fromNode);
+
+			// convert to to toVertex
+			Node toNode = record.get("to").asNode();
+			Vertex toVertex = vertexMapper.getConverter().convert(toNode);
+
+			// convert collect(r) as relations to List<Edge> for Relationship
+			List<EdgeDTO> edges = record.get("relations").asList().stream()
+					.map(rel -> (org.neo4j.driver.types.Relationship) rel)
+					.map(rel -> edgeDTOMapper.getConverter().convert(rel)).collect(Collectors.toList());
+
+			// build and return the Relationship
+			Relationship relationship = new Relationship();
+			relationship.setFrom(fromVertex);
+			relationship.setTo(toVertex);
+			relationship.setRelations(edges);
+
+			return relationship;
+		}).all();
+	}
+
+	public void generateDuplicateRelationships(List<Vertex> vertices) {
+
+		// for each imported Vertex (as origin)
+		vertices.forEach(origin -> {
+			// AllDupes contains Identifier and itself
+			Collection<Vertex> AllDupes = getSameAs(origin.getIdentifier(), origin.getIdentifierType());
+
+			// duplicates only contains true duplicate
+			List<Vertex> duplicates = AllDupes.stream()
+					.filter(duplicate -> !duplicate.getIdentifier().equals(origin.getIdentifier()) && !duplicate.getLabels().contains("Identifier")).collect(Collectors.toList());
+
+			// foreach relations from any duplicate
+			List<Edge> duplicateImplicitEdges = new ArrayList<>();
+
+			duplicates.forEach(duplicate -> {
+				// todo pagination when there's more than 100
+				// todo generate reverse edge as well
+				// todo ingestEdge on run time to avoid duplicateImplicitEdge memory build up
+				Collection<Relationship> allRelationsFromVertex = allRelationsFromVertex(duplicate, PageRequest.of(0, 100));
+				allRelationsFromVertex.forEach(relationship -> {
+					relationship.getRelations().forEach(relation -> {
+						Edge duplicateImplicit = new Edge(origin, relationship.getTo(), relation.getType());
+						duplicateImplicit.setImplicit(true);
+						duplicateImplicit.setOrigin("Duplicate");
+						duplicateImplicitEdges.add(duplicateImplicit);
+					});
+				});
+			});
+
+			// create the duplicate implicit edges
+			duplicateImplicitEdges.forEach(this::ingestEdge);
+		});
+	}
 }

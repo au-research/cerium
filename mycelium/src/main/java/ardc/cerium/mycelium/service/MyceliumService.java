@@ -132,11 +132,18 @@ public class MyceliumService {
 		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
 		Graph graph = graphProvider.get(payload);
 
-		// insert into neo4j graph
+		// insert into neo4j the generated Graph (should already include reverse)
 		graphService.ingestGraph(graph);
 
-		// todo reverse links generations
-		// todo implicit links generations
+		List<Vertex> registryObjectVertices = graph.getVertices().stream()
+				.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+
+		// implicit duplicate records generation for all vertices that is a RegistryObject
+		graphService.generateDuplicateRelationships(registryObjectVertices);
+
+		// todo implicit GrantsNetwork
+
+		// todo implicit PrimaryKey
 	}
 
 	/**

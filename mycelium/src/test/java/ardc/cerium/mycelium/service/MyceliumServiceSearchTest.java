@@ -116,4 +116,41 @@ public class MyceliumServiceSearchTest {
 		assertThat(relationships.getContent().get(0).getRelations().get(0)).isInstanceOf(EdgeDTO.class);
 	}
 
+	@Test
+	void duplicateRelationshipSearchTest() throws IOException {
+
+		// given an ingest of duplicate records
+		String rifcs = Helpers.readFile("src/test/resources/rifcs/duplicate_records.xml");
+		myceliumService.ingest(rifcs);
+
+		List<SearchCriteria> criteriaList = new ArrayList<>();
+		criteriaList.add(new SearchCriteria("fromIdentifierValue", "C1", SearchOperation.EQUAL));
+		Page<Relationship> relationships = myceliumService.search(criteriaList, PageRequest.of(0, 5));
+
+		// C1 isPartOf C3
+		Relationship C1C3 = relationships.stream()
+				.filter(relationship -> relationship.getTo().getIdentifier().equals("C3")).findFirst().orElse(null);
+		assertThat(C1C3).isNotNull();
+		assertThat(C1C3.getRelations().stream().allMatch(edgeDTO -> edgeDTO.getType().equals("isPartOf"))).isTrue();
+
+		// C1 isProducedBy A1 (via duplicate)
+		Relationship C1A1 = relationships.stream()
+				.filter(relationship -> relationship.getTo().getIdentifier().equals("A1")).findFirst().orElse(null);
+		assertThat(C1A1).isNotNull();
+		assertThat(C1A1.getRelations().stream().allMatch(edgeDTO -> edgeDTO.getType().equals("isProducedBy"))).isTrue();
+
+		// C1 isProducedBy A2 (via duplicate)
+		Relationship C1A2 = relationships.stream()
+				.filter(relationship -> relationship.getTo().getIdentifier().equals("A2")).findFirst().orElse(null);
+		assertThat(C1A2).isNotNull();
+		assertThat(C1A2.getRelations().stream().allMatch(edgeDTO -> edgeDTO.getType().equals("isProducedBy"))).isTrue();
+
+		// C1 hasAssociationWith A3 (via 2 step duplicate)
+		Relationship C1A3 = relationships.stream()
+				.filter(relationship -> relationship.getTo().getIdentifier().equals("A3")).findFirst().orElse(null);
+		assertThat(C1A3).isNotNull();
+		assertThat(C1A3.getRelations().stream().allMatch(edgeDTO -> edgeDTO.getType().equals("hasAssociationWith")))
+				.isTrue();
+	}
+
 }

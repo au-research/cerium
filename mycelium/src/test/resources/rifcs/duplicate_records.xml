@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="AUTestingUnitTest">
+        <key>C1</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">I</identifier>
+            <identifier type="local">I2</identifier>
+            <name type="primary">
+                <namePart type="full">C1 isPartOf C3, C1 isSameAs I</namePart>
+            </name>
+            <relatedObject>
+                <key>C3</key>
+                <relation type="isPartOf"/>
+            </relatedObject>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>C3</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <collection type="dataset">
+            <name type="primary">
+                <namePart type="full">C3 hasPart(reverse) C1</namePart>
+            </name>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>C2</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">I</identifier>
+            <name type="primary">
+                <namePart type="full">C2 isProducedBy A1, C2 isSameAs I</namePart>
+            </name>
+            <relatedObject>
+                <key>A1</key>
+                <relation type="isProducedBy"/>
+            </relatedObject>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>A1</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <party type="group">
+            <name type="primary">
+                <namePart type="full">A1 produces(reverse) C2</namePart>
+            </name>
+        </party>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>C4</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">I2</identifier>
+            <identifier type="url">I3</identifier>
+            <name type="primary">
+                <namePart type="full">C4</namePart>
+            </name>
+            <relatedObject>
+                <key>A2</key>
+                <relation type="isProducedBy"/>
+            </relatedObject>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>A2</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <party type="group">
+            <name type="primary">
+                <namePart type="full">A2</namePart>
+            </name>
+        </party>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>C5</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <collection type="dataset">
+            <identifier type="url">I3</identifier>
+            <name type="primary">
+                <namePart type="full">C5</namePart>
+            </name>
+            <relatedObject>
+                <key>A3</key>
+                <relation type="hasAssociationWith"/>
+            </relatedObject>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingUnitTest">
+        <key>A3</key>
+        <originatingSource>https://devops.ardc.edu.au</originatingSource>
+        <party type="group">
+            <name type="primary">
+                <namePart type="full">A3</namePart>
+            </name>
+        </party>
+    </registryObject>
+
+
+</registryObjects>

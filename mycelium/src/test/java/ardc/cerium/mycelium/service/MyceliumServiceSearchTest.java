@@ -34,13 +34,16 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataNeo4jTest
-@Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class })
+@Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class, RelationLookupService.class })
 public class MyceliumServiceSearchTest {
 
 	private static Neo4j embeddedDatabaseServer;
 
 	@Autowired
 	MyceliumService myceliumService;
+
+	@Autowired
+	RelationLookupService relationLookupService;
 
 	@Autowired
 	GraphService graphService;
@@ -153,4 +156,20 @@ public class MyceliumServiceSearchTest {
 				.isTrue();
 	}
 
+	@Test
+	void reversedDuplicate() throws IOException {
+		// given an ingest of duplicate records
+		String rifcs = Helpers.readFile("src/test/resources/rifcs/duplicate_records.xml");
+		myceliumService.ingest(rifcs);
+
+		List<SearchCriteria> criteriaList = new ArrayList<>();
+		criteriaList.add(new SearchCriteria("fromIdentifierValue", "A2", SearchOperation.EQUAL));
+		Page<Relationship> relationships = myceliumService.search(criteriaList, PageRequest.of(0, 5));
+
+		// A2 produces C1 (via reversed duplicate)
+		Relationship A2toC1 = relationships.stream()
+				.filter(relationship -> relationship.getTo().getIdentifier().equals("C1")).findFirst().orElse(null);
+		assertThat(A2toC1).isNotNull();
+		assertThat(A2toC1.getRelations().stream().allMatch(edgeDTO -> edgeDTO.getType().equals("produces"))).isTrue();
+	}
 }

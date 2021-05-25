@@ -109,7 +109,7 @@ public class RIFCSGraphProvider {
 	 * @param edge the {@link Edge} to reverse
 	 * @return the reversed {@link Edge}
 	 */
-	public Edge getReversedEdge(Edge edge) {
+	public static Edge getReversedEdge(Edge edge) {
 		String reversedRelationType = RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO);
 		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), reversedRelationType);
 		reversedEdge.setReverse(true);

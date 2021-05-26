@@ -68,7 +68,7 @@ class RIFCSGraphProviderTest {
         Vertex b = new Vertex("b", "ro:key");
         Edge aTob = new Edge(a, b, "isPartOf");
 
-        Edge bToA = graphProvider.getReversedEdge(aTob);
+        Edge bToA = RIFCSGraphProvider.getReversedEdge(aTob);
         assertThat(bToA).isNotNull();
         assertThat(bToA).isInstanceOf(Edge.class);
         assertThat(bToA.getFrom()).isEqualTo(b);

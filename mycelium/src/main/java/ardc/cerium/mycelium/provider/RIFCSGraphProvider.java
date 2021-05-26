@@ -112,7 +112,14 @@ public class RIFCSGraphProvider {
 	public static Edge getReversedEdge(Edge edge) {
 		String reversedRelationType = RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO);
 		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), reversedRelationType);
-		reversedEdge.setReverse(true);
+
+		// copy the relevant data over
+		edge.setInternal(edge.isInternal());
+		edge.setOrigin(edge.getOrigin());
+		edge.setPublic(edge.isPublic());
+
+		// flip the reverse value
+		reversedEdge.setReverse(! edge.isReverse());
 		return reversedEdge;
 	}
 

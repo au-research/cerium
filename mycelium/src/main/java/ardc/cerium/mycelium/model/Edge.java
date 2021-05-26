@@ -25,7 +25,7 @@ public class Edge {
 
 	private boolean isReverse = false;
 
-	private boolean isImplicit = false;
+	private boolean isDuplicate = false;
 
 	private boolean isPublic = true;
 

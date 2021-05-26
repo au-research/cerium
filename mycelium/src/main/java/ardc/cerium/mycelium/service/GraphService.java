@@ -159,7 +159,7 @@ public class GraphService {
 						relation.property("reverse").to(Cypher.literalOf(edge.isReverse())),
 						relation.property("internal").to(Cypher.literalOf(edge.isInternal())),
 						relation.property("public").to(Cypher.literalOf(edge.isPublic())),
-						relation.property("implicit").to(Cypher.literalOf(edge.isImplicit())))
+						relation.property("duplicate").to(Cypher.literalOf(edge.isDuplicate())))
 				.returning("r").build();
 
 		String cypherQuery = statement.getCypher();
@@ -270,12 +270,16 @@ public class GraphService {
 				allRelationsFromVertex.forEach(relationship -> {
 					relationship.getRelations().forEach(relation -> {
 						Edge edge = new Edge(origin, relationship.getTo(), relation.getType());
-						edge.setImplicit(true);
-						edge.setOrigin("Duplicate");
+						edge.setOrigin(relation.getOrigin());
+						edge.setReverse(relation.isReverse());
+						edge.setInternal(relation.isInternal());
+						edge.setPublic(relation.isPublic());
+						edge.setDuplicate(true);
 						ingestEdge(edge);
 
 						// reversed edge should also be inserted
 						Edge reversed = RIFCSGraphProvider.getReversedEdge(edge);
+						edge.setDuplicate(true);
 						ingestEdge(reversed);
 					});
 				});

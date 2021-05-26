@@ -37,8 +37,8 @@ public class EdgeDTOMapper {
                 if (!relationship.get("isReverse").isNull()) {
                     edgeDTO.setReverse(relationship.get("isReverse").asBoolean());
                 }
-                if (!relationship.get("isImplicit").isNull()) {
-                    edgeDTO.setImplicit(relationship.get("isImplicit").asBoolean());
+                if (!relationship.get("isDuplicate").isNull()) {
+                    edgeDTO.setImplicit(relationship.get("isDuplicate").asBoolean());
                 }
                 if (!relationship.get("isPublic").isNull()) {
                     edgeDTO.setPublic(relationship.get("isPublic").asBoolean());

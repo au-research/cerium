@@ -86,13 +86,13 @@ class GraphServiceTest extends Neo4jTest {
 
 		// the default properties are set
 		assertThat(theRelationship.get("reverse")).isNotNull();
-		assertThat(theRelationship.get("implicit")).isNotNull();
+		assertThat(theRelationship.get("duplicate")).isNotNull();
 		assertThat(theRelationship.get("internal")).isNotNull();
 		assertThat(theRelationship.get("public")).isNotNull();
 
 		// the default properties have the default values
 		assertThat(theRelationship.get("reverse").asBoolean()).isFalse();
-		assertThat(theRelationship.get("implicit").asBoolean()).isFalse();
+		assertThat(theRelationship.get("duplicate").asBoolean()).isFalse();
 		assertThat(theRelationship.get("internal").asBoolean()).isTrue();
 		assertThat(theRelationship.get("public").asBoolean()).isTrue();
 

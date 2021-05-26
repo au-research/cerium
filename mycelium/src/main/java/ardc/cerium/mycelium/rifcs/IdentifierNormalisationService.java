@@ -1,4 +1,4 @@
-package ardc.cerium.mycelium.service;
+package ardc.cerium.mycelium.rifcs;
 
 
 import ardc.cerium.mycelium.rifcs.model.Identifier;
@@ -28,8 +28,8 @@ public class IdentifierNormalisationService {
      * @param identifier (@link Identifier)
      * @return a normalised Identifier (@link Identifier)
      */
-    public Identifier getNormalisedIdentifier(Identifier identifier){
-        String type = getNormailsedIdentifierType(identifier);
+    public static Identifier getNormalisedIdentifier(Identifier identifier){
+        String type = getNormalisedIdentifierType(identifier);
         String value = identifier.getValue().trim();
         switch (type)
         {
@@ -105,7 +105,7 @@ public class IdentifierNormalisationService {
      * @param identifier (@link Identifier)
      * @return string the assumed type of the given Identifier
      */
-    private String getNormailsedIdentifierType(Identifier identifier){
+    private static String getNormalisedIdentifierType(Identifier identifier){
         String type = identifier.getType().trim();
         String value = identifier.getValue().toUpperCase(Locale.ROOT);
 

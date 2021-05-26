@@ -1,27 +1,21 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.model.Identifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.validation.constraints.AssertTrue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @Import(IdentifierNormalisationService.class)
 class IdentifierNormalisationServiceTest {
-
-    @Autowired
-    private IdentifierNormalisationService identifierNormalisationService;
 
     @Test
     void testDOIs(){
@@ -74,7 +68,7 @@ class IdentifierNormalisationServiceTest {
         for(HashMap<String, String> testcase:testCases){
             identifier.setValue(testcase.get("value"));
             identifier.setType(testcase.get("type"));
-            identifier = identifierNormalisationService.getNormalisedIdentifier(identifier);
+            identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
             assertThat(identifier.getValue()).isEqualTo(testcase.get("expectedValue"));
             assertThat(identifier.getType()).isEqualTo(testcase.get("expectedType"));
         }

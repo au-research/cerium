@@ -5,9 +5,8 @@ import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
-import ardc.cerium.mycelium.service.IdentifierNormalisationService;
+import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.service.RelationLookupService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +24,7 @@ public class RIFCSGraphProvider {
 
 	public static final String RELATION_RELATED_TO = "isRelatedTo";
 
-	@Autowired
-	private IdentifierNormalisationService identifierNormalisationService;
+
 	/**
 	 * Obtain the {@link Graph} data for a given RIFCS XML payload
 	 * @param xml the XML payload can contain multiple registryObject
@@ -52,7 +50,7 @@ public class RIFCSGraphProvider {
 			List<Identifier> identifiers = registryObject.getIdentifiers();
 			if (identifiers != null && identifiers.size() > 0) {
 				registryObject.getIdentifiers().forEach(identifier -> {
-					identifier = identifierNormalisationService.getNormalisedIdentifier(identifier);
+					identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
 					Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
 					identifierNode.addLabel(Vertex.Label.Identifier);
 					graph.addVertex(identifierNode);
@@ -88,7 +86,7 @@ public class RIFCSGraphProvider {
 					List<Relation> relatedInfoRelations = relatedInfo.getRelation() != null ? relatedInfo.getRelation()
 							: new ArrayList<>();
 					relatedInfoIdentifiers.forEach(relatedInfoIdentifier -> {
-						relatedInfoIdentifier = identifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
+						relatedInfoIdentifier = IdentifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
 						Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(),
 								relatedInfoIdentifier.getType());
 						relatedInfoNode.addLabel(Vertex.Label.Identifier);

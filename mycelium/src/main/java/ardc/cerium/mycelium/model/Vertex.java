@@ -31,11 +31,14 @@ public class Vertex {
 	@Property("objectClass")
 	private String objectClass;
 
-	@Property("visible")
-	private boolean visible = true;
+	@Property("public")
+	private boolean isPublic = true;
 
 	@Property("url")
 	private String url;
+
+	@Property("title")
+	private String title;
 
 	@Id
 	@GeneratedValue

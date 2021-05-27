@@ -17,7 +17,7 @@ public class EdgeDTO {
 
 	private boolean isReverse;
 
-	private boolean isImplicit;
+	private boolean isDuplicate = false;
 
 	private boolean isPublic = true;
 

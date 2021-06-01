@@ -24,6 +24,12 @@ public class RIFCSGraphProvider {
 
 	public static final String RELATION_RELATED_TO = "isRelatedTo";
 
+	public static final String ORIGIN_IDENTIFIER = "Identifier";
+
+	public static final String ORIGIN_RELATED_OBJECT = "RelatedObject";
+
+	public static final String ORIGIN_RELATED_INFO = "RelatedInfo";
+
 
 	/**
 	 * Obtain the {@link Graph} data for a given RIFCS XML payload
@@ -54,7 +60,9 @@ public class RIFCSGraphProvider {
 					Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
 					identifierNode.addLabel(Vertex.Label.Identifier);
 					graph.addVertex(identifierNode);
-					graph.addEdge(new Edge(originNode, identifierNode, RELATION_SAME_AS));
+					Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
+					edge.setOrigin(ORIGIN_IDENTIFIER);
+					graph.addEdge(edge);
 				});
 			}
 
@@ -67,6 +75,7 @@ public class RIFCSGraphProvider {
 					graph.addVertex(relatedObjectNode);
 					relatedObject.getRelation().forEach(relation -> {
 						Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
+						edge.setOrigin(ORIGIN_RELATED_OBJECT);
 						graph.addEdge(edge);
 
 						// reversed edge for relatedObject relationships
@@ -93,6 +102,7 @@ public class RIFCSGraphProvider {
 						graph.addVertex(relatedInfoNode);
 						relatedInfoRelations.forEach(relatedInfoRelation -> {
 							Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
+							edge.setOrigin(ORIGIN_RELATED_INFO);
 							graph.addEdge(edge);
 
 							// reversed edge for relatedInfo relationships
@@ -118,9 +128,9 @@ public class RIFCSGraphProvider {
 		Edge reversedEdge = new Edge(edge.getTo(), edge.getFrom(), reversedRelationType);
 
 		// copy the relevant data over
-		edge.setInternal(edge.isInternal());
-		edge.setOrigin(edge.getOrigin());
-		edge.setPublic(edge.isPublic());
+		reversedEdge.setInternal(edge.isInternal());
+		reversedEdge.setOrigin(edge.getOrigin());
+		reversedEdge.setPublic(edge.isPublic());
 
 		// flip the reverse value
 		reversedEdge.setReverse(! edge.isReverse());

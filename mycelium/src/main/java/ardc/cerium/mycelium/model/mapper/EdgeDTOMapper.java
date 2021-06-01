@@ -34,17 +34,17 @@ public class EdgeDTOMapper {
                 if (!relationship.get("origin").isNull()) {
                     edgeDTO.setOrigin(relationship.get("origin").asString());
                 }
-                if (!relationship.get("isReverse").isNull()) {
-                    edgeDTO.setReverse(relationship.get("isReverse").asBoolean());
+                if (!relationship.get("reverse").isNull()) {
+                    edgeDTO.setReverse(relationship.get("reverse").asBoolean());
                 }
-                if (!relationship.get("isDuplicate").isNull()) {
-                    edgeDTO.setImplicit(relationship.get("isDuplicate").asBoolean());
+                if (!relationship.get("duplicate").isNull()) {
+                    edgeDTO.setDuplicate(relationship.get("duplicate").asBoolean());
                 }
-                if (!relationship.get("isPublic").isNull()) {
-                    edgeDTO.setPublic(relationship.get("isPublic").asBoolean());
+                if (!relationship.get("public").isNull()) {
+                    edgeDTO.setPublic(relationship.get("public").asBoolean());
                 }
-                if (!relationship.get("isInternal").isNull()) {
-                    edgeDTO.setInternal(relationship.get("isInternal").asBoolean());
+                if (!relationship.get("internal").isNull()) {
+                    edgeDTO.setInternal(relationship.get("internal").asBoolean());
                 }
                 return edgeDTO;
             }

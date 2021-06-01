@@ -37,11 +37,14 @@ public class VertexMapper {
 				if (!node.get("objectType").isNull()) {
 					vertex.setObjectType(node.get("objectType").asString());
 				}
-				if (!node.get("visible").isNull()) {
-					vertex.setVisible(node.get("visible").asBoolean());
+				if (!node.get("public").isNull()) {
+					vertex.setPublic(node.get("public").asBoolean());
 				}
 				if (!node.get("url").isNull()) {
 					vertex.setUrl(node.get("url").asString());
+				}
+				if (!node.get("title").isNull()) {
+					vertex.setTitle(node.get("title").asString());
 				}
 
 				return vertex;

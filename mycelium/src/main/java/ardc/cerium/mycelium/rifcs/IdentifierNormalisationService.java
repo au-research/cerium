@@ -43,8 +43,8 @@ public class IdentifierNormalisationService {
             break;
             case "orcid":
                 // ORCID is 19 character long with 4 sets of 4 digit numbers
-                if(StringUtils.countMatches(value, "-") == 4 ){
-                    value = value.substring(value.indexOf("10.") - 4, 19);
+                if(StringUtils.countMatches(value, "-") == 3 ){
+                    value = value.substring(value.indexOf("-") - 4, value.indexOf("-") + 15);
                 }
             break;
             case "handle":
@@ -91,6 +91,8 @@ public class IdentifierNormalisationService {
                     value = value.substring(value.indexOf("IGSN.ORG/") + 9);
                 }
             break;
+            default:
+                value = value.replaceFirst("(^https?://)", "");
         }
         identifier.setType(type);
         identifier.setValue(value);
@@ -108,7 +110,6 @@ public class IdentifierNormalisationService {
     private static String getNormalisedIdentifierType(Identifier identifier){
         String type = identifier.getType().trim();
         String value = identifier.getValue().toUpperCase(Locale.ROOT);
-
         if(type.toLowerCase(Locale.ROOT).equals("nla.party")){
             return "AU-ANL:PEAU";
         }
@@ -118,7 +119,7 @@ public class IdentifierNormalisationService {
         if(value.contains("10.")  && value.contains("DOI")){
             return "doi";
         }
-        if(value.contains("ORCID.ORG") && StringUtils.countMatches(value, "-") == 4){
+        if(value.contains("ORCID.ORG") && StringUtils.countMatches(value, "-") == 3){
             return "orcid";
         }
         if(value.contains("HANDLE.")  || value.contains("HDL:")){

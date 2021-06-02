@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -22,7 +23,7 @@ public class RelationLookupService {
 	/**
 	 * The HashMap will store a mapping between the relationType and the corresponding
 	 * RelationLookUpEntry.
-	 *
+	 * The key of each entry is the lower cased presentation of the relationType
 	 * HashMap has O(1) lookup as long as the relationType is matched properly, compared
 	 * to O(n) for List filters
 	 */
@@ -59,7 +60,7 @@ public class RelationLookupService {
 				.withMappingStrategy(strategy).withIgnoreLeadingWhiteSpace(true).build();
 
 		List<RelationLookupEntry> lookupEntries = csvToBean.parse();
-		lookupEntries.forEach(entry -> lookupTable.put(entry.getRelationType(), entry));
+		lookupEntries.forEach(entry -> lookupTable.put(entry.getRelationType().toLowerCase(Locale.ROOT), entry));
 	}
 
 	/**
@@ -76,7 +77,9 @@ public class RelationLookupService {
 	 * @return true|false whether the relationType is included
 	 */
 	public static boolean contains(String relationType) {
-		return lookupTable.containsKey(relationType);
+		// remove all non word characters and lowercase the relationType
+		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
+		return lookupTable.containsKey(relationType.toLowerCase(Locale.ROOT));
 	}
 
 	/**
@@ -85,6 +88,8 @@ public class RelationLookupService {
 	 * @return the {@link RelationLookupEntry} from the lookup table
 	 */
 	public static RelationLookupEntry resolve(String relationType) {
+		// remove all non word characters and lowercase the relationType to simplify it
+		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
 		if (lookupTable.containsKey(relationType)) {
 			return lookupTable.get(relationType);
 		}
@@ -97,6 +102,8 @@ public class RelationLookupService {
 	 * @return the reverse String of the relationType
 	 */
 	public static String getReverse(String relationType) {
+		// remove all non word characters and lowercase the relationType to "simplify" it
+		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
 		if (lookupTable.containsKey(relationType)) {
 			RelationLookupEntry entry = lookupTable.get(relationType);
 			return entry.getReverseRelationType();
@@ -113,6 +120,7 @@ public class RelationLookupService {
 	 * @return the reverse String of the relationType
 	 */
 	public static String getReverse(String relationType, String defaultValue) {
+		// calling getReverse so no need to simplify the relationType here
 		String reversedRelationType = getReverse(relationType);
 		return reversedRelationType == null ? defaultValue : reversedRelationType;
 	}

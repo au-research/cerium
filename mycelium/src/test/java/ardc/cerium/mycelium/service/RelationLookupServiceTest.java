@@ -46,6 +46,13 @@ class RelationLookupServiceTest {
 	}
 
 	@Test
+	void itCanGetReverseRelationWithSpace() {
+		assertThat(RelationLookupService.getReverse("Is part of")).isEqualTo("hasPart");
+		assertThat(RelationLookupService.getReverse("has part ici pant")).isEqualTo("isParticipantIn");
+	}
+
+
+	@Test
 	void itCanGetReverseRelationWithDefaultValue() {
 		assertThat(RelationLookupService.getReverse("weird relation", "isRelatedPerhaps")).isEqualTo("isRelatedPerhaps");
 	}

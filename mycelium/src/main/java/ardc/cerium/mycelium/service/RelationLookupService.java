@@ -79,7 +79,7 @@ public class RelationLookupService {
 	public static boolean contains(String relationType) {
 		// remove all non word characters and lowercase the relationType
 		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
-		return lookupTable.containsKey(relationType.toLowerCase(Locale.ROOT));
+		return lookupTable.containsKey(relationType);
 	}
 
 	/**

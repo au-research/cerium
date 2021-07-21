@@ -7,6 +7,7 @@ import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.core.common.util.XMLUtil;
 import ardc.cerium.core.exception.ContentNotSupportedException;
+import ardc.cerium.mycelium.client.RDARegistryClient;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -128,18 +130,34 @@ public class MyceliumService {
 
 	public void ingest(String payload) {
 
-		// only supports rifcs for now, obtain the graph data from the payload
-		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
-		Graph graph = graphProvider.get(payload);
+		StopWatch stopWatch = new StopWatch("Ingest payload");
 
-		// insert into neo4j the generated Graph (should already include reverse)
+		// only supports rifcs for now, obtain the graph data from the payload
+		RDARegistryClient rdaRegistryClient = new RDARegistryClient("localhost");
+		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(rdaRegistryClient);
+
+		// creates the graph out of the xml
+		stopWatch.start("CreatingGraph");
+		Graph graph = null;
+		try {
+			graph = graphProvider.get(payload);
+		} catch (Exception e) {
+			log.error("Failed creating graph for payload. Reason: {}", e.getMessage());
+		}
+		stopWatch.stop();
+
+		// insert into neo4j the generated Graph
+		stopWatch.start("IngestingGraph");
 		graphService.ingestGraph(graph);
+		stopWatch.stop();
+
+		log.debug(stopWatch.prettyPrint());
 
 		List<Vertex> registryObjectVertices = graph.getVertices().stream()
 				.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 
 		// implicit duplicate records generation for all vertices that is a RegistryObject
-		graphService.generateDuplicateRelationships(registryObjectVertices);
+		//graphService.generateDuplicateRelationships(registryObjectVertices);
 
 		// todo implicit GrantsNetwork
 
@@ -173,6 +191,14 @@ public class MyceliumService {
 		// only return the RegistryObject
 		return sameAsNodeCluster.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
 				.collect(Collectors.toList());
+	}
+
+	public Collection<Relationship> getAllDirectFrom(Vertex origin, Pageable pageable) {
+		return graphService.getMyDuplicateRelationships(origin.getIdentifier(), origin.getIdentifierType(), pageable);
+	}
+
+	public Vertex getVertexFromRegistryObjectId(String registryObjectId) {
+		return graphService.getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 	}
 
 }

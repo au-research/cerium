@@ -16,6 +16,8 @@ public class ImportTask implements Runnable {
 
 	private String xml;
 
+	private final Request request;
+
 	/**
 	 * Instantiation with an Import {@link Request}. The XML will be obtained from the
 	 * Request's PAYLOAD_PATH
@@ -23,6 +25,7 @@ public class ImportTask implements Runnable {
 	 * @param myceliumService the {@link MyceliumService}
 	 */
 	public ImportTask(Request request, MyceliumService myceliumService) {
+		this.request = request;
 		this.myceliumService = myceliumService;
 		parseRequest(request);
 	}
@@ -44,7 +47,8 @@ public class ImportTask implements Runnable {
 			// todo update Request status and/or logging
 		}
 		catch (Exception e) {
-			log.error(e.getMessage());
+			log.error("Error Ingesting RequestID:{} Reason: {}", request.getId(), e.getMessage());
+			e.printStackTrace();
 		}
 	}
 

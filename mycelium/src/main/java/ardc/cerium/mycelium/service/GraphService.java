@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
+import ardc.cerium.mycelium.rifcs.model.Relation;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,11 +58,30 @@ public class GraphService {
 	 * @param graph the {@link Graph} to ingest
 	 */
 	public void ingestGraph(Graph graph) {
-		graph.getVertices().forEach(this::ingestVertex);
-		log.info("Ingested {} vertices", graph.getVertices().size());
+		log.debug("Starting graph ingest verticesCount: {}, edgesCount: {}", graph.getVertices().size(),
+				graph.getEdges().size());
 
-		graph.getEdges().forEach(this::ingestEdge);
-		log.info("Ingested {} edges", graph.getEdges().size());
+		graph.getVertices().forEach(vertex -> {
+			try {
+				log.debug("Ingesting vertex id: {} type: {}", vertex.getIdentifier(), vertex.getIdentifierType());
+				ingestVertex(vertex);
+			} catch (Exception e) {
+				log.error("Failed to ingest vertex id: {} Reason: {}", vertex.getIdentifier(), e.getMessage());
+			}
+		});
+
+
+		graph.getEdges().forEach(edge -> {
+			try {
+				log.debug("Ingesting edge from {} to {} type: {}", edge.getFrom().getIdentifier(),
+						edge.getTo().getIdentifier(), edge.getType());
+				ingestEdge(edge);
+			} catch (Exception e) {
+				log.error("Failed to ingest edge from {} to {} type: {} Reason: {}", edge.getFrom().getIdentifier(),
+						edge.getTo().getIdentifier(), edge.getType(), e.getMessage());
+			}
+		});
+		log.debug("Finished ingesting graph");
 	}
 
 	/**
@@ -73,6 +94,19 @@ public class GraphService {
 				vertex.getIdentifierType())) {
 			vertexRepository.save(vertex);
 		}
+	}
+
+	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType, Pageable pageable) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"WITH collect(origin) + collect(duplicates) as identical\n" +
+				"UNWIND identical as from\n" +
+				"WITH distinct from\n" +
+				"MATCH (from)-[r]->(to)\n" +
+				"WHERE type(r) <> \"isSameAs\"\n" +
+				"RETURN from, to, collect(r) as relations\n" +
+				"SKIP "+pageable.getOffset()+" LIMIT "+pageable.getPageSize()+";";
+		return getRelationships(cypherQuery);
 	}
 
 	/**
@@ -180,7 +214,21 @@ public class GraphService {
 						+ "WITH collect(origin) + collect(duplicates) as identicals\n" + "UNWIND identicals as n\n"
 						+ "RETURN distinct n;")
 				.bind(identifier).to("identifier").bind(identifierType).to("identifierType").fetchAs(Vertex.class)
-				.mappedBy(((typeSystem, record) -> Neo4jClientBiFunctionHelper.toVertex(record, "n"))).all();
+				.mappedBy(((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return vertexMapper.getConverter().convert(node);
+				})).all();
+	}
+
+	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
+		return neo4jClient
+				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
+						+ "RETURN n;")
+				.bind(identifier).to("identifier").bind(identifierType).to("identifierType").fetchAs(Vertex.class)
+				.mappedBy(((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return vertexMapper.getConverter().convert(node);
+				})).one().orElse(null);
 	}
 
 	/**
@@ -219,6 +267,7 @@ public class GraphService {
 	 * @return a {@link Collection} of {@link Relationship}
 	 */
 	private Collection<Relationship> getRelationships(String cypherQuery) {
+		log.debug("getRelationships cypher: {}", cypherQuery);
 		return neo4jClient.query(cypherQuery).fetchAs(Relationship.class).mappedBy((typeSystem, record) -> {
 
 			// convert from to fromVertex

@@ -17,6 +17,12 @@ public class RegistryObject {
 
     private String key;
 
+    private String title;
+
+    private String slug;
+
+    private String group;
+
     private String type;
 
     @JsonProperty("class")

@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.provider;
 
 import ardc.cerium.core.common.util.Helpers;
+import ardc.cerium.mycelium.client.RDARegistryClient;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
@@ -28,7 +29,7 @@ class RIFCSGraphProviderTest {
 
         // given a rifcs
         String rifcs = Helpers.readFile("src/test/resources/rifcs/collection_relatedInfos_party.xml");
-        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
+        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(new RDARegistryClient("localhost"));
         Graph graph = graphProvider.get(rifcs);
 
         // the graph should contains 4 nodes and 3 edges
@@ -62,7 +63,7 @@ class RIFCSGraphProviderTest {
     @Test
     @DisplayName("Obtaining Reversed Edge is possible")
 	void getReversedEdge() {
-        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
+        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(new RDARegistryClient("localhost"));
 
         Vertex a = new Vertex("a", "ro:key");
         Vertex b = new Vertex("b", "ro:key");

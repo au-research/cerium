@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,6 +21,9 @@ public class RelatedInfo {
 	@JacksonXmlProperty(localName = "relation")
 	@JacksonXmlElementWrapper(useWrapping = false)
 	private List<Relation> relation;
+
+	@XmlAttribute
+	private String type;
 
 	private String title;
 

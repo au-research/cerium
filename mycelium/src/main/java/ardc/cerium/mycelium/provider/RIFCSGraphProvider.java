@@ -1,12 +1,15 @@
 package ardc.cerium.mycelium.provider;
 
+import ardc.cerium.mycelium.client.RDARegistryClient;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +19,12 @@ import java.util.List;
  *
  * @author Minh Duc Nguyen
  */
+@Slf4j
 public class RIFCSGraphProvider {
 
 	public static final String RIFCS_KEY_IDENTIFIER_TYPE = "ro:key";
+
+	public static final String RIFCS_ID_IDENTIFIER_TYPE = "ro:id";
 
 	public static final String RELATION_SAME_AS = "isSameAs";
 
@@ -30,6 +36,13 @@ public class RIFCSGraphProvider {
 
 	public static final String ORIGIN_RELATED_INFO = "RelatedInfo";
 
+	public static final String RELATION_HAS_ASSOCIATION_WITH = "hasAssociationWith";
+
+	private final RDARegistryClient rdaRegistryClient;
+
+	public RIFCSGraphProvider(RDARegistryClient rdaRegistryClient) {
+		this.rdaRegistryClient = rdaRegistryClient;
+	}
 
 	/**
 	 * Obtain the {@link Graph} data for a given RIFCS XML payload
@@ -46,11 +59,23 @@ public class RIFCSGraphProvider {
 		}
 
 		registryObjects.getRegistryObjects().forEach(registryObject -> {
-			// key is a vertex and is the originNode
+			// find the RegistryObject and have the ID as the originNode
 			String key = registryObject.getKey();
-			Vertex originNode = new Vertex(key, RIFCS_KEY_IDENTIFIER_TYPE);
+			RegistryObject ro = rdaRegistryClient.getPublishedByKey(key);
+			log.debug("Resolved to RegistryObject registryObjectId:{}", ro.getRegistryObjectId());
+
+			Vertex originNode = new Vertex(ro.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);
 			originNode.addLabel(Vertex.Label.RegistryObject);
+			originNode.setObjectType(ro.getType());
+			originNode.setObjectClass(ro.getClassification());
+			originNode.setTitle(ro.getTitle());
 			graph.addVertex(originNode);
+
+			// key is the identifier node
+			Vertex keyNode = new Vertex(key, RIFCS_KEY_IDENTIFIER_TYPE);
+			keyNode.addLabel(Vertex.Label.Identifier);
+			graph.addVertex(keyNode);
+			graph.addEdge(new Edge(originNode, keyNode, RELATION_SAME_AS));
 
 			// every identifier is a vertex & isSameAs
 			List<Identifier> identifiers = registryObject.getIdentifiers();
@@ -71,7 +96,7 @@ public class RIFCSGraphProvider {
 			if (relatedObjects != null && relatedObjects.size() > 0) {
 				relatedObjects.forEach(relatedObject -> {
 					Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
-					relatedObjectNode.addLabel(Vertex.Label.RegistryObject);
+					relatedObjectNode.addLabel(Vertex.Label.Identifier);
 					graph.addVertex(relatedObjectNode);
 					relatedObject.getRelation().forEach(relation -> {
 						Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
@@ -98,8 +123,23 @@ public class RIFCSGraphProvider {
 						relatedInfoIdentifier = IdentifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
 						Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(),
 								relatedInfoIdentifier.getType());
+						relatedInfoNode.setTitle(relatedInfo.getTitle());
 						relatedInfoNode.addLabel(Vertex.Label.Identifier);
+						relatedInfoNode.setObjectType(relatedInfo.getType());
+						relatedInfoNode.setObjectClass(relatedInfo.getType());
 						graph.addVertex(relatedInfoNode);
+
+						// if there's no relatedInfo/relations, the default relation is hasAssociationWith
+						if (relatedInfoRelations.size() == 0) {
+							Edge edge = new Edge(originNode, relatedInfoNode, RELATION_HAS_ASSOCIATION_WITH);
+							edge.setOrigin(ORIGIN_RELATED_INFO);
+							graph.addEdge(edge);
+
+							// reversed edge for relatedInfo relationships
+							graph.addEdge(getReversedEdge(edge));
+						}
+
+						// otherwise for each relation element, it's a separate edge
 						relatedInfoRelations.forEach(relatedInfoRelation -> {
 							Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
 							edge.setOrigin(ORIGIN_RELATED_INFO);

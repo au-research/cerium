@@ -1,6 +1,10 @@
 package ardc.cerium.igsn.service;
 
-import ardc.cerium.core.common.entity.*;
+import ardc.cerium.core.common.entity.Record;
+import ardc.cerium.core.common.entity.Request;
+import ardc.cerium.core.common.entity.Version;
+import ardc.cerium.core.common.entity.Identifier;
+import ardc.cerium.core.common.entity.URL;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.model.Schema;
 import ardc.cerium.core.common.provider.LandingPageProvider;

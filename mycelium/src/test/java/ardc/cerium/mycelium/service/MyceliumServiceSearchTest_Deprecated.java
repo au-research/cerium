@@ -4,6 +4,8 @@ import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.repository.specs.SearchOperation;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.core.common.util.Helpers;
+import ardc.cerium.mycelium.client.RDARegistryClient;
+import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.neo4j.harness.Neo4j;
 import org.neo4j.harness.Neo4jBuilders;
@@ -35,7 +38,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataNeo4jTest
 @Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class, RelationLookupService.class })
-public class MyceliumServiceSearchTest {
+public class MyceliumServiceSearchTest_Deprecated {
 
 	private static Neo4j embeddedDatabaseServer;
 

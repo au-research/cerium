@@ -133,6 +133,7 @@ public class MyceliumService {
 		StopWatch stopWatch = new StopWatch("Ingest payload");
 
 		// only supports rifcs for now, obtain the graph data from the payload
+		// todo update/remove RDARegistryClient
 		RDARegistryClient rdaRegistryClient = new RDARegistryClient("localhost");
 		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(rdaRegistryClient);
 

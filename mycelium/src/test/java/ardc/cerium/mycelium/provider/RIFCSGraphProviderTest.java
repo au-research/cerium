@@ -29,45 +29,35 @@ class RIFCSGraphProviderTest {
     @DisplayName("Loads a rifcs with relatedInfo should provides all relevant Vertices and Edges")
 	void relatedInfos() throws IOException {
 
-        RDARegistryClient mockedRDAClient = Mockito.mock(RDARegistryClient.class);
-        RegistryObject mockRO = new RegistryObject();
-        mockRO.setRegistryObjectId(1L);
-        mockRO.setTitle("Test Title");
-        mockRO.setType("dataset");
-        mockRO.setClassification("collection");
-        Mockito.when(mockedRDAClient.getPublishedByKey("AUTestingRecords2DCIRecords6")).thenReturn(mockRO);
-
-        // given a rifcs
-        String rifcs = Helpers.readFile("src/test/resources/rifcs/collection_relatedInfos_party.xml");
-        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(mockedRDAClient);
-        Graph graph = graphProvider.get(rifcs);
+        // given a json payload
+        String json = Helpers.readFile("src/test/resources/653061.json");
+        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
+        Graph graph = graphProvider.get(json);
 
         // the graph should contains 5 nodes and 3 edges
-        assertThat(graph.getVertices().size()).isEqualTo(5);
+        assertThat(graph.getVertices().size()).isEqualTo(4);
 
         // contains 4 explicit edge
-        assertThat(graph.getEdges().stream().filter(edge -> !edge.isReverse()).count()).isEqualTo(4);
+        assertThat(graph.getEdges().stream().filter(edge -> !edge.isReverse()).count()).isEqualTo(3);
 
         // 2 reversed edge
-        assertThat(graph.getEdges().stream().filter(Edge::isReverse).count()).isEqualTo(2);
+        assertThat(graph.getEdges().stream().filter(Edge::isReverse).count()).isEqualTo(1);
 
         // 1 ro:key node
         assertThat(graph.getVertices().stream()
 				.filter(node -> node.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).count())
-						.isEqualTo(1);
+						.isEqualTo(2);
 
         // 1 local identifier node with 1 isSameAs going to that node
         assertThat(graph.getVertices().stream()
-				.filter(node -> node.getIdentifierType().equals("local")
-						&& node.getIdentifier().equals("AODN:a439fbc6-9150-470b-a8db-1a8fd4DCIdasdf336d2AUT"))
+				.filter(node -> node.getIdentifierType().equals("ro:key")
+						&& node.getIdentifier().equals("C1997_23"))
 				.count()).isEqualTo(1);
 	}
 
     @Test
-    @DisplayName("Obtaining Reversed Edge is possible")
+    @DisplayName("Obtaining Reversed Edge if possible")
 	void getReversedEdge() {
-        RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(new RDARegistryClient("localhost"));
-
         Vertex a = new Vertex("a", "ro:key");
         Vertex b = new Vertex("b", "ro:key");
         Edge aTob = new Edge(a, b, "isPartOf");
@@ -80,4 +70,5 @@ class RIFCSGraphProviderTest {
         assertThat(bToA.isReverse()).isTrue();
         assertThat(bToA.getType()).isEqualTo("hasPart");
 	}
+
 }

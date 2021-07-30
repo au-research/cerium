@@ -10,8 +10,10 @@ import lombok.Setter;
 @Setter
 public class RegistryObject {
 
-    @JsonProperty("registry_object_id")
+    @JsonProperty("registryObjectId")
     private Long registryObjectId;
+
+    private String rifcs;
 
     private String status;
 
@@ -28,5 +30,11 @@ public class RegistryObject {
     @JsonProperty("class")
     private String classification;
 
-    private String rifcs;
+    @JsonProperty("dataSource")
+    private DataSource dataSource;
+
+    @JsonProperty("additionalRelations")
+    private AdditionalRelation[] additionalRelations;
+
 }
+

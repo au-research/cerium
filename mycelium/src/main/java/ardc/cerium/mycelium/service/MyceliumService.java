@@ -13,6 +13,8 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -57,10 +59,10 @@ public class MyceliumService {
 
 	/**
 	 * Create a new Import Request with data path, log path and xml stored as payload
-	 * @param xml the XML payload
+	 * @param json the XML payload
 	 * @return the created {@link Request}
 	 */
-	public Request createImportRequest(String xml) {
+	public Request createImportRequest(String json) {
 		Request request = new Request();
 		request.setType(IMPORT_REQUEST_TYPE);
 		request.setCreatedAt(new Date());
@@ -86,13 +88,13 @@ public class MyceliumService {
 		String payloadPath = dataPath + File.separator + "payload";
 		request.setAttribute(Attribute.PAYLOAD_PATH, payloadPath);
 
-		// save xml to payload
+		// save json to payload
 		try {
 			Files.createFile(Paths.get(payloadPath));
-			Files.writeString(Paths.get(payloadPath), xml);
+			Files.writeString(Paths.get(payloadPath), json);
 		}
 		catch (IOException e) {
-			log.error("Failed to write to payload path: {} with content {}", payloadPath, xml);
+			log.error("Failed to write to payload path: {} with content {}", payloadPath, json);
 		}
 
 		return request;
@@ -119,10 +121,13 @@ public class MyceliumService {
 			throw new ContentNotSupportedException("Payload is empty");
 		}
 
-		// test payload is well formed xml
-		Element domDocument = XMLUtil.getDomDocument(payload);
-		if (domDocument == null) {
-			throw new ContentNotSupportedException("Payload is not well-formed XML");
+		// test for payload syntax error(s)
+		try {
+			JSONObject jsonObject = new JSONObject(payload);
+		}
+		catch (JSONException e)
+		{
+			throw new ContentNotSupportedException("Payload is not well-formed JSON ");
 		}
 
 		// todo test payload is rifcs
@@ -135,34 +140,33 @@ public class MyceliumService {
 		// only supports rifcs for now, obtain the graph data from the payload
 		// todo update/remove RDARegistryClient
 		RDARegistryClient rdaRegistryClient = new RDARegistryClient("localhost");
-		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider(rdaRegistryClient);
+		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
 
 		// creates the graph out of the xml
 		stopWatch.start("CreatingGraph");
 		Graph graph = null;
 		try {
 			graph = graphProvider.get(payload);
+			stopWatch.stop();
+
+			// insert into neo4j the generated Graph
+			stopWatch.start("IngestingGraph");
+			graphService.ingestGraph(graph);
+			stopWatch.stop();
+
+			log.debug(stopWatch.prettyPrint());
+
+			List<Vertex> registryObjectVertices = graph.getVertices().stream()
+					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 		} catch (Exception e) {
 			log.error("Failed creating graph for payload. Reason: {}", e.getMessage());
 		}
-		stopWatch.stop();
 
-		// insert into neo4j the generated Graph
-		stopWatch.start("IngestingGraph");
-		graphService.ingestGraph(graph);
-		stopWatch.stop();
-
-		log.debug(stopWatch.prettyPrint());
-
-		List<Vertex> registryObjectVertices = graph.getVertices().stream()
-				.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 
 		// implicit duplicate records generation for all vertices that is a RegistryObject
 		//graphService.generateDuplicateRelationships(registryObjectVertices);
 
 		// todo implicit GrantsNetwork
-
-		// todo implicit PrimaryKey
 	}
 
 	/**

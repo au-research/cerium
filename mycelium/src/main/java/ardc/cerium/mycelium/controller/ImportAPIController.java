@@ -4,6 +4,7 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.task.ImportTask;
 import lombok.extern.slf4j.Slf4j;
+import netscape.javascript.JSObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,13 +33,13 @@ public class ImportAPIController {
 
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
-	 * @param xml the XML payload
+	 * @param json the XJSON payload
 	 * @return something
 	 */
 	@PostMapping("/import")
-	public ResponseEntity<Request> importHandler(@RequestBody String xml) {
+	public ResponseEntity<Request> importHandler(@RequestBody String json) {
 		// create new Request, store the xml
-		Request request = myceliumService.createImportRequest(xml);
+		Request request = myceliumService.createImportRequest(json);
 		request.setStatus(Request.Status.ACCEPTED);
 		myceliumService.validateRequest(request);
 

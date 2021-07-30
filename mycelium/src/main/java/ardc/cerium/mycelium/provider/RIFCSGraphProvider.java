@@ -1,18 +1,22 @@
 package ardc.cerium.mycelium.provider;
 
 import ardc.cerium.mycelium.client.RDARegistryClient;
-import ardc.cerium.mycelium.model.Edge;
-import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.RegistryObject;
-import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Graph Provider for RIFCS documents
@@ -38,31 +42,28 @@ public class RIFCSGraphProvider {
 
 	public static final String RELATION_HAS_ASSOCIATION_WITH = "hasAssociationWith";
 
-	private final RDARegistryClient rdaRegistryClient;
-
-	public RIFCSGraphProvider(RDARegistryClient rdaRegistryClient) {
-		this.rdaRegistryClient = rdaRegistryClient;
-	}
-
-	/**
-	 * Obtain the {@link Graph} data for a given RIFCS XML payload
-	 * @param xml the XML payload can contain multiple registryObject
-	 * @return the generated {@link Graph}
-	 */
-	public Graph get(String xml) {
-		RegistryObjects registryObjects = RIFCSParser.parse(xml);
+	public Graph get(String jsonPayload) throws JsonProcessingException {
 		Graph graph = new Graph();
+		ObjectMapper mapper = new ObjectMapper();
+		RegistryObject ro = mapper.readValue(jsonPayload, RegistryObject.class);
+		DataSource ds = ro.getDataSource();
+		log.info("datasource title {}", ds.getTitle());
+		String xml = new String(Base64.getDecoder().decode(ro.getRifcs()));
+
+		RegistryObjects registryObjects = RIFCSParser.parse(xml);
 
 		if (registryObjects == null || registryObjects.getRegistryObjects().size() == 0) {
-			// log something gone wrong with parsing here
+			log.debug("JSON payload doesn't contain rifcs xml");
 			return graph;
 		}
 
 		registryObjects.getRegistryObjects().forEach(registryObject -> {
 			// find the RegistryObject and have the ID as the originNode
 			String key = registryObject.getKey();
-			RegistryObject ro = rdaRegistryClient.getPublishedByKey(key);
-			log.debug("Resolved to RegistryObject registryObjectId:{}", ro.getRegistryObjectId());
+			String key_from_payload = ro.getKey();
+			log.info("keys should match here {} {}", key,key_from_payload);
+			//RegistryObject ro = rdaRegistryClient.getPublishedByKey(key);
+			log.info("Got registryObjectId:{} from payload", ro.getRegistryObjectId());
 
 			Vertex originNode = new Vertex(ro.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);
 			originNode.addLabel(Vertex.Label.RegistryObject);
@@ -151,6 +152,13 @@ public class RIFCSGraphProvider {
 					});
 				});
 			}
+			//implicit PrimaryKey
+			AdditionalRelation[] additionalRelations = ro.getAdditionalRelations();
+			for( AdditionalRelation additionalRelation : additionalRelations)
+			{
+				log.info("additionalRelation {}, {}", additionalRelation.getToKey(), additionalRelation.getRelationType());
+			}
+
 		});
 
 		return graph;

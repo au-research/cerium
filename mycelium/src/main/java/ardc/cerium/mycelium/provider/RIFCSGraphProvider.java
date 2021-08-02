@@ -40,6 +40,8 @@ public class RIFCSGraphProvider {
 
 	public static final String ORIGIN_RELATED_INFO = "RelatedInfo";
 
+	public static final String ORIGIN_PRIMARY_LINK = "PrimaryLink";
+
 	public static final String RELATION_HAS_ASSOCIATION_WITH = "hasAssociationWith";
 
 	public Graph get(String jsonPayload) throws JsonProcessingException {
@@ -157,6 +159,15 @@ public class RIFCSGraphProvider {
 			for( AdditionalRelation additionalRelation : additionalRelations)
 			{
 				log.info("additionalRelation {}, {}", additionalRelation.getToKey(), additionalRelation.getRelationType());
+				Vertex relatedObjectNode = new Vertex(additionalRelation.getToKey(), RIFCS_KEY_IDENTIFIER_TYPE);
+				relatedObjectNode.addLabel(Vertex.Label.Identifier);
+				graph.addVertex(relatedObjectNode);
+					Edge edge = new Edge(originNode, relatedObjectNode, additionalRelation.getRelationType());
+					edge.setOrigin(ORIGIN_PRIMARY_LINK);
+					graph.addEdge(edge);
+
+					// reversed edge for relatedObject relationships
+					graph.addEdge(getReversedEdge(edge));
 			}
 
 		});

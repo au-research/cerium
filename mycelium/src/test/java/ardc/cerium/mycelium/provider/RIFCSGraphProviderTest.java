@@ -34,19 +34,19 @@ class RIFCSGraphProviderTest {
         RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
         Graph graph = graphProvider.get(json);
 
-        // the graph should contains 5 nodes and 3 edges
-        assertThat(graph.getVertices().size()).isEqualTo(4);
+        // the graph should contains 6 nodes and 5 edges
+        assertThat(graph.getVertices().size()).isEqualTo(6);
 
-        // contains 4 explicit edge
-        assertThat(graph.getEdges().stream().filter(edge -> !edge.isReverse()).count()).isEqualTo(3);
+        // contains 5 explicit edge
+        assertThat(graph.getEdges().stream().filter(edge -> !edge.isReverse()).count()).isEqualTo(5);
 
-        // 2 reversed edge
-        assertThat(graph.getEdges().stream().filter(Edge::isReverse).count()).isEqualTo(1);
+        // 3 reversed edge
+        assertThat(graph.getEdges().stream().filter(Edge::isReverse).count()).isEqualTo(3);
 
-        // 1 ro:key node
+        // 4 ro:key node
         assertThat(graph.getVertices().stream()
 				.filter(node -> node.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).count())
-						.isEqualTo(2);
+						.isEqualTo(4);
 
         // 1 local identifier node with 1 isSameAs going to that node
         assertThat(graph.getVertices().stream()

@@ -159,15 +159,17 @@ public class RIFCSGraphProvider {
 			for( AdditionalRelation additionalRelation : additionalRelations)
 			{
 				log.info("additionalRelation {}, {}", additionalRelation.getToKey(), additionalRelation.getRelationType());
-				Vertex relatedObjectNode = new Vertex(additionalRelation.getToKey(), RIFCS_KEY_IDENTIFIER_TYPE);
-				relatedObjectNode.addLabel(Vertex.Label.Identifier);
-				graph.addVertex(relatedObjectNode);
+				if(additionalRelation.getOrigin().equals("PRIMARY-KEY")) {
+					Vertex relatedObjectNode = new Vertex(additionalRelation.getToKey(), RIFCS_KEY_IDENTIFIER_TYPE);
+					relatedObjectNode.addLabel(Vertex.Label.Identifier);
+					graph.addVertex(relatedObjectNode);
 					Edge edge = new Edge(originNode, relatedObjectNode, additionalRelation.getRelationType());
 					edge.setOrigin(ORIGIN_PRIMARY_LINK);
 					graph.addEdge(edge);
 
 					// reversed edge for relatedObject relationships
 					graph.addEdge(getReversedEdge(edge));
+				}
 			}
 
 		});

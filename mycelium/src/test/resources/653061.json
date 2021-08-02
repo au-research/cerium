@@ -22,7 +22,7 @@
             "relationType": "fundedBy"
         },
         {
-            "origin": "PRIMARY-KEY",
+            "origin": "NOT-A-PRIMARY-KEY",
             "toKey": "great_institution",
             "relationType": "isManagedBy"
         }

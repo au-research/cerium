@@ -138,8 +138,6 @@ public class MyceliumService {
 		StopWatch stopWatch = new StopWatch("Ingest payload");
 
 		// only supports rifcs for now, obtain the graph data from the payload
-		// todo update/remove RDARegistryClient
-		RDARegistryClient rdaRegistryClient = new RDARegistryClient("localhost");
 		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
 
 		// creates the graph out of the xml
@@ -158,8 +156,9 @@ public class MyceliumService {
 
 			List<Vertex> registryObjectVertices = graph.getVertices().stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+			log.info("Created: {} Vertices", registryObjectVertices.size());
 		} catch (Exception e) {
-			log.error("Failed creating graph for payload. Reason: {}", e.getMessage());
+			log.error("Failed creating graph for payload. Reason: {}", e.toString());
 		}
 
 

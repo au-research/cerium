@@ -87,8 +87,14 @@ public class Scenario_1_IT{
 		// import
 		Request request = new Request();
 		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
-		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml");
+		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/party_1.json");
 		ImportTask importTask = new ImportTask(request, myceliumService);
+		importTask.run();
+
+		request = new Request();
+		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
+		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/collection_1.json");
+		importTask = new ImportTask(request, myceliumService);
 		importTask.run();
 
 		// AUTCollection1R hasCollector http://nla.gov.au/nla.party-AUTR1

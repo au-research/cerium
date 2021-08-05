@@ -58,8 +58,8 @@ public class RIFCSGraphProvider {
 			log.debug("JSON payload doesn't contain rifcs xml");
 			return graph;
 		}
-
-		registryObjects.getRegistryObjects().forEach(registryObject -> {
+		ardc.cerium.mycelium.rifcs.model.RegistryObject registryObject = registryObjects.getRegistryObjects().get(0);
+// there is always 1 registry Object in the json payload
 			// find the RegistryObject and have the ID as the originNode
 			String key = registryObject.getKey();
 			String key_from_payload = ro.getKey();
@@ -156,6 +156,9 @@ public class RIFCSGraphProvider {
 			}
 			//implicit PrimaryKey
 			AdditionalRelation[] additionalRelations = ro.getAdditionalRelations();
+			if(additionalRelations == null || additionalRelations.length == 0)
+				return graph;
+
 			for( AdditionalRelation additionalRelation : additionalRelations)
 			{
 				log.info("additionalRelation {}, {}", additionalRelation.getToKey(), additionalRelation.getRelationType());
@@ -171,8 +174,6 @@ public class RIFCSGraphProvider {
 					graph.addEdge(getReversedEdge(edge));
 				}
 			}
-
-		});
 
 		return graph;
 	}

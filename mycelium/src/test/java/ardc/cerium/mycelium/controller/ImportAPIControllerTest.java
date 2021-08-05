@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ImportAPIController.class)
 class ImportAPIControllerTest {
 
-	public static String END_POINT = "/api/services/import";
+	public static String END_POINT = "/api/services/mycelium/import-record";
 
 	@MockBean
 	MyceliumService myceliumService;

@@ -14,7 +14,7 @@ public class ImportTask implements Runnable {
 
 	private final MyceliumService myceliumService;
 
-	private String xml;
+	private String json;
 
 	private final Request request;
 
@@ -33,7 +33,7 @@ public class ImportTask implements Runnable {
 	public void parseRequest(Request request) {
 		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
 		try {
-			this.xml = Files.readString(Paths.get(payloadPath));
+			this.json = Files.readString(Paths.get(payloadPath));
 		}
 		catch (IOException e) {
 			log.error("Failed loading payload from {} {} , ", payloadPath, e.getMessage());
@@ -43,7 +43,7 @@ public class ImportTask implements Runnable {
 	@Override
 	public void run() {
 		try {
-			myceliumService.ingest(xml);
+			myceliumService.ingest(json);
 			// todo update Request status and/or logging
 		}
 		catch (Exception e) {

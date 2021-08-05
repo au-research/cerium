@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Minh Duc Nguyen
  */
 @RestController
-@RequestMapping(value = "/api/services/")
+@RequestMapping(value = "/api/services/mycelium")
 @Slf4j
 public class ImportAPIController {
 
@@ -35,7 +35,7 @@ public class ImportAPIController {
 	 * @param json the XJSON payload
 	 * @return something
 	 */
-	@PostMapping("/import")
+	@PostMapping("/import-record")
 	public ResponseEntity<Request> importHandler(@RequestBody String json) {
 		// create new Request, store the xml
 		Request request = myceliumService.createImportRequest(json);

@@ -1,0 +1,18 @@
+{
+    "registryObjectId": 999998,
+    "rifcs": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlZ2lzdHJ5T2JqZWN0cyB4bWxucz0iaHR0cDovL2FuZHMub3JnLmF1L3N0YW5kYXJkcy9yaWYtY3MvcmVnaXN0cnlPYmplY3RzIiB4bWxuczpleHRSaWY9Imh0dHA6Ly9hbmRzLm9yZy5hdS9zdGFuZGFyZHMvcmlmLWNzL2V4dGVuZGVkUmVnaXN0cnlPYmplY3RzIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiB4c2k6c2NoZW1hTG9jYXRpb249Imh0dHA6Ly9hbmRzLm9yZy5hdS9zdGFuZGFyZHMvcmlmLWNzL3JlZ2lzdHJ5T2JqZWN0cyBodHRwOi8vc2VydmljZXMuYW5kcy5vcmcuYXUvZG9jdW1lbnRhdGlvbi9yaWZjcy9zY2hlbWEvcmVnaXN0cnlPYmplY3RzLnhzZCI+CiAgICA8cmVnaXN0cnlPYmplY3QgZ3JvdXA9IkFVVGVzdGluZ1JlY29yZHNSZWxhdGlvbnNoaXBzIj4KICAgICAgICA8a2V5Pmh0dHA6Ly9ubGEuZ292LmF1L25sYS5wYXJ0eS1BVVRSMTwva2V5PgogICAgICAgIDxvcmlnaW5hdGluZ1NvdXJjZSB0eXBlPSIiPm5sYS5nb3YuYXU8L29yaWdpbmF0aW5nU291cmNlPgogICAgICAgIDxwYXJ0eSB0eXBlPSJncm91cCI+CiAgICAgICAgICAgIDxuYW1lIHR5cGU9InByaW1hcnkiPgogICAgICAgICAgICAgICAgPG5hbWVQYXJ0PihBVVRlc3RpbmdSZWNvcmRzKSBFeGFtcGxlIHJlbGF0ZWQgcGFydHkgMjwvbmFtZVBhcnQ+CiAgICAgICAgICAgIDwvbmFtZT4KICAgICAgICAgICAgPGRlc2NyaXB0aW9uIHR5cGU9ImJyaWVmIj4mYW1wO2x0O3AmYW1wO2d0O0EgcGFydHkgZm9yIGFsbCZhbXA7bHQ7L3AmYW1wO2d0OzwvZGVzY3JpcHRpb24+CiAgICAgICAgICAgIDxpZGVudGlmaWVyIHR5cGU9IkFVLUFOTDpQRUFVIj5odHRwOi8vbmxhLmdvdi5hdS9ubGEucGFydHktQVVUMTwvaWRlbnRpZmllcj4KICAgICAgICAgICAgPGxvY2F0aW9uPgogICAgICAgICAgICAgICAgPGFkZHJlc3M+CiAgICAgICAgICAgICAgICAgICAgPGVsZWN0cm9uaWMgdHlwZT0idXJsIj4KICAgICAgICAgICAgICAgICAgICAgICAgPHZhbHVlPmh0dHA6Ly93d3cudW5zdy5lZHUuYXUvYTwvdmFsdWU+CiAgICAgICAgICAgICAgICAgICAgPC9lbGVjdHJvbmljPgogICAgICAgICAgICAgICAgPC9hZGRyZXNzPgogICAgICAgICAgICA8L2xvY2F0aW9uPgogICAgICAgIDwvcGFydHk+CiAgICA8L3JlZ2lzdHJ5T2JqZWN0Pgo8L3JlZ2lzdHJ5T2JqZWN0cz4=",
+    "key": "http://nla.gov.au/nla.party-AUTR1",
+    "class": "party",
+    "type": "group",
+    "title": "(AUTestingRecords) Example related party 2",
+    "slug": "example_related_party_2",
+    "portalUrl": "https://test.researchdata.ardc.edu.au/example_related_party_2",
+    "status": "PUBLISHED",
+    "batchId": "BATCH-TEST",
+    "group": "AUTestingRecordsRelationships",
+    "dataSource": {
+        "id": 61,
+        "title": "AUTestingRecords",
+        "key": "AUTestingRecords"
+    }
+}

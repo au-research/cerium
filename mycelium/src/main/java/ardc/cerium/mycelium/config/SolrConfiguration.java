@@ -1,7 +1,9 @@
 package ardc.cerium.mycelium.config;
 
+import net.bytebuddy.asm.Advice;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -13,10 +15,13 @@ import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 @EnableSolrRepositories(basePackages = "ardc.cerium.mycelium.repository")
 public class SolrConfiguration {
 
+	@Value("${spring.data.solr.host:http://localhost:8983/solr}")
+	String solrUrl;
+
 	@Bean
 	public SolrClient solrClient() {
 		HttpSolrClient.Builder builder = new HttpSolrClient.Builder();
-		builder.withBaseSolrUrl("http://localhost:8983/solr");
+		builder.withBaseSolrUrl(solrUrl);
 		return builder.build();
 	}
 

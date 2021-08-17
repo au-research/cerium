@@ -11,6 +11,8 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
+import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -234,6 +236,43 @@ public class MyceliumService {
 		state.setOutbounds(new ArrayList<>(outbounds));
 
 		return state;
+	}
+
+	public List<SideEffect> detectChanges(RecordState before, RecordState after) {
+		List<SideEffect> sideEffects = new ArrayList<>();
+
+		// this shouldn't happen
+		if (before == null && after == null) {
+			return sideEffects;
+		}
+
+		// record is created
+		if (before == null) {
+			// recordCreatedSideEffect
+			// investigate after state grants network
+			return sideEffects;
+		}
+
+		// record is deleted
+		if (after == null) {
+			// recordDeletedSideEffect
+			// investigate before state grants network
+			return sideEffects;
+		}
+
+		// detect title change
+		if (! before.getTitle().equals(after.getTitle())) {
+			sideEffects.add(new TitleChangeSideEffect(before.getRegistryObjectId(), before.getTitle(), after.getTitle()));
+		}
+
+		// todo other change detection
+
+		return sideEffects;
+
+	}
+
+	public void handleSideEffects(List<SideEffect> sideEffects) {
+		sideEffects.forEach(SideEffect::handle);
 	}
 
 }

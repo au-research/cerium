@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.entity.Record;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
@@ -9,6 +10,8 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
+import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,9 +25,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @DataNeo4jTest
 @Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class })
@@ -165,7 +174,8 @@ class MyceliumServiceTest {
 
 	@Test
 	void getRecordState() {
-		// given (c)-[isSameAs]->(i1)<-[isSameAs]-(a)-[isPartOf]->(b) and (b)-[hasPart]->(a)
+		// given (c)-[isSameAs]->(i1)<-[isSameAs]-(a)-[isPartOf]->(b) and
+		// (b)-[hasPart]->(a)
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
 		a.setTitle("A");
@@ -210,5 +220,45 @@ class MyceliumServiceTest {
 		assertThat(aToB.getRelations().get(0).getType()).isEqualTo("isPartOf");
 
 		assertThat(state).isNotNull();
+	}
+
+	@Test
+	void detectChanges_TitleChangeSideEffect_NotChanged() {
+		RecordState before = new RecordState();
+		before.setTitle("Old");
+
+		RecordState after = new RecordState();
+		after.setTitle("Old");
+
+		List<SideEffect> sideEffects = myceliumService.detectChanges(before, after);
+		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count()).isEqualTo(0);
+	}
+
+	@Test
+	void detectChanges_TitleChangeSideEffect_Changed() {
+		RecordState before = new RecordState();
+		before.setTitle("Old");
+
+		RecordState after = new RecordState();
+		after.setTitle("New");
+
+		List<SideEffect> sideEffects = myceliumService.detectChanges(before, after);
+		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count()).isEqualTo(1);
+	}
+
+	@Test
+	void handleSideEffect_shouldCallHandleMethod() {
+		// given a list of sideEffect with only 1 side effect (we spy on it)
+		TitleChangeSideEffect sideEffect = spy(new TitleChangeSideEffect("1", "Old Title", "New Title"));
+		List<SideEffect> sideEffects = new ArrayList<>(List.of(sideEffect));
+
+		// make sure sideEffect do nothing when handled (we don't test that here)
+		doNothing().when(sideEffect).handle();
+
+		// when handleSideEffects
+		myceliumService.handleSideEffects(sideEffects);
+
+		// the handle method on the sideEffect is called once
+		verify(sideEffect, times(1)).handle();
 	}
 }

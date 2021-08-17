@@ -24,14 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class ImportAPIController {
 
+	private final MyceliumService myceliumService;
+
 	@Value("${app.ip-white-list:0:0:0:0:0:0:0:1,127.0.0.1,130.56.111.120}")
 	String ipWhiteList;
-
-	// todo ? import-bulk to import multiple XML documents at the same time, wrapped?
-	// todo ? import-remote to import from a remote endpoint, ie RDA?
-	// todo ? /index -> IndexController?
-
-	private final MyceliumService myceliumService;
 
 	public ImportAPIController(MyceliumService myceliumService) {
 		this.myceliumService = myceliumService;
@@ -39,17 +35,18 @@ public class ImportAPIController {
 
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
-	 * @param json the XJSON payload
-	 * @return something
+	 * @param json the JSON payload
+	 * @param sRequest the current {@link HttpServletRequest}
+	 * @return the {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/import-record")
 	public ResponseEntity<Request> importHandler(@RequestBody String json, HttpServletRequest sRequest) {
 		// poor man's security until we decide the way we proceed !
 		// but most likely only allow requests from localhost is a good start
-		if(!ipWhiteList.contains(sRequest.getRemoteAddr())){
-			throw new ForbiddenOperationException(String.format("Ip %s, not authorised",sRequest.getRemoteAddr()));
+		if (!ipWhiteList.contains(sRequest.getRemoteAddr())) {
+			throw new ForbiddenOperationException(String.format("Ip %s, not authorised", sRequest.getRemoteAddr()));
 		}
-		// create new Request, store thejson payload
+		// create new Request, store the json payload
 		Request request = myceliumService.createImportRequest(json);
 		request.setStatus(Request.Status.ACCEPTED);
 		myceliumService.validateRequest(request);

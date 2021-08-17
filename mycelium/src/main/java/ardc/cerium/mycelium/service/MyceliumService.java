@@ -5,13 +5,12 @@ import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.core.common.util.Helpers;
-import ardc.cerium.core.common.util.XMLUtil;
 import ardc.cerium.core.exception.ContentNotSupportedException;
-import ardc.cerium.mycelium.client.RDARegistryClient;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
-import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.IOException;
@@ -125,8 +123,7 @@ public class MyceliumService {
 		try {
 			JSONObject jsonObject = new JSONObject(payload);
 		}
-		catch (JSONException e)
-		{
+		catch (JSONException e) {
 			throw new ContentNotSupportedException("Payload is not well-formed JSON ");
 		}
 
@@ -157,13 +154,13 @@ public class MyceliumService {
 			List<Vertex> registryObjectVertices = graph.getVertices().stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 			log.info("Created: {} Vertices", registryObjectVertices.size());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("Failed creating graph for payload. Reason: {}", e.toString());
 		}
 
-
 		// implicit duplicate records generation for all vertices that is a RegistryObject
-		//graphService.generateDuplicateRelationships(registryObjectVertices);
+		// graphService.generateDuplicateRelationships(registryObjectVertices);
 
 		// todo implicit GrantsNetwork
 	}
@@ -203,6 +200,40 @@ public class MyceliumService {
 
 	public Vertex getVertexFromRegistryObjectId(String registryObjectId) {
 		return graphService.getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+	}
+
+	/**
+	 * Obtain a {@link RecordState} of a RegistryObject given the registryObjectId from
+	 * the Graph database as of this moment
+	 * @param registryObjectId the registryObjectId identifier
+	 * @return the {@link RecordState} or null if the RegistryObject is not present in the database
+	 */
+	public RecordState getRecordState(String registryObjectId) {
+
+		// if the registryObjectId doesn't exist in the graph
+		Vertex origin = graphService.getVertexByIdentifier(registryObjectId,
+				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		if (origin == null) {
+			return null;
+		}
+
+		RecordState state = new RecordState();
+		state.setTitle(origin.getTitle());
+
+		// TODO obtain group from vertex (require Vertex to have group property)
+		state.setGroup(null);
+
+		// identical
+		Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(origin.getIdentifier(),
+				origin.getIdentifierType());
+		state.setIdentical(new ArrayList<>(sameAsNodeCluster));
+
+		// outbound
+		Collection<Relationship> outbounds = graphService.getDirectOutboundRelationships(origin.getIdentifier(),
+				origin.getIdentifierType());
+		state.setOutbounds(new ArrayList<>(outbounds));
+
+		return state;
 	}
 
 }

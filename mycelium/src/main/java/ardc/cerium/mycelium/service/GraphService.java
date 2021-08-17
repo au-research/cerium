@@ -110,6 +110,21 @@ public class GraphService {
 	}
 
 	/**
+	 * Obtain all Outbound relationships from the starting node identified by the identifier and identifierType
+	 *
+	 * @param identifier the Identifier String
+	 * @param identifierType the type of the Identifier as String
+	 * @return a {@link Collection} of {@link Relationship}
+	 */
+	public Collection<Relationship> getDirectOutboundRelationships(String identifier, String identifierType) {
+		String cypherQuery = "MATCH (from:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
+				"MATCH (from)-[r]->(to)\n" +
+				"WHERE type(r) <> \"isSameAs\"\n" +
+				"RETURN from, to, collect(r) as relations;";
+		return getRelationships(cypherQuery);
+	}
+
+	/**
 	 * search the neo4j database based on a list of criteria and pagination
 	 * @param criteriaList a list of {@link SearchCriteria} to start the search in
 	 * @param pageable the pagination and sorting provided by {@link Pageable}

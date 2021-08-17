@@ -3,10 +3,12 @@ package ardc.cerium.mycelium.service;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -136,4 +138,77 @@ class MyceliumServiceTest {
 		assertThat(myceliumService.getDuplicateRegistryObject(c).size()).isEqualTo(3);
 	}
 
+	@Test
+	void getRecordState_noRegistryObjectInGraph_null() {
+		assertThat(myceliumService.getRecordState("123")).isNull();
+	}
+
+	@Test
+	void getRecordState_registryObjectExists_notNull() {
+
+		// given a vertex
+		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setTitle("Test Object");
+		Graph graph = new Graph();
+		graph.addVertex(a);
+
+		graphService.ingestGraph(graph);
+
+		// when obtain state
+		RecordState state = myceliumService.getRecordState("A");
+
+		// not null & has the same title
+		assertThat(state).isNotNull();
+		assertThat(state.getTitle()).isEqualTo("Test Object");
+	}
+
+	@Test
+	void getRecordState() {
+		// given (c)-[isSameAs]->(i1)<-[isSameAs]-(a)-[isPartOf]->(b) and (b)-[hasPart]->(a)
+		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setTitle("A");
+
+		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		b.addLabel(Vertex.Label.RegistryObject);
+		b.setTitle("B");
+
+		Vertex c = new Vertex("C", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		c.addLabel(Vertex.Label.RegistryObject);
+		c.setTitle("C");
+
+		Vertex i1 = new Vertex("I1", "local");
+		i1.addLabel(Vertex.Label.RegistryObject);
+		i1.setTitle("I1");
+
+		Graph graph = new Graph();
+		graph.addVertex(a, b, c, i1);
+		graph.addEdge(new Edge(c, i1, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(a, i1, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(a, b, "isPartOf"));
+		graph.addEdge(new Edge(b, a, "hasPart"));
+
+		graphService.ingestGraph(graph);
+
+		// when obtain state
+		RecordState state = myceliumService.getRecordState("A");
+
+		assertThat(state.getTitle()).isEqualTo("A");
+
+		// there should be 3 identical, A, C and I1
+		assertThat(state.getIdentical().size()).isEqualTo(3);
+		assertThat(state.getIdentical().stream().anyMatch(vertex -> vertex.getIdentifier().equals("A"))).isTrue();
+		assertThat(state.getIdentical().stream().anyMatch(vertex -> vertex.getIdentifier().equals("C"))).isTrue();
+		assertThat(state.getIdentical().stream().anyMatch(vertex -> vertex.getIdentifier().equals("I1"))).isTrue();
+
+		// there should be 1 outbounds, (a)-[isPartOf]->(b)
+		assertThat(state.getOutbounds().size()).isEqualTo(1);
+		Relationship aToB = state.getOutbounds().get(0);
+		assertThat(aToB.getFrom().getIdentifier()).isEqualTo("A");
+		assertThat(aToB.getTo().getIdentifier()).isEqualTo("B");
+		assertThat(aToB.getRelations().get(0).getType()).isEqualTo("isPartOf");
+
+		assertThat(state).isNotNull();
+	}
 }

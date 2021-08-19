@@ -10,8 +10,6 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
-import ardc.cerium.mycelium.rifcs.model.Relation;
-import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
@@ -21,7 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,18 +62,19 @@ public class GraphService {
 			try {
 				log.debug("Ingesting vertex id: {} type: {}", vertex.getIdentifier(), vertex.getIdentifierType());
 				ingestVertex(vertex);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.error("Failed to ingest vertex id: {} Reason: {}", vertex.getIdentifier(), e.getMessage());
 			}
 		});
-
 
 		graph.getEdges().forEach(edge -> {
 			try {
 				log.debug("Ingesting edge from {} to {} type: {}", edge.getFrom().getIdentifier(),
 						edge.getTo().getIdentifier(), edge.getType());
 				ingestEdge(edge);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.error("Failed to ingest edge from {} to {} type: {} Reason: {}", edge.getFrom().getIdentifier(),
 						edge.getTo().getIdentifier(), edge.getType(), e.getMessage());
 			}
@@ -117,10 +115,9 @@ public class GraphService {
 	 * @return a {@link Collection} of {@link Relationship}
 	 */
 	public Collection<Relationship> getDirectOutboundRelationships(String identifier, String identifierType) {
-		String cypherQuery = "MATCH (from:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
-				"MATCH (from)-[r]->(to)\n" +
-				"WHERE type(r) <> \"isSameAs\"\n" +
-				"RETURN from, to, collect(r) as relations;";
+		String cypherQuery = "MATCH (from:Vertex {identifier: \"" + identifier + "\", identifierType: \""
+				+ identifierType + "\"})\n" + "MATCH (from)-[r]->(to)\n" + "WHERE type(r) <> \"isSameAs\"\n"
+				+ "RETURN from, to, collect(r) as relations;";
 		return getRelationships(cypherQuery);
 	}
 
@@ -237,8 +234,7 @@ public class GraphService {
 
 	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
 		return neo4jClient
-				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
-						+ "RETURN n;")
+				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n" + "RETURN n;")
 				.bind(identifier).to("identifier").bind(identifierType).to("identifierType").fetchAs(Vertex.class)
 				.mappedBy(((typeSystem, record) -> {
 					Node node = record.get("n").asNode();
@@ -310,7 +306,6 @@ public class GraphService {
 
 	/**
 	 * Ingest relations from duplicate as Implicit Edges
-	 *
 	 * @param vertices a {@link List} of {@link Vertex} to generate and ingest Duplicate
 	 * relations for
 	 */
@@ -349,6 +344,40 @@ public class GraphService {
 				});
 			});
 		});
+	}
+
+	public Collection<Vertex> getParentCollection(String registryObjectId) {
+		return neo4jClient.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
+				+ "CALL apoc.path.spanningTree(origin, {\n"
+				+ "    relationshipFilter: \"isSameAs|isPartOf>|isOutputOf>|isFundedBy>\",\n" + "    minLevel: 1,\n"
+				+ "    maxLevel: 100})\n" + "YIELD path WITH nodes(path) as targets\n"
+				+ "MATCH (collection:RegistryObject {objectClass: \"collection\"}) WHERE collection IN targets\n"
+				+ "MATCH (party:RegistryObject {objectClass: \"party\"}) WHERE party IN targets\n"
+				+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
+				.bind(registryObjectId).to("identifier")
+				.fetchAs(Vertex.class)
+				.mappedBy((typeSystem, record) -> {
+					Node n = record.get("collection").asNode();
+					return vertexMapper.getConverter().convert(n);
+				}).all();
+	}
+
+	public Collection<Vertex> getChildCollection(String registryObjectId) {
+		return neo4jClient.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
+						+ "CALL apoc.path.spanningTree(origin, {\n"
+						+ "    relationshipFilter: $relationshipFilter, minLevel: $minLevel, maxLevel: $maxLevel"
+						+ "}) YIELD path WITH nodes(path) as targets\n"
+						+ "MATCH (collection:RegistryObject {objectClass: 'collection'}) WHERE collection IN targets\n"
+						+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
+				.bind(registryObjectId).to("identifier")
+				.bind("isSameAs|hasPart>|outputs>|funds>|isFunderOf>|hasOutput>").to("relationshipFilter")
+				.bind(1).to("minLevel")
+				.bind(100).to("maxLevel")
+				.fetchAs(Vertex.class)
+				.mappedBy((typeSystem, record) -> {
+					Node n = record.get("collection").asNode();
+					return vertexMapper.getConverter().convert(n);
+				}).all();
 	}
 
 }

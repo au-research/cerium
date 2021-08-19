@@ -41,7 +41,7 @@ public class EdgeDocument{
     @Override
     public boolean equals(Object o){
         if(o instanceof EdgeDocument){
-            return relationType.equals(((EdgeDocument) o).getRelationType());
+            return relationType.equals(((EdgeDocument) o).getRelationType()) && relationOrigin.equals(((EdgeDocument) o).getRelationOrigin());
         }
         return false;
     }

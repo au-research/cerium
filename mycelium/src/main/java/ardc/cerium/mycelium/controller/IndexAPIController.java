@@ -9,6 +9,7 @@ import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import ardc.cerium.mycelium.service.RelationLookupService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -28,11 +29,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RELATION_RELATED_TO;
+
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
 @Slf4j
 public class IndexAPIController {
-
 
 	@Autowired
 	GraphService graphService;
@@ -45,6 +47,7 @@ public class IndexAPIController {
 
 	@Autowired
 	SolrTemplate solrTemplate;
+
 	@Autowired
 	MyceliumService myceliumService;
 
@@ -98,44 +101,72 @@ public class IndexAPIController {
 		// child collections
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildCollections(from.getIdentifier())) {
 			stream.forEach(collection -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("hasOutput");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} hasOutput {}", from.getIdentifier(), collection.getIdentifier());
-				indexRelation(from, collection, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("hasOutput");
+				indexRelation(from, collection, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(collection, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 
 		// child activities
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildActivities(from.getIdentifier())) {
 			stream.forEach(activity -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("hasPart");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} hasPart {}", from.getIdentifier(), activity.getIdentifier());
-				indexRelation(from, activity, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("hasPart");
+				indexRelation(from, activity, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(activity, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 
 		// parent activities
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentActivities(from.getIdentifier())) {
 			stream.forEach(activity -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isPartOf");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isPartOf {}", from.getIdentifier(), activity.getIdentifier());
-				indexRelation(from, activity, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isPartOf");
+				indexRelation(from, activity, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(activity, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 
 		// funder
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentParties(from.getIdentifier())) {
 			stream.forEach(party -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isFundedBy");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isFundedBy {}", from.getIdentifier(), party.getIdentifier());
-				indexRelation(from, party, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isFundedBy");
+				indexRelation(from, party, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(party, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 	}
@@ -146,22 +177,36 @@ public class IndexAPIController {
 		// child activities
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildActivities(from.getIdentifier())) {
 			stream.forEach(activity -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isFunderOf");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isFunderOf {}", from.getIdentifier(), activity.getIdentifier());
-				indexRelation(from, activity, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isFunderOf");
+				indexRelation(from, activity, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(activity, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 
 		// child collections
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildCollections(from.getIdentifier())) {
 			stream.forEach(collection -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isFunderOf");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isFunderOf {}", from.getIdentifier(), collection.getIdentifier());
-				indexRelation(from, collection, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isFunderOf");
+				indexRelation(from, collection, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(collection, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 	}
@@ -169,30 +214,45 @@ public class IndexAPIController {
 	@Transactional(readOnly = true)
 	public void indexCollectionGrantsNetwork(Vertex from) {
 
-		Collection<String> myDuplicateIDs = myceliumService.getDuplicateRegistryObject(from).stream().map(Vertex::getIdentifier).collect(Collectors.toList());
+		Collection<String> myDuplicateIDs = myceliumService.getDuplicateRegistryObject(from).stream()
+				.map(Vertex::getIdentifier).collect(Collectors.toList());
 
 		// child collection
 		log.info("Start Child Collections");
 		try (Stream<Vertex> stream = vertexRepository.streamChildCollections(from.getIdentifier())) {
 			stream.filter(collection -> !myDuplicateIDs.contains(collection.getIdentifier())).forEach(collection -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("hasPart");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.debug("GrantsNetwork: {} hasPart {}", from.getIdentifier(), collection.getIdentifier());
-				indexRelation(from, collection, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("hasPart");
+				indexRelation(from, collection, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(collection, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 		log.info("Finished Child Collections");
 
 		// parent collection
 		log.info("Indexing Parent Collections");
-		try (Stream<Vertex> stream = vertexRepository.streamParentCollections(from.getIdentifier())){
+		try (Stream<Vertex> stream = vertexRepository.streamParentCollections(from.getIdentifier())) {
 			stream.filter(collection -> !myDuplicateIDs.contains(collection.getIdentifier())).forEach(collection -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isPartOf");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.debug("GrantsNetwork: {} isPartOf {}", from.getIdentifier(), collection.getIdentifier());
-				indexRelation(from, collection, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isPartOf");
+				indexRelation(from, collection, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(collection, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 		log.info("Finished Parent Collections");
@@ -200,22 +260,36 @@ public class IndexAPIController {
 		// parent activities
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentActivities(from.getIdentifier())) {
 			stream.forEach(activity -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isOutputOf");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isOutputOf {}", from.getIdentifier(), activity.getIdentifier());
-				indexRelation(from, activity, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isOutputOf");
+				indexRelation(from, activity, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(activity, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 
 		// funder
 		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentParties(from.getIdentifier())) {
 			stream.forEach(party -> {
-				EdgeDTO implicitIsPartOf = new EdgeDTO();
-				implicitIsPartOf.setType("isFundedBy");
-				implicitIsPartOf.setOrigin("GrantsNetwork");
 				log.info("GrantsNetwork: {} isFundedBy {}", from.getIdentifier(), party.getIdentifier());
-				indexRelation(from, party, new ArrayList<>(List.of(implicitIsPartOf)));
+
+				EdgeDTO edge = new EdgeDTO();
+				edge.setOrigin("GrantsNetwork");
+				edge.setType("isFundedBy");
+				indexRelation(from, party, new ArrayList<>(List.of(edge)));
+
+				EdgeDTO reversed = new EdgeDTO();
+				reversed.setOrigin("GrantsNetwork");
+				reversed.setType(RelationLookupService.getReverse(edge.getType(), RELATION_RELATED_TO));
+				reversed.setReverse(true);
+				indexRelation(party, from, new ArrayList<>(List.of(reversed)));
 			});
 		}
 

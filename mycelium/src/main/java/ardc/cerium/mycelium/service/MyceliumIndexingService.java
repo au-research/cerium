@@ -118,7 +118,7 @@ public class MyceliumIndexingService {
 	 * {@link #indexRelationshipDocument(RelationshipDocument)} for indexing
 	 * @param from the source {@link Vertex}
 	 * @param to the target {@link Vertex}
-	 * @param relations the {@link List<EdgeDTO>} that contains the relations
+	 * @param relations the {@link List} of {@link EdgeDTO} that contains the relations
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
 		log.debug("Indexing relation from {} to {}", from.getIdentifier(), to.getIdentifier());

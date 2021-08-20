@@ -15,7 +15,7 @@ public class EdgeDTO {
 
 	private String origin;
 
-	private boolean isReverse;
+	private boolean isReverse = false;
 
 	private boolean isDuplicate = false;
 

@@ -21,76 +21,18 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 	Stream<Vertex> streamAllDuplicates(@Param("identifier") String identifier,
 			@Param("identifierType") String identifierType);
 
+	// @formatter:off
 	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
+		@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
+		@QueryHint(name = HINT_CACHEABLE, value = "false"),
+		@QueryHint(name = READ_ONLY, value = "true")
 	})
 	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|isPartOf>', minLevel: 1, maxLevel: 100\n"
+			+ "relationshipFilter: $filter, minLevel: 1, maxLevel: 100\n"
 			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (collection:RegistryObject {objectClass: 'collection'})"
-			+ "WHERE collection IN targets AND collection.identifier <> $identifier RETURN DISTINCT collection")
-	Stream<Vertex> streamParentCollections(@Param("identifier") String identifier);
-
-	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
-	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|hasPart>', minLevel: 1, maxLevel: 100\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (collection:RegistryObject {objectClass: 'collection'})"
-			+ "WHERE collection IN targets AND collection.identifier <> $identifier RETURN DISTINCT collection")
-	Stream<Vertex> streamChildCollections(@Param("identifier") String identifier);
-
-	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
-	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>', minLevel: 1, maxLevel: 100\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (activity:RegistryObject {objectClass: 'activity'})"
-			+ "WHERE activity IN targets AND activity.identifier <> $identifier RETURN DISTINCT activity")
-	Stream<Vertex> streamAllGrantsNetworkParentActivities(@Param("identifier") String identifier);
-
-	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
-	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|isFunderOf>|funds>', minLevel: 1, maxLevel: 100\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (activity:RegistryObject {objectClass: 'activity'})"
-			+ "WHERE activity IN targets AND activity.identifier <> $identifier RETURN DISTINCT activity")
-	Stream<Vertex> streamAllGrantsNetworkChildActivities(@Param("identifier") String identifier);
-
-	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
-	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|isFunderOf>|funds>|hasOutput>|hasPart>', minLevel: 1, maxLevel: 100\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (collection:RegistryObject {objectClass: 'collection'})"
-			+ "WHERE collection IN targets AND collection.identifier <> $identifier RETURN DISTINCT collection")
-	Stream<Vertex> streamAllGrantsNetworkChildCollections(@Param("identifier") String identifier);
-
-	@QueryHints(value = {
-			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
-			@QueryHint(name = HINT_CACHEABLE, value = "false"),
-			@QueryHint(name = READ_ONLY, value = "true")
-	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "    relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (party:RegistryObject {objectClass: 'party'})"
-			+ "WHERE party IN targets AND party.identifier <> $identifier RETURN DISTINCT party")
-	Stream<Vertex> streamAllGrantsNetworkParentParties(@Param("identifier") String identifier);
+			+ "MATCH (n:RegistryObject {objectClass: $class})"
+			+ "WHERE n IN targets AND n.identifier <> $identifier RETURN DISTINCT n")
+	Stream<Vertex> streamSpanningTreeFromId(@Param("identifier") String identifier, @Param("filter") String relationshipFilters, @Param("class") String classFilter);
+	// @formatter:on
 
 }

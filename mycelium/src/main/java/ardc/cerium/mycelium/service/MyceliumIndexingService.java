@@ -83,7 +83,8 @@ public class MyceliumIndexingService {
 	 */
 	public void indexDirectRelationships(Vertex from) {
 
-		// todo convert the GraphService#getDuplicateRelationships function to use direct repository interface & improve pagination
+		// todo convert the GraphService#getDuplicateRelationships function to use direct
+		// repository interface & improve pagination
 		// current implementation only covers 1000 relationships & source duplicates
 		Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
 				from.getIdentifierType(), PageRequest.of(0, 1000));
@@ -110,6 +111,15 @@ public class MyceliumIndexingService {
 		});
 	}
 
+	/**
+	 * Useful method to index a list of directional edges between 2 vertex into SOLR
+	 *
+	 * Constructs the {@link RelationshipDocument} and send them over to
+	 * {@link #indexRelationshipDocument(RelationshipDocument)} for indexing
+	 * @param from the source {@link Vertex}
+	 * @param to the target {@link Vertex}
+	 * @param relations the {@link List<EdgeDTO>} that contains the relations
+	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
 		log.debug("Indexing relation from {} to {}", from.getIdentifier(), to.getIdentifier());
 		RelationshipDocument doc = new RelationshipDocument();
@@ -134,6 +144,13 @@ public class MyceliumIndexingService {
 		indexRelationshipDocument(doc);
 	}
 
+	/**
+	 * Index a {@link RelationshipDocument} into SOLR.
+	 *
+	 * Finds if the relationship document is available and attempts to update it if it is
+	 * not. Supports partial updates to a degree
+	 * @param doc the {@link RelationshipDocument} that will be persisted in SOLR
+	 */
 	public void indexRelationshipDocument(RelationshipDocument doc) {
 
 		// search for existing document in an attempt to update it
@@ -147,6 +164,7 @@ public class MyceliumIndexingService {
 				RelationshipDocument.class);
 
 		if (existing.isPresent()) {
+			// attempts to update the document with new additional relations
 			log.debug("Found existing");
 			RelationshipDocument existingDocument = existing.get();
 
@@ -161,79 +179,119 @@ public class MyceliumIndexingService {
 			relationshipDocumentRepository.save(existingDocument);
 		}
 		else {
+			// save the document because it does not exist
 			log.debug("Does not found existing, saving new doc");
 			relationshipDocumentRepository.save(doc);
 		}
 	}
 
-	@Transactional
+	/**
+	 * Index GrantsNetwork Implicit relationships for an activity
+	 *
+	 * Includes relations to child collections, child activities, parent activities and
+	 * funders.
+	 * @param from the activity {@link Vertex} for the registryObject
+	 */
+	@Transactional(readOnly = true)
 	public void indexImplicitLinksForActivity(Vertex from) {
 
 		// the activity hasOutput all child collections
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildCollections(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|hasOutput>|hasPart>", "collection")) {
 			stream.forEach(collection -> indexGrantsNetworkRelation(from, collection, "hasOutput"));
 		}
 
 		// the activity hasPart all child activities
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildActivities(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|hasPart>", "activity")) {
 			stream.forEach(activity -> indexGrantsNetworkRelation(from, activity, "hasPart"));
 		}
 
 		// the activity isPartOf all parent activities
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentActivities(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isPartOf>", "activity")) {
 			stream.forEach(activity -> indexGrantsNetworkRelation(from, activity, "isPartOf"));
 		}
 
 		// the activity isFundedBy all funder
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentParties(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isPartOf>|isOutputOf>|isFundedBy>", "party")) {
 			stream.forEach(party -> indexGrantsNetworkRelation(from, party, "isFundedBy"));
 		}
 	}
 
+	/**
+	 * Index Implicit GrantsNetwork relationships for a party
+	 *
+	 * Includes relations to child collections and child activities
+	 * @param from the party {@link Vertex} for the registryObject
+	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForParty(Vertex from) {
 
 		// the party isFunderOf all child activities
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildActivities(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isFunderOf>|funds>|hasPart>", "activity")) {
 			stream.forEach(activity -> indexGrantsNetworkRelation(from, activity, "isFunderOf"));
 		}
 
 		// the party isFunderOf all child collections
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkChildCollections(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isFunderOf>|funds>|hasPart>|hasOutput>", "collection")) {
 			stream.forEach(collection -> indexGrantsNetworkRelation(from, collection, "isFunderOf"));
 		}
 	}
 
+	/**
+	 * Index Implicit GrantsNetwork relationships for a collection
+	 *
+	 * Includes relations to child collections, parent collections, parent activities and
+	 * funder
+	 * @param from the party {@link Vertex} for the registryObject
+	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForCollection(Vertex from) {
 
+		// obtain all the duplicate registryObjectId so that they can be post-filtered out
+		// since a record shouldn't implicitly relate to itself
 		Collection<String> myDuplicateIDs = graphService.getSameAs(from.getIdentifier(), from.getIdentifierType())
 				.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).map(Vertex::getIdentifier)
 				.collect(Collectors.toList());
 
-		// the collection hasPart all child collections (not its duplicates)
-		try (Stream<Vertex> stream = vertexRepository.streamChildCollections(from.getIdentifier())) {
+		// the collection hasPart all child collections
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|hasPart>", "collection")) {
 			stream.filter(collection -> !myDuplicateIDs.contains(collection.getIdentifier()))
 					.forEach(collection -> indexGrantsNetworkRelation(from, collection, "hasPart"));
 		}
 
-		// the collection isPartOf all parent collections (not its duplicates)
-		try (Stream<Vertex> stream = vertexRepository.streamParentCollections(from.getIdentifier())) {
+		// the collection isPartOf all parent collections
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isPartOf>", "collection")) {
 			stream.filter(collection -> !myDuplicateIDs.contains(collection.getIdentifier()))
 					.forEach(collection -> indexGrantsNetworkRelation(from, collection, "isPartOf"));
 		}
 
 		// the collection isOutputOf all parent activities
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentActivities(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isPartOf>|isOutputOf>", "activity")) {
 			stream.forEach(activity -> indexGrantsNetworkRelation(from, activity, "isOutputOf"));
 		}
 
 		// the collection isFundedBy all funder
-		try (Stream<Vertex> stream = vertexRepository.streamAllGrantsNetworkParentParties(from.getIdentifier())) {
+		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
+				"isSameAs|isPartOf>|isOutputOf>|isFundedBy>", "party")) {
 			stream.forEach(party -> indexGrantsNetworkRelation(from, party, "isFundedBy"));
 		}
 	}
 
+	/**
+	 * Useful reusable function to index a GrantsNetwork relationship with automatic
+	 * reverse edge
+	 * @param from the source {@link Vertex}
+	 * @param to the target {@link Vertex}
+	 * @param relation the grantsNetwork relationType
+	 */
 	private void indexGrantsNetworkRelation(Vertex from, Vertex to, String relation) {
 
 		// index the implicit edge

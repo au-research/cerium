@@ -221,44 +221,4 @@ class MyceliumServiceTest {
 
 		assertThat(state).isNotNull();
 	}
-
-	@Test
-	void detectChanges_TitleChangeSideEffect_NotChanged() {
-		RecordState before = new RecordState();
-		before.setTitle("Old");
-
-		RecordState after = new RecordState();
-		after.setTitle("Old");
-
-		List<SideEffect> sideEffects = myceliumService.detectChanges(before, after);
-		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count()).isEqualTo(0);
-	}
-
-	@Test
-	void detectChanges_TitleChangeSideEffect_Changed() {
-		RecordState before = new RecordState();
-		before.setTitle("Old");
-
-		RecordState after = new RecordState();
-		after.setTitle("New");
-
-		List<SideEffect> sideEffects = myceliumService.detectChanges(before, after);
-		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count()).isEqualTo(1);
-	}
-
-	@Test
-	void handleSideEffect_shouldCallHandleMethod() {
-		// given a list of sideEffect with only 1 side effect (we spy on it)
-		TitleChangeSideEffect sideEffect = spy(new TitleChangeSideEffect("1", "Old Title", "New Title"));
-		List<SideEffect> sideEffects = new ArrayList<>(List.of(sideEffect));
-
-		// make sure sideEffect do nothing when handled (we don't test that here)
-		doNothing().when(sideEffect).handle();
-
-		// when handleSideEffects
-		myceliumService.handleSideEffects(sideEffects);
-
-		// the handle method on the sideEffect is called once
-		verify(sideEffect, times(1)).handle();
-	}
 }

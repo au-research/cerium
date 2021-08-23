@@ -232,6 +232,18 @@ public class GraphService {
 				})).all();
 	}
 
+	/**
+	 * Obtaining the duplicate registryObjects. Also contains self.
+	 *
+	 * Utilize {@link #getSameAs(String, String)} with values obtained from the {@link Vertex}
+	 * @param vertex the {@link Vertex} to obtain duplicate from
+	 * @return a {@link Collection} of duplicate {@link Vertex}
+	 */
+	public Collection<Vertex> getSameAsRegistryObject(Vertex vertex) {
+		return getSameAs(vertex.getIdentifier(), vertex.getIdentifierType()).stream()
+				.filter(v -> v.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+	}
+
 	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
 		return neo4jClient
 				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n" + "RETURN n;")

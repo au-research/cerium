@@ -1,13 +1,10 @@
 package ardc.cerium.mycelium.service;
 
-import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
-import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -29,6 +26,9 @@ class MyceliumSideEffectServiceTest {
 	@MockBean
 	GraphService graphService;
 
+	@MockBean
+	MyceliumIndexingService myceliumIndexingService;
+
 	@Test
 	void detectChanges_TitleChangeSideEffect_NotChanged() {
 		RecordState before = new RecordState();
@@ -36,6 +36,8 @@ class MyceliumSideEffectServiceTest {
 
 		RecordState after = new RecordState();
 		after.setTitle("Old");
+
+		assertThat(myceliumSideEffectService.detectTitleChange(before, after)).isFalse();
 
 		List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count())
@@ -49,6 +51,8 @@ class MyceliumSideEffectServiceTest {
 
 		RecordState after = new RecordState();
 		after.setTitle("New");
+
+		assertThat(myceliumSideEffectService.detectTitleChange(before, after)).isTrue();
 
 		List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count())

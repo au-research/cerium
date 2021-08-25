@@ -1,20 +1,17 @@
 package ardc.cerium.mycelium.provider;
 
 import ardc.cerium.core.common.util.Helpers;
-import ardc.cerium.mycelium.Neo4jTest;
-import ardc.cerium.mycelium.client.RDARegistryClient;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -33,7 +30,9 @@ class RIFCSGraphProviderTest {
         // given a json payload
         String json = Helpers.readFile("src/test/resources/653061.json");
         RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
-        Graph graph = graphProvider.get(json);
+        ObjectMapper mapper = new ObjectMapper();
+        RegistryObject ro = mapper.readValue(json, RegistryObject.class);
+        Graph graph = graphProvider.get(ro);
 
         // the graph should contains 5 nodes and 4 edges
         assertThat(graph.getVertices().size()).isEqualTo(5);

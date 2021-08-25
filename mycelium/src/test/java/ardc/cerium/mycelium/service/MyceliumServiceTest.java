@@ -1,6 +1,5 @@
 package ardc.cerium.mycelium.service;
 
-import ardc.cerium.core.common.entity.Record;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
@@ -10,8 +9,6 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,15 +22,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @DataNeo4jTest
 @Import({ MyceliumService.class, GraphService.class, VertexMapper.class, ModelMapper.class, EdgeDTOMapper.class })
@@ -149,7 +140,7 @@ class MyceliumServiceTest {
 
 	@Test
 	void getRecordState_noRegistryObjectInGraph_null() {
-		assertThat(myceliumService.getRecordState("123")).isNull();
+		assertThat(myceliumService.getRecordState("123").getOrigin()).isNull();
 	}
 
 	@Test
@@ -214,7 +205,8 @@ class MyceliumServiceTest {
 
 		// there should be 1 outbounds, (a)-[isPartOf]->(b)
 		assertThat(state.getOutbounds().size()).isEqualTo(1);
-		Relationship aToB = state.getOutbounds().get(0);
+		Collection<Relationship> outbunds = state.getOutbounds();
+		Relationship aToB = outbunds.iterator().next();
 		assertThat(aToB.getFrom().getIdentifier()).isEqualTo("A");
 		assertThat(aToB.getTo().getIdentifier()).isEqualTo("B");
 		assertThat(aToB.getRelations().get(0).getType()).isEqualTo("isPartOf");

@@ -23,6 +23,8 @@ public class RegistryObject {
 
     private String slug;
 
+    private String portalUrl;
+
     private String group;
 
     private String type;

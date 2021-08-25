@@ -94,6 +94,19 @@ public class GraphService {
 		}
 	}
 
+	/**
+	 * Delete single {@link Vertex} using SDN
+	 * @param vertex the {@link Vertex}
+	 */
+	public void deleteVertex(Vertex vertex) {
+		// todo update the vertex
+		if (vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
+				vertex.getIdentifierType())) {
+			vertexRepository.delete(vertex);
+		}
+	}
+
+
 	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType, Pageable pageable) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
 				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +

@@ -1,11 +1,10 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.repository.specs.SearchOperation;
 import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.core.common.util.Helpers;
-import ardc.cerium.mycelium.client.RDARegistryClient;
-import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
@@ -13,7 +12,6 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.neo4j.harness.Neo4j;
 import org.neo4j.harness.Neo4jBuilders;
@@ -75,7 +73,8 @@ public class MyceliumServiceSearchTest_Deprecated {
 	void isSameAsMustNotReturn() throws IOException {
 		// given an ingest
 		String rifcs = Helpers.readFile("src/test/resources/rifcs/collection_relatedInfos_party.xml");
-		myceliumService.ingest(rifcs);
+		Request request = myceliumService.createImportRequest(rifcs);
+		myceliumService.ingest(rifcs, request);
 
 		// when search
 		List<SearchCriteria> criteriaList = new ArrayList<>();
@@ -97,7 +96,8 @@ public class MyceliumServiceSearchTest_Deprecated {
 	void genericSearch() throws IOException {
 		// given an ingest
 		String rifcs = Helpers.readFile("src/test/resources/rifcs/collection_relatedInfos_party.xml");
-		myceliumService.ingest(rifcs);
+		Request request = myceliumService.createImportRequest(rifcs);
+		myceliumService.ingest(rifcs, request);
 
 		// when search
 		List<SearchCriteria> criteriaList = new ArrayList<>();
@@ -125,7 +125,8 @@ public class MyceliumServiceSearchTest_Deprecated {
 
 		// given an ingest of duplicate records
 		String rifcs = Helpers.readFile("src/test/resources/rifcs/duplicate_records.xml");
-		myceliumService.ingest(rifcs);
+		Request request = myceliumService.createImportRequest(rifcs);
+		myceliumService.ingest(rifcs, request);
 
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		criteriaList.add(new SearchCriteria("fromIdentifierValue", "C1", SearchOperation.EQUAL));
@@ -161,7 +162,8 @@ public class MyceliumServiceSearchTest_Deprecated {
 	void reversedDuplicate() throws IOException {
 		// given an ingest of duplicate records
 		String rifcs = Helpers.readFile("src/test/resources/rifcs/duplicate_records.xml");
-		myceliumService.ingest(rifcs);
+		Request request = myceliumService.createImportRequest(rifcs);
+		myceliumService.ingest(rifcs, request);
 
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		criteriaList.add(new SearchCriteria("fromIdentifierValue", "A2", SearchOperation.EQUAL));

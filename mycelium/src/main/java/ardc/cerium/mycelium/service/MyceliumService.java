@@ -7,12 +7,12 @@ import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +39,8 @@ public class MyceliumService {
 
 	public static final String IMPORT_REQUEST_TYPE = "mycelium-import";
 
+	public static final String DELETE_REQUEST_TYPE = "mycelium-delete";
+
 	private final GraphService graphService;
 
 	private final RequestService requestService;
@@ -59,6 +61,8 @@ public class MyceliumService {
 
 	/**
 	 * Create a new Import Request with data path, log path and xml stored as payload
+	 * both import and update should use the same code
+	 * update deletes registryObject Vertex before import
 	 * @param json the XML payload
 	 * @return the created {@link Request}
 	 */
@@ -100,6 +104,26 @@ public class MyceliumService {
 		return request;
 	}
 
+
+	/**
+	 * Create a new Delete Request with log path
+	 * @param registryObjectId the recordId to be removed from the Graph
+	 * @return the created {@link Request}
+	 */
+	public Request createDeleteRequest(String registryObjectId) {
+		Request request = new Request();
+		request.setType(DELETE_REQUEST_TYPE);
+		request.setCreatedAt(new Date());
+		request.setUpdatedAt(new Date());
+		request = save(request);
+		request.setAttribute(Attribute.RECORD_ID, registryObjectId);
+		// log path
+		request.setAttribute(Attribute.LOG_PATH, requestService.getLoggerPathFor(request));
+		return request;
+	}
+
+
+
 	public void validateRequest(Request request) {
 
 		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
@@ -132,7 +156,7 @@ public class MyceliumService {
 		// todo test payload is rifcs
 	}
 
-	public void ingest(String payload) {
+	public void ingest(String payload, Request request) {
 
 		StopWatch stopWatch = new StopWatch("Ingest payload");
 
@@ -143,9 +167,26 @@ public class MyceliumService {
 		stopWatch.start("CreatingGraph");
 		Graph graph = null;
 		try {
-			graph = graphProvider.get(payload);
-			stopWatch.stop();
 
+
+			ObjectMapper mapper = new ObjectMapper();
+			RegistryObject ro = mapper.readValue(payload, RegistryObject.class);
+			String recordId = ro.getRegistryObjectId().toString();
+
+			RecordState recordStateBefore = getRecordState(recordId);
+
+
+			stopWatch.stop();
+			request.setAttribute("RECORD_STATE_BEFORE", recordStateBefore.toString());
+			Vertex origin = recordStateBefore.getOrigin();
+			if(origin != null) {
+				// simply deleting the original Vertex Neo4J deletes all relationships to and from the node
+				// no need to remove non returning relationships and attributes
+				graphService.deleteVertex(origin);
+			}
+			// create the new Graph
+			
+			graph = graphProvider.get(ro);
 			// insert into neo4j the generated Graph
 			stopWatch.start("IngestingGraph");
 			graphService.ingestGraph(graph);
@@ -155,7 +196,14 @@ public class MyceliumService {
 
 			List<Vertex> registryObjectVertices = graph.getVertices().stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
-			log.info("Created: {} Vertices", registryObjectVertices.size());
+			if(origin != null) {
+				request.setSummary(String.format("Update: %s Vertices", registryObjectVertices.size()));
+			}else{
+				request.setSummary(String.format("Created: %s Vertices", registryObjectVertices.size()));
+			}
+
+			RecordState recordStateAfter = getRecordState(recordId);
+			request.setAttribute("RECORD_STATE_AFTER", recordStateAfter.toString());
 		}
 		catch (Exception e) {
 			log.error("Failed creating graph for payload. Reason: {}", e.toString());
@@ -166,6 +214,32 @@ public class MyceliumService {
 
 		// todo implicit GrantsNetwork
 	}
+
+	public void deleteRecord(String recordId, Request request){
+		// recordState should contain information before delete
+
+		RecordState recordStateBefore = getRecordState(recordId);
+		// TODO we should either capture the before and after states and act on them right after import and delete
+		// or store them in the Request and let a future task handle them
+		request.setAttribute("RECORD_STATE_BEFORE", recordStateBefore.toString());
+		Vertex origin = recordStateBefore.getOrigin();
+
+		//Collection<Vertex> sameAs = recordStateBefore.getIdentical();
+		// should we delete Identifiers if there are no relationships connected to sameAs or otherwise?
+		// all outbound relationships (after same as were removed) must be removed (but the target vertices should not be tested for removal
+
+		if(origin != null) {
+			graphService.deleteVertex(origin);
+			request.setSummary(String.format("Deleted Record with ID %s", recordId));
+		}else{
+			request.setSummary(String.format("Record with ID %s doesn't exist", recordId));
+		}
+
+		RecordState recordStateAfter = getRecordState(recordId);
+		request.setAttribute("RECORD_STATE_AFTER", recordStateAfter.toString());
+
+	}
+
 
 	/**
 	 * Search for relationships.
@@ -213,27 +287,30 @@ public class MyceliumService {
 	public RecordState getRecordState(String registryObjectId) {
 
 		// if the registryObjectId doesn't exist in the graph
+		RecordState state = new RecordState();
 		Vertex origin = graphService.getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (origin == null) {
-			return null;
+			return state;
 		}
 
-		RecordState state = new RecordState();
-		state.setTitle(origin.getTitle());
 
+
+		state.setOrigin(origin);
+
+		state.setTitle(origin.getTitle());
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);
 
 		// identical
 		Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(origin.getIdentifier(),
 				origin.getIdentifierType());
-		state.setIdentical(new ArrayList<>(sameAsNodeCluster));
+		state.setIdentical(sameAsNodeCluster);
 
 		// outbound
 		Collection<Relationship> outbounds = graphService.getDirectOutboundRelationships(origin.getIdentifier(),
 				origin.getIdentifierType());
-		state.setOutbounds(new ArrayList<>(outbounds));
+		state.setOutbounds(outbounds);
 
 		return state;
 	}

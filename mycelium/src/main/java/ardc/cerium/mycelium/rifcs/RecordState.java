@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 @Getter
 @Setter
@@ -18,8 +18,10 @@ public class RecordState {
 
 	private String group;
 
-	private List<Vertex> identical = new ArrayList<>();
+	private Vertex origin;
 
-	private List<Relationship> outbounds = new ArrayList<>();
+	private Collection<Vertex> identical = new ArrayList<>();
+
+	private Collection<Relationship> outbounds = new ArrayList<>();
 
 }

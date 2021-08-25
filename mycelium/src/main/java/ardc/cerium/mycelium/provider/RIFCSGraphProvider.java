@@ -7,7 +7,6 @@ import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -68,20 +67,17 @@ public class RIFCSGraphProvider {
 	 * sameAs relationships, direct relatedObject relationships + reverse and direct
 	 * relatedInfo relationships + reverse. The graph also updated to include PrimaryKey
 	 * relationships if the {@link AdditionalRelation} includes that
-	 * @param jsonPayload the JSONPayload that should deserialize to a
-	 * {@link RegistryObject}
-	 * @return the {@link Graph} obtained from the JSONPayload
+	 * @param registryObject deserialised {@link RegistryObject} from the JSONPayload
+	 * @return the {@link Graph} obtained from the {@link RegistryObject}
 	 * @throws JsonProcessingException when processing of the JSONPayload fails
 	 */
-	public Graph get(String jsonPayload) throws JsonProcessingException {
+	public Graph get(RegistryObject registryObject) throws JsonProcessingException {
 		Graph graph = new Graph();
-		ObjectMapper mapper = new ObjectMapper();
-		RegistryObject ro = mapper.readValue(jsonPayload, RegistryObject.class);
 
-		DataSource ds = ro.getDataSource();
+		DataSource ds = registryObject.getDataSource();
 		log.debug("Found dataSource in payload title:{}", ds.getTitle());
 
-		String xml = new String(Base64.getDecoder().decode(ro.getRifcs()));
+		String xml = new String(Base64.getDecoder().decode(registryObject.getRifcs()));
 		log.debug("Found xml in payload {}", xml);
 
 		RegistryObjects registryObjects = RIFCSParser.parse(xml);
@@ -92,11 +88,11 @@ public class RIFCSGraphProvider {
 		}
 
 		// there is always 1 registryObject in the json payload
-		ardc.cerium.mycelium.rifcs.model.RegistryObject registryObject = registryObjects.getRegistryObjects().get(0);
+		ardc.cerium.mycelium.rifcs.model.RegistryObject rifcs = registryObjects.getRegistryObjects().get(0);
 
 		// find the RegistryObject and have the ID as the originNode
 		String key = registryObject.getKey();
-		String keyFromPayload = ro.getKey();
+		String keyFromPayload = rifcs.getKey();
 		log.info("keys should match here {} {}", key, keyFromPayload);
 
 		if (!key.equals(keyFromPayload)) {
@@ -105,14 +101,17 @@ public class RIFCSGraphProvider {
 			return graph;
 		}
 
-		log.debug("RegistryObjectId: {}", ro.getRegistryObjectId());
+		log.debug("RegistryObjectId: {}", registryObject.getRegistryObjectId());
 
 		// add the originNode, which is the ID node
-		Vertex originNode = new Vertex(ro.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex originNode = new Vertex(registryObject.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);
 		originNode.addLabel(Vertex.Label.RegistryObject);
-		originNode.setObjectType(ro.getType());
-		originNode.setObjectClass(ro.getClassification());
-		originNode.setTitle(ro.getTitle());
+		originNode.setObjectType(registryObject.getType());
+		originNode.setObjectClass(registryObject.getClassification());
+		originNode.setTitle(registryObject.getTitle());
+		originNode.setUrl(registryObject.getPortalUrl());
+		originNode.setSlug(registryObject.getSlug());
+		originNode.setPublic(registryObject.getStatus().equals("PUBLISHED"));
 		graph.addVertex(originNode);
 
 		// add the key origin Node, (id)-[isSameAs]->(key)
@@ -123,9 +122,9 @@ public class RIFCSGraphProvider {
 
 		// every identifier is a vertex & isSameAs
 		// (id)-[isSameAs]->(identifier)
-		List<Identifier> identifiers = registryObject.getIdentifiers();
+		List<Identifier> identifiers = rifcs.getIdentifiers();
 		if (identifiers != null && identifiers.size() > 0) {
-			registryObject.getIdentifiers().forEach(identifier -> {
+			rifcs.getIdentifiers().forEach(identifier -> {
 				IdentifierNormalisationService.getNormalisedIdentifier(identifier);
 				Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
 				identifierNode.addLabel(Vertex.Label.Identifier);
@@ -138,7 +137,7 @@ public class RIFCSGraphProvider {
 
 		// every relatedObject is a vertex & edge
 		// (id)-[r]->(relatedObjectKey)
-		List<RelatedObject> relatedObjects = registryObject.getRelatedObjects();
+		List<RelatedObject> relatedObjects = rifcs.getRelatedObjects();
 		if (relatedObjects != null && relatedObjects.size() > 0) {
 			relatedObjects.forEach(relatedObject -> {
 				Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
@@ -157,7 +156,7 @@ public class RIFCSGraphProvider {
 
 		// every relatedInfo is a vertex & edge
 		// (id)-[r]->(relatedInfoIdentifier)
-		List<RelatedInfo> relatedInfos = registryObject.getRelatedInfos();
+		List<RelatedInfo> relatedInfos = rifcs.getRelatedInfos();
 		if (relatedInfos != null && relatedInfos.size() > 0) {
 			relatedInfos.forEach(relatedInfo -> {
 
@@ -201,7 +200,7 @@ public class RIFCSGraphProvider {
 		}
 
 		// implicit PrimaryKey
-		AdditionalRelation[] additionalRelations = ro.getAdditionalRelations();
+		AdditionalRelation[] additionalRelations = registryObject.getAdditionalRelations();
 		if (additionalRelations == null || additionalRelations.length == 0)
 			return graph;
 

@@ -43,7 +43,7 @@ public class ImportTask implements Runnable {
 	@Override
 	public void run() {
 		try {
-			myceliumService.ingest(json);
+			myceliumService.ingest(json, request);
 			// todo update Request status and/or logging
 		}
 		catch (Exception e) {

@@ -57,7 +57,7 @@ public class RDAHarvestingService {
                 //saveFile(registryObject, rifcs);
 
                 try {
-                    myceliumService.ingest(rifcs);
+                    myceliumService.ingest(rifcs, null);
                 } catch (Exception e) {
                     log.error("Failed to ingest {} due to {}", registryObject.getRegistryObjectId(), e.getMessage());
                 }

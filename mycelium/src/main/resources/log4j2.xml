@@ -3,6 +3,7 @@
 
     <Properties>
         <Property name="logPath">/tmp/mycelium</Property>
+        <Property name="MYCELIUM_LOG_LEVEL">${env:MYCELIUM_LOG_LEVEL:-info}</Property>
     </Properties>
 
     <Appenders>
@@ -41,9 +42,8 @@
             <AppenderRef ref="RollingFile"/>
         </Root>
 
-        <Logger name="au.edu.ardc.registry.common.service.APILoggingService" level="info">
-            <AppenderRef ref="API"/>
-        </Logger>
+        <Logger name="ardc.cerium.mycelium" level="${MYCELIUM_LOG_LEVEL}" />
+
     </Loggers>
 
 </Configuration>

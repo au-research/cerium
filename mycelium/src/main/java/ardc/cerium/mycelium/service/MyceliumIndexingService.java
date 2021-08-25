@@ -9,8 +9,10 @@ import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.core.query.*;
+import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,7 @@ public class MyceliumIndexingService {
 		this.relationshipDocumentRepository = relationshipDocumentRepository;
 		this.graphService = graphService;
 		this.vertexRepository = vertexRepository;
+		log.debug("Mycelium Indexing Service online");
 	}
 
 	/**
@@ -160,6 +163,7 @@ public class MyceliumIndexingService {
 		query.addFilterQuery(new SimpleFilterQuery(new Criteria("to_identifier_type").is(doc.getToIdentifierType())));
 		query.addProjectionOnField(new SimpleField("*"));
 		query.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship]"));
+
 		Optional<RelationshipDocument> existing = solrTemplate.queryForObject("relationships", query,
 				RelationshipDocument.class);
 
@@ -306,6 +310,55 @@ public class MyceliumIndexingService {
 		reversed.setType(RelationLookupService.getReverse(relation, RELATION_RELATED_TO));
 		reversed.setReverse(true);
 		indexRelation(to, from, new ArrayList<>(List.of(reversed)));
+	}
+
+	/**
+	 * Update the title of a registryObject in the relationships index
+	 *
+	 * todo update related_$class_title in portal collection
+	 * @param registryObjectId the registryObjectId identifier
+	 * @param updatedTitle the title to update it to
+	 */
+	public void updateTitle(String registryObjectId, String updatedTitle) {
+
+		// update from_title to the updatedTitle of all RelationshipDocument that has the
+		// from_id=registryObjectId
+		Query fromIdQuery = new SimpleQuery("*:*");
+		fromIdQuery.addProjectionOnField(new SimpleField("*"));
+		fromIdQuery.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship]"));
+		fromIdQuery.addSort(Sort.by("id"));
+		fromIdQuery.addFilterQuery(new SimpleFilterQuery(new Criteria("from_id").is(registryObjectId)));
+		Cursor<RelationshipDocument> fromIdCursor = solrTemplate.queryForCursor("relationships", fromIdQuery,
+				RelationshipDocument.class);
+		int fromIdCounter = 0;
+		while (fromIdCursor.hasNext()) {
+			RelationshipDocument relatedFromThisId = fromIdCursor.next();
+			relatedFromThisId.setFromTitle(updatedTitle);
+			relationshipDocumentRepository.save(relatedFromThisId);
+			log.debug("RelationshipDocument[id={}] updated [from_title={}]", relatedFromThisId.getId(), updatedTitle);
+			fromIdCounter++;
+		}
+		log.debug("Updated {} RelationshipDocument[from_id={}]", fromIdCounter, registryObjectId);
+
+		// update to_title to the updatedTitle of all RelationshipDocument that has the
+		// to_identifier=registryObjectId
+		Query toIdQuery = new SimpleQuery("*:*");
+		toIdQuery.addProjectionOnField(new SimpleField("*"));
+		toIdQuery.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship]"));
+		toIdQuery.addSort(Sort.by("id"));
+		toIdQuery.addFilterQuery(new SimpleFilterQuery(new Criteria("to_identifier").is(registryObjectId)));
+		Cursor<RelationshipDocument> toIdCursor = solrTemplate.queryForCursor("relationships", toIdQuery,
+				RelationshipDocument.class);
+		int toIdCounter = 0;
+		while (toIdCursor.hasNext()) {
+			RelationshipDocument relatedFromThisId = toIdCursor.next();
+			relatedFromThisId.setToTitle(updatedTitle);
+			relationshipDocumentRepository.save(relatedFromThisId);
+			log.debug("RelationshipDocument[id={}] updated [to_title={}]", relatedFromThisId.getId(), updatedTitle);
+			toIdCounter++;
+		}
+		log.debug("Updated {} RelationshipDocument[to_identifier={}]", toIdCounter, registryObjectId);
+
 	}
 
 }

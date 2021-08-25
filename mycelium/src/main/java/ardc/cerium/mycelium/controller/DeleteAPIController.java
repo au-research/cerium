@@ -40,7 +40,8 @@ public class DeleteAPIController {
     /**
      * Import an XML payload to the {@link MyceliumService}
      * @param registryObjectId the registryObjectId to be deleted from the Graph
-     * @return something
+     * @param sRequest the {@link HttpServletRequest} server Request
+     * @return a {@link ResponseEntity} of a {@link Request}
      */
     @PostMapping("/delete-record")
     public ResponseEntity<Request> deleteHandler(@RequestParam String registryObjectId, HttpServletRequest sRequest) {

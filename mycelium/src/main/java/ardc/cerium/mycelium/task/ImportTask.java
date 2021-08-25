@@ -56,7 +56,9 @@ public class ImportTask implements Runnable {
 			RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
 
 			RecordState before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+
 			myceliumService.ingestRegistryObject(registryObject);
+
 			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
 
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);

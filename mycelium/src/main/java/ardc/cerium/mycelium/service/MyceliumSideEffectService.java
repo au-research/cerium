@@ -7,7 +7,12 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DuplicateInheritanceSideEffect;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
+import ardc.cerium.mycelium.rifcs.executor.Executor;
+import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RQueue;
+import org.redisson.api.RedissonClient;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,13 +24,48 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MyceliumSideEffectService {
 
+	public static final String QUEUE_PREFIX = "mycelium.affected.queue";
+
 	private final GraphService graphService;
 
-	private final MyceliumIndexingService indexingService;
+	private final MyceliumIndexingService myceliumIndexingService;
 
-	public MyceliumSideEffectService(GraphService graphService, MyceliumIndexingService indexingService) {
+	private final RedissonClient redissonClient;
+
+	public MyceliumSideEffectService(GraphService graphService, MyceliumIndexingService indexingService, RedissonClient redissonClient) {
 		this.graphService = graphService;
-		this.indexingService = indexingService;
+		this.myceliumIndexingService = indexingService;
+		this.redissonClient = redissonClient;
+	}
+
+	public String getQueueID(String requestId) {
+		return String.format("%s.%s", QUEUE_PREFIX, requestId);
+	}
+
+	public RQueue<SideEffect> getQueue(String queueID) {
+		return redissonClient.getQueue(queueID);
+	}
+
+	public void addToQueue(String queueID, SideEffect sideEffect) {
+		getQueue(queueID).add(sideEffect);
+	}
+
+	@Async
+	public void workQueue(String queueID) {
+		RQueue<SideEffect> queue = getQueue(queueID);
+		while (!queue.isEmpty()) {
+			SideEffect sideEffect = queue.poll();
+			Executor executor = ExecutorFactory.get(sideEffect, graphService, myceliumIndexingService);
+
+			if (executor == null) {
+				log.error("No executor found for sideEffect[class={}]", sideEffect.getClass());
+				continue;
+			}
+			log.debug("Found Executor for sideEffect[class={}]: executor[class={}]", sideEffect.getClass(), executor.getClass());
+
+			executor.handle();
+		}
+		log.info("Finished Handling this queue");
 	}
 
 	/**
@@ -46,7 +86,7 @@ public class MyceliumSideEffectService {
 
 		if (detectDuplicateInheritanceSideEffect(before, after)) {
 			sideEffects.add(
-					new DuplicateInheritanceSideEffect(after.getRegistryObjectId(), graphService, indexingService));
+					new DuplicateInheritanceSideEffect(after.getRegistryObjectId()));
 		}
 
 		if (before != null && detectTitleChange(before, after)) {
@@ -101,14 +141,6 @@ public class MyceliumSideEffectService {
 	 */
 	public boolean detectTitleChange(RecordState before, RecordState after) {
 		return !before.getTitle().equals(after.getTitle());
-	}
-
-	/**
-	 * Handle all provided {@link SideEffect}
-	 * @param sideEffects a {@link List} of {@link SideEffect}
-	 */
-	public void handleSideEffects(List<SideEffect> sideEffects) {
-		sideEffects.forEach(SideEffect::handle);
 	}
 
 }

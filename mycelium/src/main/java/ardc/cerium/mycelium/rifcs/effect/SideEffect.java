@@ -1,14 +1,7 @@
 package ardc.cerium.mycelium.rifcs.effect;
 
-import ardc.cerium.core.common.entity.Request;
-import lombok.Getter;
-import lombok.Setter;
+import java.io.Serializable;
 
-@Getter
-@Setter
-public abstract class SideEffect {
+public abstract class SideEffect implements Serializable {
 
-    private Request request;
-
-    abstract public void handle();
 }

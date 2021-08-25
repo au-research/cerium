@@ -26,7 +26,8 @@ public class ImportAPIController {
 
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
-	public ImportAPIController(MyceliumService myceliumService, MyceliumRequestService myceliumRequestService, MyceliumSideEffectService myceliumSideEffectService) {
+	public ImportAPIController(MyceliumService myceliumService, MyceliumRequestService myceliumRequestService,
+			MyceliumSideEffectService myceliumSideEffectService) {
 		this.myceliumService = myceliumService;
 		this.myceliumRequestService = myceliumRequestService;
 		this.myceliumSideEffectService = myceliumSideEffectService;
@@ -34,7 +35,6 @@ public class ImportAPIController {
 
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
-	 *
 	 * @param json the JSON payload
 	 * @param sideEffectRequestID the Affected Relationship Request ID
 	 * @return the {@link ResponseEntity} of a {@link Request}

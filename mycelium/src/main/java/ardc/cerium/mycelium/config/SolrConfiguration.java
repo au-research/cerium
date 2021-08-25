@@ -1,6 +1,5 @@
 package ardc.cerium.mycelium.config;
 
-import net.bytebuddy.asm.Advice;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +30,7 @@ public class SolrConfiguration {
 	}
 
 	@Bean
-	public SolrTemplate solrTemplate(SolrClient client) throws Exception {
+	public SolrTemplate solrTemplate(SolrClient client) {
 		return new SolrTemplate(client);
 	}
 

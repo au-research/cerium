@@ -5,6 +5,7 @@ import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -28,6 +29,9 @@ class MyceliumSideEffectServiceTest {
 
 	@MockBean
 	MyceliumIndexingService myceliumIndexingService;
+
+	@MockBean
+	RedissonClient redissonClient;
 
 	@Test
 	void detectChanges_TitleChangeSideEffect_NotChanged() {
@@ -57,22 +61,6 @@ class MyceliumSideEffectServiceTest {
 		List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 		assertThat(sideEffects.stream().filter(sideEffect -> sideEffect instanceof TitleChangeSideEffect).count())
 				.isEqualTo(1);
-	}
-
-	@Test
-	void handleSideEffect_shouldCallHandleMethod() {
-		// given a list of sideEffect with only 1 side effect (we spy on it)
-		TitleChangeSideEffect sideEffect = spy(new TitleChangeSideEffect("1", "Old Title", "New Title"));
-		List<SideEffect> sideEffects = new ArrayList<>(List.of(sideEffect));
-
-		// make sure sideEffect do nothing when handled (we don't test that here)
-		doNothing().when(sideEffect).handle();
-
-		// when handleSideEffects
-		myceliumSideEffectService.handleSideEffects(sideEffects);
-
-		// the handle method on the sideEffect is called once
-		verify(sideEffect, times(1)).handle();
 	}
 
 }

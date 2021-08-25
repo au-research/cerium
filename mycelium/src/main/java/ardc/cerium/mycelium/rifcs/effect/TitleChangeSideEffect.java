@@ -1,22 +1,18 @@
 package ardc.cerium.mycelium.rifcs.effect;
 
-public class TitleChangeSideEffect extends SideEffect{
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-    private final String registryObjectId;
+import java.io.Serializable;
 
-    private final String oldTitle;
+@AllArgsConstructor
+@Getter
+public class TitleChangeSideEffect extends SideEffect implements Serializable {
 
-    private final String newTitle;
+	private final String registryObjectId;
 
-    public TitleChangeSideEffect(String registryObjectId, String beforeTitle, String afterTitle) {
-        this.registryObjectId = registryObjectId;
-        this.oldTitle = beforeTitle;
-        this.newTitle = afterTitle;
-    }
+	private final String oldTitle;
 
-    @Override
-    public void handle() {
-        // updates oldTitle to newTitle for documents in SOLR relationships collection
-        // updates related_$class_title and search fields in SOLR portal collection
-    }
+	private final String newTitle;
+
 }

@@ -5,42 +5,27 @@ import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.core.common.repository.specs.SearchOperation;
 import ardc.cerium.core.common.service.RequestService;
-import ardc.cerium.core.common.util.Helpers;
-import ardc.cerium.mycelium.model.Edge;
-import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Relationship;
-import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
-import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import ardc.cerium.mycelium.service.RelationLookupService;
 import ardc.cerium.mycelium.task.ImportTask;
-import org.hibernate.annotations.NaturalId;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
 import org.neo4j.harness.Neo4j;
 import org.neo4j.harness.Neo4jBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +43,9 @@ public class Scenario_1_IT{
 
 	@MockBean
 	RequestService requestService;
+
+	@MockBean
+	MyceliumSideEffectService myceliumSideEffectService;
 
 	private static Neo4j embeddedDatabaseServer;
 
@@ -88,13 +76,13 @@ public class Scenario_1_IT{
 		Request request = new Request();
 		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
 		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/party_1.json");
-		ImportTask importTask = new ImportTask(request, myceliumService);
+		ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
 		importTask.run();
 
 		request = new Request();
 		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
 		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/collection_1.json");
-		importTask = new ImportTask(request, myceliumService);
+		importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
 		importTask.run();
 
 		// AUTCollection1R hasCollector http://nla.gov.au/nla.party-AUTR1

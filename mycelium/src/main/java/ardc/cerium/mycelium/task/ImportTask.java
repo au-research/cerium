@@ -2,17 +2,24 @@ package ardc.cerium.mycelium.task;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.mycelium.model.RegistryObject;
+import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
+import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Slf4j
 public class ImportTask implements Runnable {
 
 	private final MyceliumService myceliumService;
+
+	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private String json;
 
@@ -23,10 +30,12 @@ public class ImportTask implements Runnable {
 	 * Request's PAYLOAD_PATH
 	 * @param request the {@link Request} to run on
 	 * @param myceliumService the {@link MyceliumService}
+	 * @param myceliumSideEffectService the {@link MyceliumSideEffectService}
 	 */
-	public ImportTask(Request request, MyceliumService myceliumService) {
+	public ImportTask(Request request, MyceliumService myceliumService, MyceliumSideEffectService myceliumSideEffectService) {
 		this.request = request;
 		this.myceliumService = myceliumService;
+		this.myceliumSideEffectService = myceliumSideEffectService;
 		parseRequest(request);
 	}
 
@@ -42,9 +51,18 @@ public class ImportTask implements Runnable {
 
 	@Override
 	public void run() {
+
 		try {
-			myceliumService.ingest(json, request);
-			// todo update Request status and/or logging
+			RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
+
+			RecordState before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+			myceliumService.ingestRegistryObject(registryObject);
+			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+
+			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
+			// todo queue the sideEffect against the SIDE_EFFECT_REQUEST_ID queue
+
+			request.setStatus(Request.Status.COMPLETED);
 		}
 		catch (Exception e) {
 			log.error("Error Ingesting RequestID:{} Reason: {}", request.getId(), e.getMessage());

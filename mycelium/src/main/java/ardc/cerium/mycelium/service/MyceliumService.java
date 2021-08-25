@@ -12,6 +12,7 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -125,6 +126,7 @@ public class MyceliumService {
 
 
 	public void validateRequest(Request request) {
+		// todo migrate this method and tests to MyceliumRequestService
 
 		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
 		if (payloadPath == null) {
@@ -154,6 +156,24 @@ public class MyceliumService {
 		}
 
 		// todo test payload is rifcs
+	}
+
+	public RegistryObject parsePayloadToRegistryObject(String payload) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.readValue(payload, RegistryObject.class);
+	}
+
+	public void ingestRegistryObject(RegistryObject registryObject) {
+		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
+		Graph graph = graphProvider.get(registryObject);
+
+		// delete the original vertex with detach before insertion
+		Vertex original = getVertexFromRegistryObjectId(registryObject.getRegistryObjectId().toString());
+		if(original != null) {
+			graphService.deleteVertex(original);
+		}
+
+		graphService.ingestGraph(graph);
 	}
 
 	public void ingest(String payload, Request request) {

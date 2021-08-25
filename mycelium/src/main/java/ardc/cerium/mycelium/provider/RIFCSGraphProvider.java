@@ -69,9 +69,8 @@ public class RIFCSGraphProvider {
 	 * relationships if the {@link AdditionalRelation} includes that
 	 * @param registryObject deserialised {@link RegistryObject} from the JSONPayload
 	 * @return the {@link Graph} obtained from the {@link RegistryObject}
-	 * @throws JsonProcessingException when processing of the JSONPayload fails
 	 */
-	public Graph get(RegistryObject registryObject) throws JsonProcessingException {
+	public Graph get(RegistryObject registryObject)  {
 		Graph graph = new Graph();
 
 		DataSource ds = registryObject.getDataSource();

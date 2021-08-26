@@ -61,8 +61,15 @@ public class ImportTask implements Runnable {
 
 			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
 
+			// obtain the list of SideEffects
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
-			// todo queue the sideEffect against the SIDE_EFFECT_REQUEST_ID queue
+
+			// add the SideEffects to the queue
+			if (sideEffects.size() > 0) {
+				String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
+				String queueID = myceliumSideEffectService.getQueueID(requestId);
+				sideEffects.forEach(sideEffect -> myceliumSideEffectService.addToQueue(queueID, sideEffect));
+			}
 
 			request.setStatus(Request.Status.COMPLETED);
 		}

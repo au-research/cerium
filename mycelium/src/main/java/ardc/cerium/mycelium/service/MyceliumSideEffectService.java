@@ -26,6 +26,8 @@ public class MyceliumSideEffectService {
 
 	public static final String QUEUE_PREFIX = "mycelium.affected.queue";
 
+	public static final String REQUEST_ATTRIBUTE_REQUEST_ID = "SIDE_EFFECT_REQUEST_ID";
+
 	private final GraphService graphService;
 
 	private final MyceliumIndexingService myceliumIndexingService;

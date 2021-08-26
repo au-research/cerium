@@ -46,7 +46,7 @@ public class ImportAPIController {
 		RequestDTO dto = new RequestDTO();
 		dto.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
 		Request request = myceliumRequestService.createRequest(dto);
-		request.setAttribute("SIDE_EFFECT_REQUEST_ID", sideEffectRequestID);
+		request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
 
 		// store the json payload
 		myceliumRequestService.saveToPayloadPath(request, json);

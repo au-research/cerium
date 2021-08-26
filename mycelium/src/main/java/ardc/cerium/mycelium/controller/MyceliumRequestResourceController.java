@@ -3,7 +3,10 @@ package ardc.cerium.mycelium.controller;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.util.Helpers;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
+import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import org.redisson.api.RQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,9 @@ public class MyceliumRequestResourceController {
 
 	@Autowired
 	MyceliumRequestService myceliumRequestService;
+
+	@Autowired
+	MyceliumSideEffectService myceliumSideEffectService;
 
 	@PostMapping(value = "/")
 	public ResponseEntity<RequestDTO> store(@RequestBody RequestDTO requestDTO) throws Exception {
@@ -51,6 +57,20 @@ public class MyceliumRequestResourceController {
 		String logContent = Helpers.readFile(logPath);
 
 		return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(logContent);
+	}
+
+	@GetMapping(value = "/{id}/queue")
+	public ResponseEntity<?> showQUeue(@PathVariable String id) {
+		Request request = myceliumRequestService.findById(id);
+		if (! request.getType().equals(MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE)) {
+			throw new RuntimeException("Queue is only applicable for "
+					+ MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE + " type Request");
+		}
+
+		String queueID = myceliumSideEffectService.getQueueID(request.getId().toString());
+		RQueue<SideEffect> sideEffectRQueue = myceliumSideEffectService.getQueue(queueID);
+
+		return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(sideEffectRQueue);
 	}
 
 }

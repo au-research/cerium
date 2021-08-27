@@ -58,6 +58,7 @@ public class MyceliumIndexingService {
 	 * @param from the {@link Vertex} to index
 	 */
 	public void indexVertex(Vertex from) {
+		log.debug("Indexing Vertex[from={}]", from.getIdentifier());
 
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
@@ -80,11 +81,13 @@ public class MyceliumIndexingService {
 	/**
 	 * Index all relationships that are considered Direct
 	 *
-	 * This includes: RelatedObject, RelatedInfo, PrimaryKey. Reversed, Source Duplicates
-	 * and Target Duplicates included
+	 * todo improve pagination, currently only index 1000 direct edges This includes:
+	 * RelatedObject, RelatedInfo, PrimaryKey. Reversed, Source Duplicates and Target
+	 * Duplicates included
 	 * @param from the {@link Vertex} to index from
 	 */
 	public void indexDirectRelationships(Vertex from) {
+		log.debug("Indexing Direct Relationships Vertex[id={}]", from.getIdentifier());
 
 		// todo convert the GraphService#getDuplicateRelationships function to use direct
 		// repository interface & improve pagination
@@ -92,23 +95,25 @@ public class MyceliumIndexingService {
 		Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
 				from.getIdentifierType(), PageRequest.of(0, 1000));
 
+		log.debug("Found {} direct relationships for Vertex[id={}]", relationships.size(), from.getIdentifier());
 		relationships.forEach(relationship -> {
 			Vertex to = relationship.getTo();
-			log.debug("Related Entity {}", to);
+			log.trace("RelatedEntity[id={}, type={}]", to.getIdentifier(), to.getIdentifierType());
 
 			// target duplicates
 			Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(to.getIdentifier(), to.getIdentifierType());
 			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+			log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());
 
 			if (toRelatedObjects.size() > 0) {
-				log.debug("Resolved {} relatedObjects", toRelatedObjects.size());
+				log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
 				toRelatedObjects
 						.forEach(toRelatedObject -> indexRelation(from, toRelatedObject, relationship.getRelations()));
 			}
 			else {
 				// does not resolve to registryObject it's a relatedInfo relation
-				log.debug("Does not resolve to any relatedObject. Index as RelatedInfo");
+				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
 				indexRelation(from, to, relationship.getRelations());
 			}
 		});
@@ -125,6 +130,8 @@ public class MyceliumIndexingService {
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
 		log.debug("Indexing relation from {} to {}", from.getIdentifier(), to.getIdentifier());
+
+		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
 		doc.setFromId(from.getIdentifier());
 		doc.setFromClass(from.getObjectClass());
@@ -144,6 +151,7 @@ public class MyceliumIndexingService {
 			edges.add(edge);
 		});
 		doc.setRelations(edges);
+
 		indexRelationshipDocument(doc);
 	}
 
@@ -169,22 +177,24 @@ public class MyceliumIndexingService {
 
 		if (existing.isPresent()) {
 			// attempts to update the document with new additional relations
-			log.debug("Found existing");
-			RelationshipDocument existingDocument = existing.get();
 
+			RelationshipDocument existingDocument = existing.get();
+			log.trace("Found existing RelationshipDocument[id={}]", existingDocument.getId());
+
+			// add missing Relation
 			doc.getRelations().forEach(relation -> {
 				if (!existingDocument.getRelations().contains(relation)) {
-					log.debug("Doesn't contain relation {} adding...", relation.getRelationType());
+					log.trace("Doesn't contain relation {} adding...", relation.getRelationType());
 					existingDocument.getRelations().add(relation);
 				}
 			});
 
-			log.debug("Saving existing document");
+			log.trace("Saving existing document");
 			relationshipDocumentRepository.save(existingDocument);
 		}
 		else {
 			// save the document because it does not exist
-			log.debug("Does not found existing, saving new doc");
+			log.trace("Does not found existing, saving new doc");
 			relationshipDocumentRepository.save(doc);
 		}
 	}
@@ -198,6 +208,7 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForActivity(Vertex from) {
+		log.debug("Indexing implicit links for activity Vertex[id={}]", from.getIdentifier());
 
 		// the activity hasOutput all child collections
 		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
@@ -232,6 +243,7 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForParty(Vertex from) {
+		log.debug("Indexing implicit links for party Vertex[id={}]", from.getIdentifier());
 
 		// the party isFunderOf all child activities
 		try (Stream<Vertex> stream = vertexRepository.streamSpanningTreeFromId(from.getIdentifier(),
@@ -255,6 +267,7 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForCollection(Vertex from) {
+		log.debug("Indexing implicit links for collection Vertex[id={}]", from.getIdentifier());
 
 		// obtain all the duplicate registryObjectId so that they can be post-filtered out
 		// since a record shouldn't implicitly relate to itself
@@ -303,12 +316,17 @@ public class MyceliumIndexingService {
 		edge.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
 		edge.setType(relation);
 		indexRelation(from, to, new ArrayList<>(List.of(edge)));
+		log.debug("Indexed GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
+				to.getIdentifier(), edge.getType());
 
 		// index the reversed edge
 		EdgeDTO reversed = new EdgeDTO();
 		reversed.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
 		reversed.setType(RelationLookupService.getReverse(relation, RELATION_RELATED_TO));
 		reversed.setReverse(true);
+		log.debug("Indexed (reversed) GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
+				to.getIdentifier(), reversed.getType());
+
 		indexRelation(to, from, new ArrayList<>(List.of(reversed)));
 	}
 
@@ -335,10 +353,10 @@ public class MyceliumIndexingService {
 			RelationshipDocument relatedFromThisId = fromIdCursor.next();
 			relatedFromThisId.setFromTitle(updatedTitle);
 			relationshipDocumentRepository.save(relatedFromThisId);
-			log.debug("RelationshipDocument[id={}] updated [from_title={}]", relatedFromThisId.getId(), updatedTitle);
+			log.trace("RelationshipDocument[id={}] updated [from_title={}]", relatedFromThisId.getId(), updatedTitle);
 			fromIdCounter++;
 		}
-		log.debug("Updated {} RelationshipDocument[from_id={}]", fromIdCounter, registryObjectId);
+		log.debug("(from_title) Updated {} RelationshipDocument[from_id={}]", fromIdCounter, registryObjectId);
 
 		// update to_title to the updatedTitle of all RelationshipDocument that has the
 		// to_identifier=registryObjectId
@@ -354,10 +372,10 @@ public class MyceliumIndexingService {
 			RelationshipDocument relatedFromThisId = toIdCursor.next();
 			relatedFromThisId.setToTitle(updatedTitle);
 			relationshipDocumentRepository.save(relatedFromThisId);
-			log.debug("RelationshipDocument[id={}] updated [to_title={}]", relatedFromThisId.getId(), updatedTitle);
+			log.trace("RelationshipDocument[id={}] updated [to_title={}]", relatedFromThisId.getId(), updatedTitle);
 			toIdCounter++;
 		}
-		log.debug("Updated {} RelationshipDocument[to_identifier={}]", toIdCounter, registryObjectId);
+		log.debug("(to_title) Updated {} RelationshipDocument[to_identifier={}]", toIdCounter, registryObjectId);
 
 	}
 

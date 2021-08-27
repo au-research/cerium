@@ -41,6 +41,7 @@ public class ImportAPIController {
 	 */
 	@PostMapping("/import-record")
 	public ResponseEntity<Request> importHandler(@RequestBody String json, @RequestParam String sideEffectRequestID) {
+		log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
 
 		// create new Request, store the json payload
 		RequestDTO dto = new RequestDTO();

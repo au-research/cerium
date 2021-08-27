@@ -26,10 +26,12 @@ public class IndexAPIController {
 
 	@PostMapping("/index-record")
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
-
+		log.debug("Received Index Request for RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
-		log.debug("Indexing {}", from);
+
+		log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
 		myceliumIndexingService.indexVertex(from);
+		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 
 		return ResponseEntity.ok("Done!");
 	}

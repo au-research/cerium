@@ -18,7 +18,7 @@ import java.net.URI;
 
 @RestController
 @RequestMapping(value = "/api/resources/mycelium-requests",
-		produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+		produces = { MediaType.APPLICATION_JSON_VALUE })
 public class MyceliumRequestResourceController {
 
 	@Autowired
@@ -60,7 +60,7 @@ public class MyceliumRequestResourceController {
 	}
 
 	@GetMapping(value = "/{id}/queue")
-	public ResponseEntity<?> showQUeue(@PathVariable String id) {
+	public ResponseEntity<?> showQueue(@PathVariable String id) {
 		Request request = myceliumRequestService.findById(id);
 		if (! request.getType().equals(MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE)) {
 			throw new RuntimeException("Queue is only applicable for "
@@ -70,7 +70,7 @@ public class MyceliumRequestResourceController {
 		String queueID = myceliumSideEffectService.getQueueID(request.getId().toString());
 		RQueue<SideEffect> sideEffectRQueue = myceliumSideEffectService.getQueue(queueID);
 
-		return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(sideEffectRQueue);
+		return ResponseEntity.ok().body(sideEffectRQueue);
 	}
 
 }

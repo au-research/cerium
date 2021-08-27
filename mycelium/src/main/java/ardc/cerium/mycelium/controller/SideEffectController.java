@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
 @Slf4j
@@ -26,19 +24,22 @@ public class SideEffectController {
 
 	@PostMapping("/start-queue-processing")
 	public ResponseEntity<?> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
-			description = "Request ID of the Side Effect Request") UUID requestId) {
+			description = "Request ID of the Side Effect Request") String requestId) {
 
-		Request request = myceliumRequestService.findById(requestId.toString());
+		log.debug("Received request to process SideEffectQueue Request[id={}]", requestId);
 
-		// todo confirm and validate request status, only start processing if the request
-		// is in QUEUED state
+		Request request = myceliumRequestService.findById(requestId);
 
-		String queueID = myceliumSideEffectService.getQueueID(requestId.toString());
+		// todo confirm and validate request status
+
+		String queueID = myceliumSideEffectService.getQueueID(requestId);
+		log.debug("QueueID obtained: {}", queueID);
 
 		request.setStatus(Request.Status.RUNNING);
-		myceliumSideEffectService.workQueue(queueID);
+		myceliumRequestService.save(request);
 
-		request = myceliumRequestService.save(request);
+		// workQueue is an Async method that would set Request to COMPLETED after it has finished
+		myceliumSideEffectService.workQueue(queueID, request);
 
 		return ResponseEntity.ok().body(request);
 	}

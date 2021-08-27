@@ -308,13 +308,13 @@ public class MyceliumService {
 
 		// if the registryObjectId doesn't exist in the graph
 		RecordState state = new RecordState();
+		state.setRegistryObjectId(registryObjectId);
+
 		Vertex origin = graphService.getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (origin == null) {
 			return state;
 		}
-
-
 
 		state.setOrigin(origin);
 

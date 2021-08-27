@@ -31,6 +31,9 @@ class MyceliumSideEffectServiceTest {
 	MyceliumIndexingService myceliumIndexingService;
 
 	@MockBean
+	MyceliumRequestService myceliumRequestService;
+
+	@MockBean
 	RedissonClient redissonClient;
 
 	@Test

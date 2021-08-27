@@ -45,7 +45,7 @@ public class ImportTask implements Runnable {
 			this.json = Files.readString(Paths.get(payloadPath));
 		}
 		catch (IOException e) {
-			log.error("Failed loading payload from {} {} , ", payloadPath, e.getMessage());
+			log.error("Failed parsing payload[path={}] Reason: {}", payloadPath, e.getMessage());
 		}
 	}
 
@@ -56,25 +56,31 @@ public class ImportTask implements Runnable {
 			RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
 
 			RecordState before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
 
 			myceliumService.ingestRegistryObject(registryObject);
+			log.debug("Ingested registryObject[id={}] payload", registryObject.getRegistryObjectId());
 
 			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", after);
 
 			// obtain the list of SideEffects
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
-
+			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 			// add the SideEffects to the queue
 			if (sideEffects.size() > 0) {
 				String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
 				String queueID = myceliumSideEffectService.getQueueID(requestId);
-				sideEffects.forEach(sideEffect -> myceliumSideEffectService.addToQueue(queueID, sideEffect));
+				sideEffects.forEach(sideEffect -> {
+					myceliumSideEffectService.addToQueue(queueID, sideEffect);
+					log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
+				});
 			}
 
 			request.setStatus(Request.Status.COMPLETED);
 		}
 		catch (Exception e) {
-			log.error("Error Ingesting RequestID:{} Reason: {}", request.getId(), e.getMessage());
+			log.error("Error Ingesting RequestID:{} Reason:{}", request.getId(), e.getMessage());
 			e.printStackTrace();
 		}
 	}

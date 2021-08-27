@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
@@ -32,11 +33,14 @@ public class MyceliumSideEffectService {
 
 	private final MyceliumIndexingService myceliumIndexingService;
 
+	private final MyceliumRequestService myceliumRequestService;
+
 	private final RedissonClient redissonClient;
 
-	public MyceliumSideEffectService(GraphService graphService, MyceliumIndexingService indexingService, RedissonClient redissonClient) {
+	public MyceliumSideEffectService(GraphService graphService, MyceliumIndexingService indexingService, MyceliumRequestService myceliumRequestService, RedissonClient redissonClient) {
 		this.graphService = graphService;
 		this.myceliumIndexingService = indexingService;
+		this.myceliumRequestService = myceliumRequestService;
 		this.redissonClient = redissonClient;
 	}
 
@@ -53,7 +57,8 @@ public class MyceliumSideEffectService {
 	}
 
 	@Async
-	public void workQueue(String queueID) {
+	public void workQueue(String queueID, Request request) {
+		log.debug("Start working RQueue[id={}]", queueID);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		while (!queue.isEmpty()) {
 			SideEffect sideEffect = queue.poll();
@@ -63,11 +68,14 @@ public class MyceliumSideEffectService {
 				log.error("No executor found for sideEffect[class={}]", sideEffect.getClass());
 				continue;
 			}
-			log.debug("Found Executor for sideEffect[class={}]: executor[class={}]", sideEffect.getClass(), executor.getClass());
 
+			log.debug("Executing sideEffect[class={}] with executor[class={}]", sideEffect.getClass(), executor.getClass());
 			executor.handle();
 		}
-		log.info("Finished Handling this queue");
+		log.info("Finish working RQueue[id={}]", queueID);
+
+		request.setStatus(Request.Status.COMPLETED);
+		myceliumRequestService.save(request);
 	}
 
 	/**

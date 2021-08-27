@@ -52,12 +52,13 @@ public class RDAHarvestingService {
             for (RegistryObject registryObject : registryObjects) {
                 log.info("Harvesting Record: {}", registryObject.getRegistryObjectId());
                 String rifcs = harvester.harvestRIFCS(registryObject.getRegistryObjectId());
+                registryObject.setRifcs(rifcs);
 
                 // todo use Supplier<T> pattern to yield registryObject and rifcs?
                 //saveFile(registryObject, rifcs);
 
                 try {
-                    myceliumService.ingest(rifcs, null);
+                    myceliumService.ingestRegistryObject(registryObject);
                 } catch (Exception e) {
                     log.error("Failed to ingest {} due to {}", registryObject.getRegistryObjectId(), e.getMessage());
                 }

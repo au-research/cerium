@@ -77,6 +77,7 @@ public class ImportTask implements Runnable {
 				});
 			}
 
+			request.setMessage("ImportTask successfully completed");
 			request.setStatus(Request.Status.COMPLETED);
 		}
 		catch (Exception e) {

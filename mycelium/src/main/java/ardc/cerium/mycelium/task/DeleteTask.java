@@ -52,6 +52,7 @@ public class DeleteTask implements Runnable {
 				});
 			}
 
+			request.setMessage("DeleteTask Finished Successfully");
 			request.setStatus(Request.Status.COMPLETED);
 		}
 		catch (Exception e) {

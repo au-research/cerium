@@ -62,65 +62,6 @@ public class MyceliumService {
 		graphService.ingestGraph(graph);
 	}
 
-	public void ingest(String payload, Request request) {
-
-		StopWatch stopWatch = new StopWatch("Ingest payload");
-
-		// only supports rifcs for now, obtain the graph data from the payload
-		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
-
-		// creates the graph out of the xml
-		stopWatch.start("CreatingGraph");
-		Graph graph = null;
-		try {
-
-
-			ObjectMapper mapper = new ObjectMapper();
-			RegistryObject ro = mapper.readValue(payload, RegistryObject.class);
-			String recordId = ro.getRegistryObjectId().toString();
-
-			RecordState recordStateBefore = getRecordState(recordId);
-
-
-			stopWatch.stop();
-			request.setAttribute("RECORD_STATE_BEFORE", recordStateBefore.toString());
-			Vertex origin = recordStateBefore.getOrigin();
-			if(origin != null) {
-				// simply deleting the original Vertex Neo4J deletes all relationships to and from the node
-				// no need to remove non returning relationships and attributes
-				graphService.deleteVertex(origin);
-			}
-			// create the new Graph
-			
-			graph = graphProvider.get(ro);
-			// insert into neo4j the generated Graph
-			stopWatch.start("IngestingGraph");
-			graphService.ingestGraph(graph);
-			stopWatch.stop();
-
-			log.debug(stopWatch.prettyPrint());
-
-			List<Vertex> registryObjectVertices = graph.getVertices().stream()
-					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
-			if(origin != null) {
-				request.setSummary(String.format("Update: %s Vertices", registryObjectVertices.size()));
-			}else{
-				request.setSummary(String.format("Created: %s Vertices", registryObjectVertices.size()));
-			}
-
-			RecordState recordStateAfter = getRecordState(recordId);
-			request.setAttribute("RECORD_STATE_AFTER", recordStateAfter.toString());
-		}
-		catch (Exception e) {
-			log.error("Failed creating graph for payload. Reason: {}", e.toString());
-		}
-
-		// implicit duplicate records generation for all vertices that is a RegistryObject
-		// graphService.generateDuplicateRelationships(registryObjectVertices);
-
-		// todo implicit GrantsNetwork
-	}
-
 	public void deleteRecord(String recordId) throws Exception {
 
 		Vertex vertex = graphService.getVertexByIdentifier(recordId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
@@ -129,7 +70,6 @@ public class MyceliumService {
 		}
 		graphService.deleteVertex(vertex);
 	}
-
 
 	/**
 	 * Search for relationships.

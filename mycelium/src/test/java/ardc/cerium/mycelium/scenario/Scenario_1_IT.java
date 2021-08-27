@@ -8,10 +8,7 @@ import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
-import ardc.cerium.mycelium.service.GraphService;
-import ardc.cerium.mycelium.service.MyceliumService;
-import ardc.cerium.mycelium.service.MyceliumSideEffectService;
-import ardc.cerium.mycelium.service.RelationLookupService;
+import ardc.cerium.mycelium.service.*;
 import ardc.cerium.mycelium.task.ImportTask;
 import org.junit.jupiter.api.*;
 import org.modelmapper.ModelMapper;
@@ -74,13 +71,13 @@ public class Scenario_1_IT{
 
 		// import
 		Request request = new Request();
-		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
+		request.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
 		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/party_1.json");
 		ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
 		importTask.run();
 
 		request = new Request();
-		request.setType(MyceliumService.IMPORT_REQUEST_TYPE);
+		request.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
 		request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/scenarios/1_RelationshipScenario/collection_1.json");
 		importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
 		importTask.run();

@@ -5,6 +5,8 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.core.exception.ContentNotSupportedException;
+import ardc.cerium.mycelium.model.RegistryObject;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
@@ -59,8 +61,16 @@ class ImportAPIControllerTest {
 		mockedRequest.setStatus(Request.Status.COMPLETED);
 		mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
 
+		RecordState mockedState = new RecordState();
+		mockedState.setRegistryObjectId("1");
+
+		RegistryObject registryObject = new RegistryObject();
+		registryObject.setRegistryObjectId(1L);
+
 		when(myceliumRequestService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
 		when(myceliumRequestService.save(any(Request.class))).thenReturn(mockedRequest);
+		when(myceliumService.getRecordState(any(String.class))).thenReturn(mockedState);
+		when(myceliumService.parsePayloadToRegistryObject(any(String.class))).thenReturn(registryObject);
 
 		mockMvc.perform(MockMvcRequestBuilders
 						.post(END_POINT)
@@ -73,7 +83,7 @@ class ImportAPIControllerTest {
 //				.andExpect(jsonPath("$.status").value(Request.Status.COMPLETED.toString()));
 
 		// the request must also be validated
-		verify(myceliumService, times(1)).validateRequest(any(Request.class));
+		verify(myceliumRequestService, times(1)).validateImportRequest(any(Request.class));
 	}
 
 	@Test
@@ -83,8 +93,6 @@ class ImportAPIControllerTest {
 		Request mockedRequest = new Request();
 		mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
 		when(myceliumRequestService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
-
-		doThrow(new ContentNotSupportedException("something wrong")).when(myceliumService).validateRequest(any(Request.class));
 
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(END_POINT)
 				.accept(MediaType.APPLICATION_JSON);

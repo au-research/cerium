@@ -1,5 +1,7 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.dto.RequestDTO;
+import ardc.cerium.core.common.dto.mapper.RequestMapper;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.service.RequestService;
@@ -14,21 +16,45 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
-@Import({ MyceliumService.class })
-public class MyceliumRequestValidationTest {
+@Import({ MyceliumRequestService.class })
+public class MyceliumRequestServiceTest {
 
 	@Autowired
-	MyceliumService myceliumService;
+	MyceliumRequestService myceliumRequestService;
 
 	@MockBean
 	RequestService requestService;
 
 	@MockBean
-	GraphService graphService;
+	RequestMapper requestMapper;
+
+	@Test
+	void validateRequestDTO_null() {
+		assertThrows(ContentNotSupportedException.class,
+				() -> myceliumRequestService.validateRequestDTO(new RequestDTO()));
+
+	}
+
+	@Test
+	void validateRequestDTO_notValidType() {
+		assertThrows(ContentNotSupportedException.class, () -> {
+			RequestDTO dto = new RequestDTO();
+			dto.setType("fish");
+			myceliumRequestService.validateRequestDTO(dto);
+		});
+	}
+
+	@Test
+	void validateRequestDTO() {
+		RequestDTO dto = new RequestDTO();
+		dto.setType(MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE);
+		myceliumRequestService.validateRequestDTO(dto);
+	}
 
 	@Test
 	void validatePayloadPathNotSet() {
-		assertThrows(ContentNotSupportedException.class, () -> myceliumService.validateRequest(new Request()));
+		assertThrows(ContentNotSupportedException.class,
+				() -> myceliumRequestService.validateImportRequest(new Request()));
 	}
 
 	@Test
@@ -36,7 +62,7 @@ public class MyceliumRequestValidationTest {
 		assertThrows(ContentNotSupportedException.class, () -> {
 			Request request = new Request();
 			request.setAttribute(Attribute.PAYLOAD_PATH, "blah");
-			myceliumService.validateRequest(request);
+			myceliumRequestService.validateImportRequest(request);
 		});
 	}
 
@@ -45,7 +71,7 @@ public class MyceliumRequestValidationTest {
 		assertThrows(ContentNotSupportedException.class, () -> {
 			Request request = new Request();
 			request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/empty.xml");
-			myceliumService.validateRequest(request);
+			myceliumRequestService.validateImportRequest(request);
 		});
 	}
 
@@ -54,7 +80,7 @@ public class MyceliumRequestValidationTest {
 		assertThrows(ContentNotSupportedException.class, () -> {
 			Request request = new Request();
 			request.setAttribute(Attribute.PAYLOAD_PATH, "src/test/resources/not_well_formed.xml");
-			myceliumService.validateRequest(request);
+			myceliumRequestService.validateImportRequest(request);
 		});
 	}
 

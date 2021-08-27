@@ -54,7 +54,7 @@ public class ImportAPIController {
 		request.setStatus(Request.Status.ACCEPTED);
 		myceliumRequestService.save(request);
 
-		myceliumService.validateRequest(request);
+		myceliumRequestService.validateImportRequest(request);
 
 		// create the import task and run it immediately
 		ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);

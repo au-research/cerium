@@ -121,29 +121,13 @@ public class MyceliumService {
 		// todo implicit GrantsNetwork
 	}
 
-	public void deleteRecord(String recordId, Request request){
-		// recordState should contain information before delete
+	public void deleteRecord(String recordId) throws Exception {
 
-		RecordState recordStateBefore = getRecordState(recordId);
-		// TODO we should either capture the before and after states and act on them right after import and delete
-		// or store them in the Request and let a future task handle them
-		request.setAttribute("RECORD_STATE_BEFORE", recordStateBefore.toString());
-		Vertex origin = recordStateBefore.getOrigin();
-
-		//Collection<Vertex> sameAs = recordStateBefore.getIdentical();
-		// should we delete Identifiers if there are no relationships connected to sameAs or otherwise?
-		// all outbound relationships (after same as were removed) must be removed (but the target vertices should not be tested for removal
-
-		if(origin != null) {
-			graphService.deleteVertex(origin);
-			request.setSummary(String.format("Deleted Record with ID %s", recordId));
-		}else{
-			request.setSummary(String.format("Record with ID %s doesn't exist", recordId));
+		Vertex vertex = graphService.getVertexByIdentifier(recordId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		if (vertex == null) {
+			throw new Exception(String.format("Record with ID %s doesn't exist", recordId));
 		}
-
-		RecordState recordStateAfter = getRecordState(recordId);
-		request.setAttribute("RECORD_STATE_AFTER", recordStateAfter.toString());
-
+		graphService.deleteVertex(vertex);
 	}
 
 

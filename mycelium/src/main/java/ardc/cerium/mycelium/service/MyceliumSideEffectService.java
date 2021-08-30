@@ -150,7 +150,7 @@ public class MyceliumSideEffectService {
 	 * @return boolean
 	 */
 	public boolean detectTitleChange(RecordState before, RecordState after) {
-		return !before.getTitle().equals(after.getTitle());
+		return after != null && !before.getTitle().equals(after.getTitle());
 	}
 
 }

@@ -140,7 +140,7 @@ class MyceliumServiceTest {
 
 	@Test
 	void getRecordState_noRegistryObjectInGraph_null() {
-		assertThat(myceliumService.getRecordState("123").getOrigin()).isNull();
+		assertThat(myceliumService.getRecordState("123")).isNull();
 	}
 
 	@Test

@@ -117,17 +117,15 @@ public class MyceliumService {
 	public RecordState getRecordState(String registryObjectId) {
 
 		// if the registryObjectId doesn't exist in the graph
-		RecordState state = new RecordState();
-		state.setRegistryObjectId(registryObjectId);
-
 		Vertex origin = graphService.getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (origin == null) {
-			return state;
+			return null;
 		}
 
+		RecordState state = new RecordState();
+		state.setRegistryObjectId(registryObjectId);
 		state.setOrigin(origin);
-
 		state.setTitle(origin.getTitle());
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);

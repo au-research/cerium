@@ -3,6 +3,7 @@ package ardc.cerium.mycelium.controller;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
@@ -30,11 +31,14 @@ public class DeleteAPIController {
 
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
+	private final MyceliumIndexingService myceliumIndexingService;
+
 	public DeleteAPIController(MyceliumService myceliumService, MyceliumRequestService myceliumRequestService,
-			MyceliumSideEffectService myceliumSideEffectService) {
+							   MyceliumSideEffectService myceliumSideEffectService, MyceliumIndexingService myceliumIndexingService) {
 		this.myceliumService = myceliumService;
 		this.myceliumRequestService = myceliumRequestService;
 		this.myceliumSideEffectService = myceliumSideEffectService;
+		this.myceliumIndexingService = myceliumIndexingService;
 	}
 
 	/**
@@ -57,7 +61,7 @@ public class DeleteAPIController {
 		request = myceliumRequestService.save(request);
 
 		// run the DeleteTask
-		DeleteTask deleteTask = new DeleteTask(request, myceliumService, myceliumSideEffectService);
+		DeleteTask deleteTask = new DeleteTask(request, myceliumService, myceliumSideEffectService, myceliumIndexingService);
 		deleteTask.run();
 
 		request = myceliumRequestService.save(request);

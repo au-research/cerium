@@ -8,6 +8,9 @@ import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -16,6 +19,7 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -328,6 +332,13 @@ public class MyceliumIndexingService {
 				to.getIdentifier(), reversed.getType());
 
 		indexRelation(to, from, new ArrayList<>(List.of(reversed)));
+	}
+
+	public void deleteRelationship(String registryObjectId) {
+		log.debug("Deleting Relationship Index RegistryObject[id={}]", registryObjectId);
+		String query = String.format("from_id:%s to_identifier:%s", registryObjectId, registryObjectId);
+		Query dataQuery = new SimpleQuery(new SimpleStringCriteria(query));
+		solrTemplate.delete("relationships", dataQuery);
 	}
 
 	/**

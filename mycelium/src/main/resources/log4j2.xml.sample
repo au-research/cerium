@@ -2,8 +2,9 @@
 <Configuration>
 
     <Properties>
-        <Property name="logPath">${env:MYCELIUM_LOG_PATH:-/tmp/mycelium}</Property>
+        <Property name="logPath">${env:MYCELIUM_LOG_PATH:-/var/log/mycelium}</Property>
         <Property name="MYCELIUM_LOG_LEVEL">${env:MYCELIUM_LOG_LEVEL:-info}</Property>
+        <Property name="LOG_LEVEL">${env:LOG_LEVEL:-info}</Property>
     </Properties>
 
     <Appenders>
@@ -37,7 +38,7 @@
 
     <Loggers>
         
-        <Root level="info">
+        <Root level="${LOG_LEVEL}">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFile"/>
         </Root>

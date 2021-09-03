@@ -1,10 +1,11 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.model.Identifier;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runners.Parameterized;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -70,6 +71,20 @@ class IdentifierNormalisationServiceTest {
             identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
             assertThat(identifier.getType()).isEqualTo(testcase.get("expectedType"));
             assertThat(identifier.getValue()).isEqualTo(testcase.get("expectedValue"));
+        }
+    }
+
+    @Test
+    void testNullValues(){
+        Collection tests = Arrays.asList(new String[][] {
+                {null,null},
+        });
+        Identifier identifier = new Identifier();
+        for(Object test:tests){
+            String[] testcase = (String[]) test;
+            identifier.setValue(testcase[0]);
+            identifier.setType(testcase[1]);
+            Assert.assertThrows(ContentNotSupportedException.class, () -> IdentifierNormalisationService.getNormalisedIdentifier(identifier));
         }
     }
 

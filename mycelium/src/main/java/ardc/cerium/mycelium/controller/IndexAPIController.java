@@ -28,7 +28,10 @@ public class IndexAPIController {
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
 		log.debug("Received Index Request for RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
-
+		if(from == null){
+			log.error("Vertex with registryObjectId {} doesn't exist",registryObjectId);
+			return ResponseEntity.badRequest().body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+		}
 		log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
 		myceliumIndexingService.indexVertex(from);
 		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());

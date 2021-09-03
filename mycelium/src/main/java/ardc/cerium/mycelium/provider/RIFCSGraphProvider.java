@@ -1,12 +1,12 @@
 package ardc.cerium.mycelium.provider;
 
+import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -124,13 +124,17 @@ public class RIFCSGraphProvider {
 		List<Identifier> identifiers = rifcs.getIdentifiers();
 		if (identifiers != null && identifiers.size() > 0) {
 			rifcs.getIdentifiers().forEach(identifier -> {
-				IdentifierNormalisationService.getNormalisedIdentifier(identifier);
-				Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
-				identifierNode.addLabel(Vertex.Label.Identifier);
-				graph.addVertex(identifierNode);
-				Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
-				edge.setOrigin(ORIGIN_IDENTIFIER);
-				graph.addEdge(edge);
+				try {
+					IdentifierNormalisationService.getNormalisedIdentifier(identifier);
+					Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
+					identifierNode.addLabel(Vertex.Label.Identifier);
+					graph.addVertex(identifierNode);
+					Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
+					edge.setOrigin(ORIGIN_IDENTIFIER);
+					graph.addEdge(edge);
+				}catch(ContentNotSupportedException e){
+					log.info(e.getMessage());
+				}
 			});
 		}
 
@@ -165,35 +169,39 @@ public class RIFCSGraphProvider {
 				List<Relation> relatedInfoRelations = relatedInfo.getRelation() != null ? relatedInfo.getRelation()
 						: new ArrayList<>();
 				relatedInfoIdentifiers.forEach(relatedInfoIdentifier -> {
-					IdentifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
-					Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(),
-							relatedInfoIdentifier.getType());
-					relatedInfoNode.setTitle(relatedInfo.getTitle());
-					relatedInfoNode.addLabel(Vertex.Label.Identifier);
-					relatedInfoNode.setObjectType(relatedInfo.getType());
-					relatedInfoNode.setObjectClass(relatedInfo.getType());
-					graph.addVertex(relatedInfoNode);
+					try {
+						IdentifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
+						Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(),
+								relatedInfoIdentifier.getType());
+						relatedInfoNode.setTitle(relatedInfo.getTitle());
+						relatedInfoNode.addLabel(Vertex.Label.Identifier);
+						relatedInfoNode.setObjectType(relatedInfo.getType());
+						relatedInfoNode.setObjectClass(relatedInfo.getType());
+						graph.addVertex(relatedInfoNode);
 
-					// if there's no relatedInfo/relations, the default relation is
-					// hasAssociationWith
-					if (relatedInfoRelations.size() == 0) {
-						Edge edge = new Edge(originNode, relatedInfoNode, RELATION_HAS_ASSOCIATION_WITH);
-						edge.setOrigin(ORIGIN_RELATED_INFO);
-						graph.addEdge(edge);
+						// if there's no relatedInfo/relations, the default relation is
+						// hasAssociationWith
+						if (relatedInfoRelations.size() == 0) {
+							Edge edge = new Edge(originNode, relatedInfoNode, RELATION_HAS_ASSOCIATION_WITH);
+							edge.setOrigin(ORIGIN_RELATED_INFO);
+							graph.addEdge(edge);
 
-						// reversed edge for relatedInfo relationships
-						graph.addEdge(getReversedEdge(edge));
+							// reversed edge for relatedInfo relationships
+							graph.addEdge(getReversedEdge(edge));
+						}
+
+						// Otherwise, for each relation element, it's a separate edge
+						relatedInfoRelations.forEach(relatedInfoRelation -> {
+							Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
+							edge.setOrigin(ORIGIN_RELATED_INFO);
+							graph.addEdge(edge);
+
+							// reversed edge for relatedInfo relationships
+							graph.addEdge(getReversedEdge(edge));
+						});
+					}catch(ContentNotSupportedException e){
+						log.info(e.getMessage());
 					}
-
-					// Otherwise, for each relation element, it's a separate edge
-					relatedInfoRelations.forEach(relatedInfoRelation -> {
-						Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
-						edge.setOrigin(ORIGIN_RELATED_INFO);
-						graph.addEdge(edge);
-
-						// reversed edge for relatedInfo relationships
-						graph.addEdge(getReversedEdge(edge));
-					});
 				});
 			});
 		}

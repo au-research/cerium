@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.rifcs;
 
 
+import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.rifcs.model.Identifier;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,11 @@ public class IdentifierNormalisationService {
      * @param identifier (@link Identifier)
      * @return a normalised Identifier (@link Identifier)
      */
-    public static Identifier getNormalisedIdentifier(Identifier identifier){
+    public static Identifier getNormalisedIdentifier(Identifier identifier) throws ContentNotSupportedException {
+
+        if(identifier == null || identifier.getValue() == null || identifier.getValue().isEmpty()){
+            throw new ContentNotSupportedException("Identifier must have a value");
+        }
         String type = getNormalisedIdentifierType(identifier);
         String value = identifier.getValue().trim();
         switch (type)
@@ -107,7 +112,10 @@ public class IdentifierNormalisationService {
      * @param identifier (@link Identifier)
      * @return string the assumed type of the given Identifier
      */
-    private static String getNormalisedIdentifierType(Identifier identifier){
+    private static String getNormalisedIdentifierType(Identifier identifier) throws ContentNotSupportedException{
+        if(identifier.getType() == null || identifier.getType().isEmpty()){
+            throw new ContentNotSupportedException("Identifier must have a value");
+        }
         String type = identifier.getType().trim();
         String value = identifier.getValue().toUpperCase(Locale.ROOT);
         if(type.toLowerCase(Locale.ROOT).equals("nla.party")){

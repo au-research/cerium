@@ -1,4 +1,4 @@
-FROM amazoncorretto:11
+FROM amazoncorretto:11.0.12-al2
 MAINTAINER Minh Duc Nguyen <minh.nguyen@ardc.edu.au>
 
 COPY target/mycelium*.jar mycelium.jar

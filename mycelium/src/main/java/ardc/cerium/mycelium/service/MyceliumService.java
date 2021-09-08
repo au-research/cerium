@@ -1,11 +1,6 @@
 package ardc.cerium.mycelium.service;
 
-import ardc.cerium.core.common.entity.Request;
-import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
-import ardc.cerium.core.common.service.RequestService;
-import ardc.cerium.core.common.util.Helpers;
-import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Relationship;
@@ -15,22 +10,13 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +41,7 @@ public class MyceliumService {
 
 		// delete the original vertex with detach before insertion
 		Vertex original = getVertexFromRegistryObjectId(registryObject.getRegistryObjectId().toString());
-		if(original != null) {
+		if (original != null) {
 			graphService.deleteVertex(original);
 		}
 
@@ -112,7 +98,8 @@ public class MyceliumService {
 	 * Obtain a {@link RecordState} of a RegistryObject given the registryObjectId from
 	 * the Graph database as of this moment
 	 * @param registryObjectId the registryObjectId identifier
-	 * @return the {@link RecordState} or null if the RegistryObject is not present in the database
+	 * @return the {@link RecordState} or null if the RegistryObject is not present in the
+	 * database
 	 */
 	public RecordState getRecordState(String registryObjectId) {
 
@@ -142,7 +129,5 @@ public class MyceliumService {
 
 		return state;
 	}
-
-
 
 }

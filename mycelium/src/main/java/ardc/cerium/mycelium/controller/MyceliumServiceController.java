@@ -24,8 +24,6 @@ public class MyceliumServiceController {
 
 	private final MyceliumService myceliumService;
 
-	private final MyceliumRequestService myceliumRequestService;
-
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private final MyceliumIndexingService myceliumIndexingService;
@@ -43,21 +41,21 @@ public class MyceliumServiceController {
         // create new Request, store the json payload
         RequestDTO dto = new RequestDTO();
         dto.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
-        Request request = myceliumRequestService.createRequest(dto);
+        Request request = myceliumService.createRequest(dto);
         request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
 
         // store the json payload
-        myceliumRequestService.saveToPayloadPath(request, json);
+        myceliumService.saveToPayloadPath(request, json);
         request.setStatus(Request.Status.ACCEPTED);
-        myceliumRequestService.save(request);
+        myceliumService.save(request);
 
-        myceliumRequestService.validateImportRequest(request);
+        myceliumService.validateRequest(request);
 
         // create the import task and run it immediately
         ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
         importTask.run();
 
-        request = myceliumRequestService.save(request);
+        request = myceliumService.save(request);
         return ResponseEntity.ok(request);
     }
 
@@ -89,17 +87,17 @@ public class MyceliumServiceController {
         // create and save the request
         RequestDTO dto = new RequestDTO();
         dto.setType(MyceliumRequestService.DELETE_REQUEST_TYPE);
-        Request request = myceliumRequestService.createRequest(dto);
+        Request request = myceliumService.createRequest(dto);
         request.setStatus(Request.Status.ACCEPTED);
         request.setAttribute(Attribute.RECORD_ID, registryObjectId);
         request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
-        request = myceliumRequestService.save(request);
+        request = myceliumService.save(request);
 
         // run the DeleteTask
         DeleteTask deleteTask = new DeleteTask(request, myceliumService, myceliumSideEffectService, myceliumIndexingService);
         deleteTask.run();
 
-        request = myceliumRequestService.save(request);
+        request = myceliumService.save(request);
         return ResponseEntity.ok(request);
     }
 
@@ -109,7 +107,7 @@ public class MyceliumServiceController {
 
         log.debug("Received request to process SideEffectQueue Request[id={}]", requestId);
 
-        Request request = myceliumRequestService.findById(requestId);
+        Request request = myceliumService.findById(requestId);
 
         // todo confirm and validate request status
 
@@ -117,7 +115,7 @@ public class MyceliumServiceController {
         log.debug("QueueID obtained: {}", queueID);
 
         request.setStatus(Request.Status.RUNNING);
-        myceliumRequestService.save(request);
+        myceliumService.save(request);
 
         // workQueue is an Async method that would set Request to COMPLETED after it has finished
         myceliumSideEffectService.workQueue(queueID, request);

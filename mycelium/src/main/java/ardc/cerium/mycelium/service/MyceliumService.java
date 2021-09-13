@@ -1,5 +1,7 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.core.common.dto.RequestDTO;
+import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.RegistryObject;
@@ -8,7 +10,6 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,12 +27,36 @@ public class MyceliumService {
 
 	private final GraphService graphService;
 
+	private final MyceliumRequestService myceliumRequestService;
+
 	public RegistryObject parsePayloadToRegistryObject(String payload) throws JsonProcessingException {
 		return RIFCSGraphProvider.parsePayloadToRegistryObject(payload);
 	}
 
 	public RecordState getRecordState(String registryObjectId) {
 		return graphService.getRecordState(registryObjectId);
+	}
+
+	public Request createRequest(RequestDTO requestDTO) {
+		return myceliumRequestService.createRequest(requestDTO);
+	}
+
+	public void saveToPayloadPath(Request request, String payload) {
+		myceliumRequestService.saveToPayloadPath(request, payload);
+	}
+
+	public Request save(Request request) {
+		return myceliumRequestService.save(request);
+	}
+
+	public Request findById(String id) {
+		return myceliumRequestService.findById(id);
+	}
+
+	public void validateRequest(Request request) {
+		if (request.getType().equals(MyceliumRequestService.IMPORT_REQUEST_TYPE)) {
+			myceliumRequestService.validateImportRequest(request);
+		}
 	}
 
 	public void ingestRegistryObject(RegistryObject registryObject) {
@@ -45,6 +70,10 @@ public class MyceliumService {
 		}
 
 		graphService.ingestGraph(graph);
+	}
+
+	public Vertex getVertexFromRegistryObjectId(String registryObjectId) {
+		return graphService.getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 	}
 
 	public void deleteRecord(String recordId) throws Exception {
@@ -65,10 +94,6 @@ public class MyceliumService {
 		List<Relationship> result = new ArrayList<>(graphService.search(criteriaList, pageable));
 		int total = graphService.searchCount(criteriaList);
 		return new PageImpl<>(result, pageable, total);
-	}
-
-	public Vertex getVertexFromRegistryObjectId(String registryObjectId) {
-		return graphService.getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 	}
 
 }

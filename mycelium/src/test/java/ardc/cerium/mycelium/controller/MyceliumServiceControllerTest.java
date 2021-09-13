@@ -42,8 +42,6 @@ class MyceliumServiceControllerTest {
 	@MockBean
 	MyceliumSideEffectService myceliumSideEffectService;
 
-	@MockBean
-	MyceliumRequestService myceliumRequestService;
 
 	@MockBean
 	MyceliumIndexingService myceliumIndexingService;
@@ -68,8 +66,8 @@ class MyceliumServiceControllerTest {
 		RegistryObject registryObject = new RegistryObject();
 		registryObject.setRegistryObjectId(1L);
 
-		when(myceliumRequestService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
-		when(myceliumRequestService.save(any(Request.class))).thenReturn(mockedRequest);
+		when(myceliumService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
+		when(myceliumService.save(any(Request.class))).thenReturn(mockedRequest);
 		when(myceliumService.getRecordState(any(String.class))).thenReturn(mockedState);
 		when(myceliumService.parsePayloadToRegistryObject(any(String.class))).thenReturn(registryObject);
 
@@ -82,7 +80,7 @@ class MyceliumServiceControllerTest {
 		// .andExpect(jsonPath("$.status").value(Request.Status.COMPLETED.toString()));
 
 		// the request must also be validated
-		verify(myceliumRequestService, times(1)).validateImportRequest(any(Request.class));
+		verify(myceliumService, times(1)).validateRequest(any(Request.class));
 	}
 
     @Test
@@ -91,7 +89,7 @@ class MyceliumServiceControllerTest {
         String scenario1Path = "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml";
         Request mockedRequest = new Request();
         mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
-        when(myceliumRequestService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
+        when(myceliumService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(IMPORT_ENDPOINT)
                 .accept(MediaType.APPLICATION_JSON);

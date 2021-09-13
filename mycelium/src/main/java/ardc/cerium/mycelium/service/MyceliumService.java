@@ -9,6 +9,8 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.task.DeleteTask;
+import ardc.cerium.mycelium.task.ImportTask;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +73,16 @@ public class MyceliumService {
 		if (request.getType().equals(MyceliumRequestService.IMPORT_REQUEST_TYPE)) {
 			myceliumRequestService.validateImportRequest(request);
 		}
+	}
+
+	public void runImportTask(Request request) {
+		ImportTask importTask = new ImportTask(request, this);
+		importTask.run();
+	}
+
+	public void runDeleteTask(Request request) {
+		DeleteTask deleteTask = new DeleteTask(this, myceliumSideEffectService, request);
+		deleteTask.run();
 	}
 
 	public void ingestRegistryObject(RegistryObject registryObject) {

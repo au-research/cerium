@@ -5,10 +5,8 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.model.RegistryObject;
-import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
-import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +24,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -38,13 +37,6 @@ class MyceliumServiceControllerTest {
 
 	@MockBean
 	MyceliumService myceliumService;
-
-	@MockBean
-	MyceliumSideEffectService myceliumSideEffectService;
-
-
-	@MockBean
-	MyceliumIndexingService myceliumIndexingService;
 
 	@Autowired
 	MockMvc mockMvc;
@@ -70,31 +62,39 @@ class MyceliumServiceControllerTest {
 		when(myceliumService.save(any(Request.class))).thenReturn(mockedRequest);
 		when(myceliumService.getRecordState(any(String.class))).thenReturn(mockedState);
 		when(myceliumService.parsePayloadToRegistryObject(any(String.class))).thenReturn(registryObject);
+		doAnswer(invocationOnMock -> {
+			mockedRequest.setStatus(Request.Status.COMPLETED);
+			return null;
+		}).when(myceliumService).runImportTask(mockedRequest);
 
-		mockMvc.perform(
-				MockMvcRequestBuilders.post(IMPORT_ENDPOINT).param("sideEffectRequestID", UUID.randomUUID().toString())
-						.content(rifcs).accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		// @formatter:off
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+				.post(IMPORT_ENDPOINT)
+				.param("sideEffectRequestID", UUID.randomUUID().toString())
+				.content(rifcs)
+				.accept(MediaType.APPLICATION_JSON);
 
-		// todo fix importTask and verify RequestStatus
-		// .andExpect(jsonPath("$.status").value(Request.Status.COMPLETED.toString()));
+		mockMvc.perform(request)
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value(Request.Status.COMPLETED.toString()));
+		// @formatter:on
 
 		// the request must also be validated
 		verify(myceliumService, times(1)).validateRequest(any(Request.class));
 	}
 
-    @Test
-    @DisplayName("When an exception is thrown in the service, the handler returns a BadRequest well formed response")
-    void importRequestValidated() throws Exception {
-        String scenario1Path = "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml";
-        Request mockedRequest = new Request();
-        mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
-        when(myceliumService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
+	@Test
+	@DisplayName("When an exception is thrown in the service, the handler returns a BadRequest well formed response")
+	void importRequestValidated() throws Exception {
+		String scenario1Path = "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml";
+		Request mockedRequest = new Request();
+		mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
+		when(myceliumService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(IMPORT_ENDPOINT)
-                .accept(MediaType.APPLICATION_JSON);
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(IMPORT_ENDPOINT)
+				.accept(MediaType.APPLICATION_JSON);
 
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
+		mockMvc.perform(request).andExpect(status().isBadRequest());
+	}
 
 }

@@ -49,6 +49,15 @@ public class MyceliumSideEffectService {
 		getQueue(queueID).add(sideEffect);
 	}
 
+	public void queueSideEffects(Request request, List<SideEffect> sideEffects) {
+		String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
+		String queueID = getQueueID(requestId);
+		sideEffects.forEach(sideEffect -> {
+			addToQueue(queueID, sideEffect);
+			log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
+		});
+	}
+
 	@Async
 	public void workQueue(String queueID, Request request) {
 		log.debug("Start working RQueue[id={}]", queueID);

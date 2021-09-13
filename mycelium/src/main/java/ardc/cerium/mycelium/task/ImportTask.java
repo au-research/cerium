@@ -3,7 +3,6 @@ package ardc.cerium.mycelium.task;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.mycelium.model.RegistryObject;
-import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -31,12 +30,11 @@ public class ImportTask implements Runnable {
 	 * Request's PAYLOAD_PATH
 	 * @param request the {@link Request} to run on
 	 * @param myceliumService the {@link MyceliumService}
-	 * @param myceliumSideEffectService the {@link MyceliumSideEffectService}
 	 */
-	public ImportTask(Request request, MyceliumService myceliumService, MyceliumSideEffectService myceliumSideEffectService) {
+	public ImportTask(Request request, MyceliumService myceliumService) {
 		this.request = request;
 		this.myceliumService = myceliumService;
-		this.myceliumSideEffectService = myceliumSideEffectService;
+		this.myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
 		parseRequest(request);
 	}
 
@@ -68,15 +66,9 @@ public class ImportTask implements Runnable {
 			// obtain the list of SideEffects
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
+
 			// add the SideEffects to the queue
-			if (sideEffects.size() > 0) {
-				String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
-				String queueID = myceliumSideEffectService.getQueueID(requestId);
-				sideEffects.forEach(sideEffect -> {
-					myceliumSideEffectService.addToQueue(queueID, sideEffect);
-					log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
-				});
-			}
+			myceliumSideEffectService.queueSideEffects(request, sideEffects);
 
 			request.setMessage("ImportTask successfully completed");
 			request.setStatus(Request.Status.COMPLETED);

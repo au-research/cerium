@@ -7,8 +7,6 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
-import ardc.cerium.mycelium.task.DeleteTask;
-import ardc.cerium.mycelium.task.ImportTask;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class MyceliumServiceController {
 
 	private final MyceliumService myceliumService;
-
-	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
@@ -49,8 +45,7 @@ public class MyceliumServiceController {
 		myceliumService.validateRequest(request);
 
 		// create the import task and run it immediately
-		ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
-		importTask.run();
+		myceliumService.runImportTask(request);
 
 		request = myceliumService.save(request);
 		return ResponseEntity.ok(request);
@@ -92,8 +87,7 @@ public class MyceliumServiceController {
 		request = myceliumService.save(request);
 
 		// run the DeleteTask
-		DeleteTask deleteTask = new DeleteTask(myceliumService, myceliumSideEffectService, request);
-		deleteTask.run();
+		myceliumService.runDeleteTask(request);
 
 		request = myceliumService.save(request);
 		return ResponseEntity.ok(request);
@@ -109,7 +103,7 @@ public class MyceliumServiceController {
 
 		// todo confirm and validate request status
 
-		String queueID = myceliumSideEffectService.getQueueID(requestId);
+		String queueID = myceliumService.getMyceliumSideEffectService().getQueueID(requestId);
 		log.debug("QueueID obtained: {}", queueID);
 
 		request.setStatus(Request.Status.RUNNING);
@@ -117,7 +111,7 @@ public class MyceliumServiceController {
 
 		// workQueue is an Async method that would set Request to COMPLETED after it has
 		// finished
-		myceliumSideEffectService.workQueue(queueID, request);
+		myceliumService.getMyceliumSideEffectService().workQueue(queueID, request);
 
 		return ResponseEntity.ok().body(request);
 	}

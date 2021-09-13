@@ -4,15 +4,19 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DuplicateInheritanceSideEffect;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
+import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class DuplicateInheritanceExecutor extends Executor {
 
 	private final DuplicateInheritanceSideEffect sideEffect;
@@ -21,11 +25,46 @@ public class DuplicateInheritanceExecutor extends Executor {
 
 	private final MyceliumIndexingService indexingService;
 
-	public DuplicateInheritanceExecutor(DuplicateInheritanceSideEffect sideEffect, GraphService graphService,
-			MyceliumIndexingService indexingService) {
+	public DuplicateInheritanceExecutor(DuplicateInheritanceSideEffect sideEffect, MyceliumService myceliumService) {
 		this.sideEffect = sideEffect;
-		this.graphService = graphService;
-		this.indexingService = indexingService;
+		this.setMyceliumService(myceliumService);
+		this.graphService = myceliumService.getGraphService();
+		this.indexingService = myceliumService.getIndexingService();
+	}
+
+	/**
+	 * Detect if {@link DuplicateInheritanceSideEffect} is applicable
+	 *
+	 * A record is considered to have duplicate inheritance is when it is created, and
+	 * brings with it inheritable relationships to its duplicates
+	 * @param before the before {@link RecordState}
+	 * @param after the after {@link RecordState}
+	 * @param myceliumService the {@link MyceliumService} for additional business logic
+	 * @return boolean
+	 */
+	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
+
+		// only applies for record creation
+		// todo investigate if this is necessary/applicable?
+		if (before != null) {
+			return false;
+		}
+
+		// if the afterStates have duplicate registryObject
+		Vertex afterVertex = myceliumService.getVertexFromRegistryObjectId(after.getRegistryObjectId());
+		Collection<Vertex> myDuplicates = myceliumService.getGraphService().getSameAsRegistryObject(afterVertex)
+				.stream().filter(v -> !v.getIdentifier().equals(afterVertex.getIdentifier()))
+				.collect(Collectors.toList());
+		if (myDuplicates.size() == 0) {
+			// only applicable if the record has duplicates
+			return false;
+		}
+
+		Collection<Relationship> directOutbounds = myceliumService.getGraphService()
+				.getDirectOutboundRelationships(afterVertex.getIdentifier(), afterVertex.getIdentifierType());
+		// only applicable if the record has direct outbound links
+		return directOutbounds.size() != 0;
+
 	}
 
 	@Override

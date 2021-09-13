@@ -11,6 +11,7 @@ import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@Getter
 public class GraphService {
 
 	private final VertexRepository vertexRepository;

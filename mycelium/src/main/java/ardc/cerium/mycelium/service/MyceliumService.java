@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,15 @@ public class MyceliumService {
 	private final MyceliumRequestService myceliumRequestService;
 
 	private final MyceliumIndexingService indexingService;
+
+	private final MyceliumSideEffectService myceliumSideEffectService;
+
+	@PostConstruct
+	public void init() {
+
+		// avoid circular dependency with post-construct injection
+		myceliumSideEffectService.setMyceliumService(this);
+	}
 
 	public RegistryObject parsePayloadToRegistryObject(String payload) throws JsonProcessingException {
 		return RIFCSGraphProvider.parsePayloadToRegistryObject(payload);

@@ -4,19 +4,16 @@ import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
-import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -34,6 +31,16 @@ class MyceliumServiceTest {
 
 	@MockBean
 	MyceliumIndexingService myceliumIndexingService;
+
+	@MockBean
+	MyceliumSideEffectService myceliumSideEffectService;
+
+	@Test
+	void init() {
+		// MyceliumSideEffectService#setMyceliumService(MyceliumService) is set upon init
+		myceliumService.init();
+		verify(myceliumSideEffectService, atLeastOnce()).setMyceliumService(myceliumService);
+	}
 
 	@Test
 	void getVertexFromRegistryObjectId() {
@@ -100,4 +107,5 @@ class MyceliumServiceTest {
 		verify(graphService, times(1)).deleteVertex(vertex);
 		verify(myceliumIndexingService, times(1)).deleteRelationship(vertex.getIdentifier());
 	}
+
 }

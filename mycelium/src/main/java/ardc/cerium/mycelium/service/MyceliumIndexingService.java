@@ -309,7 +309,7 @@ public class MyceliumIndexingService {
 	 * @param to the target {@link Vertex}
 	 * @param relation the grantsNetwork relationType
 	 */
-	private void indexGrantsNetworkRelation(Vertex from, Vertex to, String relation) {
+	public void indexGrantsNetworkRelation(Vertex from, Vertex to, String relation) {
 
 		// index the implicit edge
 		EdgeDTO edge = new EdgeDTO();

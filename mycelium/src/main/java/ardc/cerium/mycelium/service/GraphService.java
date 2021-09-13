@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
@@ -246,6 +247,23 @@ public class GraphService {
 	}
 
 	/**
+	 * Finds a {@link Collection} of {@link Vertex} of RegistryObject that is considered
+	 * identical. Identical Registry object shares the same Identifier (isSameAs to the
+	 * same Identifier). This property is transitive
+	 * @param origin the {@link Vertex} to start the search in
+	 * @return a {@link Collection} of {@link Vertex} that contains all the identical
+	 * {@link Vertex}
+	 */
+	public Collection<Vertex> getDuplicateRegistryObject(Vertex origin) {
+		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(),
+				origin.getIdentifierType());
+
+		// only return the RegistryObject
+		return sameAsNodeCluster.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
+				.collect(Collectors.toList());
+	}
+
+	/**
 	 * Obtaining the duplicate registryObjects. Also contains self.
 	 *
 	 * Utilize {@link #getSameAs(String, String)} with values obtained from the {@link Vertex}
@@ -405,4 +423,39 @@ public class GraphService {
 				}).all();
 	}
 
+	/**
+	 * Obtain a {@link RecordState} of a RegistryObject given the registryObjectId from
+	 * the Graph database as of this moment
+	 * @param registryObjectId the registryObjectId identifier
+	 * @return the {@link RecordState} or null if the RegistryObject is not present in the
+	 * database
+	 */
+	public RecordState getRecordState(String registryObjectId) {
+
+		// if the registryObjectId doesn't exist in the graph
+		Vertex origin = getVertexByIdentifier(registryObjectId,
+				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		if (origin == null) {
+			return null;
+		}
+
+		RecordState state = new RecordState();
+		state.setRegistryObjectId(registryObjectId);
+		state.setOrigin(origin);
+		state.setTitle(origin.getTitle());
+		// TODO obtain group from vertex (require Vertex to have group property)
+		state.setGroup(null);
+
+		// identical
+		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(),
+				origin.getIdentifierType());
+		state.setIdentical(sameAsNodeCluster);
+
+		// outbound
+		Collection<Relationship> outbounds = getDirectOutboundRelationships(origin.getIdentifier(),
+				origin.getIdentifierType());
+		state.setOutbounds(outbounds);
+
+		return state;
+	}
 }

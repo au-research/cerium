@@ -7,6 +7,8 @@ import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -58,6 +60,18 @@ public class RIFCSGraphProvider {
 		// flip the reverse value
 		reversedEdge.setReverse(!edge.isReverse());
 		return reversedEdge;
+	}
+
+	/**
+	 * Parse a String JSON Payload into ingestable {@link RegistryObject}
+	 *
+	 * @param payload the string payload
+	 * @return the {@link RegistryObject} deserialised
+	 * @throws JsonProcessingException when the deserialisation failed
+	 */
+	public static RegistryObject parsePayloadToRegistryObject(String payload) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.readValue(payload, RegistryObject.class);
 	}
 
 	/**

@@ -11,6 +11,7 @@ import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import ardc.cerium.mycelium.task.DeleteTask;
 import ardc.cerium.mycelium.task.ImportTask;
 import io.swagger.v3.oas.annotations.Parameter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
 @Slf4j
+@RequiredArgsConstructor
 public class MyceliumServiceController {
 
 	private final MyceliumService myceliumService;
@@ -27,16 +29,6 @@ public class MyceliumServiceController {
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private final MyceliumIndexingService myceliumIndexingService;
-
-	public MyceliumServiceController(MyceliumService myceliumService, MyceliumRequestService myceliumRequestService,
-			MyceliumSideEffectService myceliumSideEffectService, MyceliumIndexingService myceliumIndexingService) {
-		this.myceliumService = myceliumService;
-		this.myceliumRequestService = myceliumRequestService;
-		this.myceliumSideEffectService = myceliumSideEffectService;
-		this.myceliumIndexingService = myceliumIndexingService;
-	}
-
-
 
     /**
      * Import an XML payload to the {@link MyceliumService}

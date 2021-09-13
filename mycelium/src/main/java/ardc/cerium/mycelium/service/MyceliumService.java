@@ -81,7 +81,7 @@ public class MyceliumService {
 	}
 
 	public void runDeleteTask(Request request) {
-		DeleteTask deleteTask = new DeleteTask(this, myceliumSideEffectService, request);
+		DeleteTask deleteTask = new DeleteTask(request, this);
 		deleteTask.run();
 	}
 

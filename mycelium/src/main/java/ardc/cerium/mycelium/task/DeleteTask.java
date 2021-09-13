@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Slf4j
 public class DeleteTask implements Runnable {
 
@@ -21,6 +20,18 @@ public class DeleteTask implements Runnable {
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private final Request request;
+
+	/**
+	 * Instantiation with an Import {@link Request}. The XML will be obtained from the
+	 * Request's PAYLOAD_PATH
+	 * @param request the {@link Request} to run on
+	 * @param myceliumService the {@link MyceliumService}
+	 */
+	public DeleteTask(Request request, MyceliumService myceliumService) {
+		this.request = request;
+		this.myceliumService = myceliumService;
+		this.myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
+	}
 
 	@Override
 	public void run() {
@@ -39,14 +50,8 @@ public class DeleteTask implements Runnable {
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
-			if (sideEffects.size() > 0) {
-				String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
-				String queueID = myceliumSideEffectService.getQueueID(requestId);
-				sideEffects.forEach(sideEffect -> {
-					myceliumSideEffectService.addToQueue(queueID, sideEffect);
-					log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
-				});
-			}
+			// add the SideEffects to the queue
+			myceliumSideEffectService.queueSideEffects(request, sideEffects);
 
 			request.setMessage("DeleteTask Finished Successfully");
 			request.setStatus(Request.Status.COMPLETED);

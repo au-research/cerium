@@ -4,7 +4,6 @@ import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.mycelium.model.Vertex;
-import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
@@ -26,101 +25,101 @@ public class MyceliumServiceController {
 
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
-	private final MyceliumIndexingService myceliumIndexingService;
+	/**
+	 * Import an XML payload to the {@link MyceliumService}
+	 * @param json the JSON payload
+	 * @param sideEffectRequestID the Affected Relationship Request ID
+	 * @return the {@link ResponseEntity} of a {@link Request}
+	 */
+	@PostMapping("/import-record")
+	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam String sideEffectRequestID) {
+		log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
 
-    /**
-     * Import an XML payload to the {@link MyceliumService}
-     * @param json the JSON payload
-     * @param sideEffectRequestID the Affected Relationship Request ID
-     * @return the {@link ResponseEntity} of a {@link Request}
-     */
-    @PostMapping("/import-record")
-    public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam String sideEffectRequestID) {
-        log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
+		// create new Request, store the json payload
+		RequestDTO dto = new RequestDTO();
+		dto.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
+		Request request = myceliumService.createRequest(dto);
+		request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
 
-        // create new Request, store the json payload
-        RequestDTO dto = new RequestDTO();
-        dto.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
-        Request request = myceliumService.createRequest(dto);
-        request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
+		// store the json payload
+		myceliumService.saveToPayloadPath(request, json);
+		request.setStatus(Request.Status.ACCEPTED);
+		myceliumService.save(request);
 
-        // store the json payload
-        myceliumService.saveToPayloadPath(request, json);
-        request.setStatus(Request.Status.ACCEPTED);
-        myceliumService.save(request);
+		myceliumService.validateRequest(request);
 
-        myceliumService.validateRequest(request);
+		// create the import task and run it immediately
+		ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
+		importTask.run();
 
-        // create the import task and run it immediately
-        ImportTask importTask = new ImportTask(request, myceliumService, myceliumSideEffectService);
-        importTask.run();
+		request = myceliumService.save(request);
+		return ResponseEntity.ok(request);
+	}
 
-        request = myceliumService.save(request);
-        return ResponseEntity.ok(request);
-    }
+	@PostMapping("/index-record")
+	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
+		log.debug("Received Index Request for RegistryObject[id={}]", registryObjectId);
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		if (from == null) {
+			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+			return ResponseEntity.badRequest()
+					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+		}
+		log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
+		myceliumService.indexVertex(from);
+		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 
-    @PostMapping("/index-record")
-    public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
-        log.debug("Received Index Request for RegistryObject[id={}]", registryObjectId);
-        Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
-        if(from == null){
-            log.error("Vertex with registryObjectId {} doesn't exist",registryObjectId);
-            return ResponseEntity.badRequest().body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
-        }
-        log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
-        myceliumIndexingService.indexVertex(from);
-        log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
+		return ResponseEntity.ok("Done!");
+	}
 
-        return ResponseEntity.ok("Done!");
-    }
+	/**
+	 * Delete a RegistryObject by ID
+	 * @param registryObjectId the registryObjectId to be deleted from the Graph
+	 * @param sideEffectRequestID the requestId of the side effect Request
+	 * @return a {@link ResponseEntity} of a {@link Request}
+	 */
+	@PostMapping("/delete-record")
+	public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId,
+			@RequestParam String sideEffectRequestID) {
 
-    /**
-     * Delete a RegistryObject by ID
-     * @param registryObjectId the registryObjectId to be deleted from the Graph
-     * @param sideEffectRequestID the requestId of the side effect Request
-     * @return a {@link ResponseEntity} of a {@link Request}
-     */
-    @PostMapping("/delete-record")
-    public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId,
-                                                @RequestParam String sideEffectRequestID) {
+		// create and save the request
+		RequestDTO dto = new RequestDTO();
+		dto.setType(MyceliumRequestService.DELETE_REQUEST_TYPE);
+		Request request = myceliumService.createRequest(dto);
+		request.setStatus(Request.Status.ACCEPTED);
+		request.setAttribute(Attribute.RECORD_ID, registryObjectId);
+		request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
+		request = myceliumService.save(request);
 
-        // create and save the request
-        RequestDTO dto = new RequestDTO();
-        dto.setType(MyceliumRequestService.DELETE_REQUEST_TYPE);
-        Request request = myceliumService.createRequest(dto);
-        request.setStatus(Request.Status.ACCEPTED);
-        request.setAttribute(Attribute.RECORD_ID, registryObjectId);
-        request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
-        request = myceliumService.save(request);
+		// run the DeleteTask
+		DeleteTask deleteTask = new DeleteTask(myceliumService, myceliumSideEffectService, request);
+		deleteTask.run();
 
-        // run the DeleteTask
-        DeleteTask deleteTask = new DeleteTask(request, myceliumService, myceliumSideEffectService, myceliumIndexingService);
-        deleteTask.run();
+		request = myceliumService.save(request);
+		return ResponseEntity.ok(request);
+	}
 
-        request = myceliumService.save(request);
-        return ResponseEntity.ok(request);
-    }
+	@PostMapping("/start-queue-processing")
+	public ResponseEntity<?> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
+			description = "Request ID of the Side Effect Request") String requestId) {
 
-    @PostMapping("/start-queue-processing")
-    public ResponseEntity<?> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
-            description = "Request ID of the Side Effect Request") String requestId) {
+		log.debug("Received request to process SideEffectQueue Request[id={}]", requestId);
 
-        log.debug("Received request to process SideEffectQueue Request[id={}]", requestId);
+		Request request = myceliumService.findById(requestId);
 
-        Request request = myceliumService.findById(requestId);
+		// todo confirm and validate request status
 
-        // todo confirm and validate request status
+		String queueID = myceliumSideEffectService.getQueueID(requestId);
+		log.debug("QueueID obtained: {}", queueID);
 
-        String queueID = myceliumSideEffectService.getQueueID(requestId);
-        log.debug("QueueID obtained: {}", queueID);
+		request.setStatus(Request.Status.RUNNING);
+		myceliumService.save(request);
 
-        request.setStatus(Request.Status.RUNNING);
-        myceliumService.save(request);
+		// workQueue is an Async method that would set Request to COMPLETED after it has
+		// finished
+		myceliumSideEffectService.workQueue(queueID, request);
 
-        // workQueue is an Async method that would set Request to COMPLETED after it has finished
-        myceliumSideEffectService.workQueue(queueID, request);
-
-        return ResponseEntity.ok().body(request);
-    }
+		return ResponseEntity.ok().body(request);
+	}
 
 }

@@ -25,16 +25,13 @@ class DeleteTaskTest {
     @MockBean
     MyceliumSideEffectService myceliumSideEffectService;
 
-    @MockBean
-    MyceliumIndexingService myceliumIndexingService;
-
     @Test
     @DisplayName("A delete task with a record_id calls the deleteRecord method from myceliumService")
     void runTaskCallsIngest() throws Exception {
         Request request = new Request();
         request.setId(UUID.randomUUID());
         request.setAttribute(Attribute.RECORD_ID, "9999999");
-        DeleteTask task = new DeleteTask(request, myceliumService, myceliumSideEffectService, myceliumIndexingService);
+        DeleteTask task = new DeleteTask(myceliumService, myceliumSideEffectService, request);
 
         task.run();
         Mockito.verify(myceliumService, times(1)).deleteRecord("9999999");

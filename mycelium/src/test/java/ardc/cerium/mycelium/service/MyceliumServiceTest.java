@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class MyceliumServiceTest {
 
 	@MockBean
 	MyceliumRequestService myceliumRequestService;
+
+	@MockBean
+	MyceliumIndexingService myceliumIndexingService;
 
 	@Test
 	void getVertexFromRegistryObjectId() {
@@ -81,4 +85,19 @@ class MyceliumServiceTest {
 		verify(myceliumRequestService, times(1)).validateImportRequest(request);
 	}
 
+	@Test
+	void indexVertex() {
+		Vertex vertex = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		myceliumService.indexVertex(vertex);
+		verify(myceliumIndexingService, times(1)).indexVertex(vertex);
+	}
+
+	@Test
+	void deleteRecord() throws Exception {
+		Vertex vertex = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		when(myceliumService.getVertexFromRegistryObjectId(vertex.getIdentifier())).thenReturn(vertex);
+		myceliumService.deleteRecord(vertex.getIdentifier());
+		verify(graphService, times(1)).deleteVertex(vertex);
+		verify(myceliumIndexingService, times(1)).deleteRelationship(vertex.getIdentifier());
+	}
 }

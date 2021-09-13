@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,11 +24,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Getter
 public class MyceliumService {
 
 	private final GraphService graphService;
 
 	private final MyceliumRequestService myceliumRequestService;
+
+	private final MyceliumIndexingService indexingService;
 
 	public RegistryObject parsePayloadToRegistryObject(String payload) throws JsonProcessingException {
 		return RIFCSGraphProvider.parsePayloadToRegistryObject(payload);
@@ -82,6 +86,11 @@ public class MyceliumService {
 			throw new Exception(String.format("Record with ID %s doesn't exist", recordId));
 		}
 		graphService.deleteVertex(vertex);
+		indexingService.deleteRelationship(vertex.getIdentifier());
+	}
+
+	public void indexVertex(Vertex vertex) {
+		indexingService.indexVertex(vertex);
 	}
 
 	/**

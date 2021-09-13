@@ -7,10 +7,12 @@ import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Slf4j
 public class DeleteTask implements Runnable {
 
@@ -19,16 +21,6 @@ public class DeleteTask implements Runnable {
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private final Request request;
-
-	private final MyceliumIndexingService myceliumIndexingService;
-
-	public DeleteTask(Request request, MyceliumService myceliumService,
-					  MyceliumSideEffectService myceliumSideEffectService, MyceliumIndexingService myceliumIndexingService) {
-		this.request = request;
-		this.myceliumService = myceliumService;
-		this.myceliumSideEffectService = myceliumSideEffectService;
-		this.myceliumIndexingService = myceliumIndexingService;
-	}
 
 	@Override
 	public void run() {
@@ -40,7 +32,6 @@ public class DeleteTask implements Runnable {
 			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
 
 			myceliumService.deleteRecord(registryObjectId);
-			myceliumIndexingService.deleteRelationship(registryObjectId);
 
 			RecordState after = myceliumService.getRecordState(registryObjectId);
 			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", before);

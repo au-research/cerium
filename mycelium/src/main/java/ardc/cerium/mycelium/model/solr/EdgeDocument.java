@@ -15,6 +15,12 @@ public class EdgeDocument{
     @Indexed(name = "id", type = "string")
     private String id;
 
+    @Indexed(name="from_id", type="string")
+    private String fromId;
+
+    @Indexed(name="to_identifier", type="string")
+    private String toIdentifier;
+
     @Indexed(name="type", type="string")
     private String type = "edge";
 
@@ -41,9 +47,9 @@ public class EdgeDocument{
     @Override
     public boolean equals(Object o) {
 		if (o instanceof EdgeDocument) {
-			return relationType.equals(((EdgeDocument) o).getRelationType())
-					&& relationOrigin.equals(((EdgeDocument) o).getRelationOrigin())
-					&& relationReverse == (((EdgeDocument) o).isRelationReverse());
+		    EdgeDocument other = (EdgeDocument) o;
+			return relationType.equals(other.getRelationType())
+					&& relationOrigin.equals(other.getRelationOrigin());
 		}
 		return false;
 	}

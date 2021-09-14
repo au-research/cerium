@@ -14,7 +14,11 @@ public class RecordState {
 
 	private String registryObjectId;
 
+	public String registryObjectKey;
+
 	private String title;
+
+	private String registryObjectClass;
 
 	private String group;
 

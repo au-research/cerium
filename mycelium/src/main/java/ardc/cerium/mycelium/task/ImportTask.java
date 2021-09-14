@@ -58,6 +58,7 @@ public class ImportTask implements Runnable {
 			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
 
 			myceliumService.ingestRegistryObject(registryObject);
+			myceliumService.getGraphService().reinstateTerminatedNodes();
 			log.debug("Ingested registryObject[id={}] payload", registryObject.getRegistryObjectId());
 
 			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());

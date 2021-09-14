@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -37,6 +39,8 @@ public class MyceliumService {
 	private final MyceliumIndexingService indexingService;
 
 	private final MyceliumSideEffectService myceliumSideEffectService;
+
+	private final MyceliumIndexingService myceliumIndexingService;
 
 	@PostConstruct
 	public void init() {
@@ -108,7 +112,9 @@ public class MyceliumService {
 			throw new Exception(String.format("Record with ID %s doesn't exist", recordId));
 		}
 		graphService.deleteVertex(vertex);
-		indexingService.deleteRelationship(vertex.getIdentifier());
+
+		// delete all the relationships for that recordId
+		indexingService.deleteRelationship(recordId);
 	}
 
 	public void indexVertex(Vertex vertex) {

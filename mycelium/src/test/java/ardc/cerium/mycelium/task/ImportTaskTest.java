@@ -4,6 +4,7 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +30,13 @@ class ImportTaskTest {
 	@MockBean
 	MyceliumSideEffectService myceliumSideEffectService;
 
+	@MockBean
+	GraphService graphService;
+
 	@BeforeEach
 	void setUp() {
 		when(myceliumService.getMyceliumSideEffectService()).thenReturn(myceliumSideEffectService);
+		when(myceliumService.getGraphService()).thenReturn(graphService);
 	}
 
 	@Test

@@ -16,16 +16,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Spring Service to ingest/import Graph data
@@ -122,6 +125,19 @@ public class GraphService {
 				"SKIP "+pageable.getOffset()+" LIMIT "+pageable.getPageSize()+";";
 		return getRelationships(cypherQuery);
 	}
+
+	public Collection<Relationship> getDuplicateOutboundRelationships(String identifier, String identifierType) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"WITH collect(origin) + collect(duplicates) as identical\n" +
+				"UNWIND identical as from\n" +
+				"WITH distinct from\n" +
+				"MATCH (from)-[r]->(to)\n" +
+				"WHERE type(r) <> \"isSameAs\"\n" +
+				"RETURN from, to, collect(r) as relations;";
+		return getRelationships(cypherQuery);
+	}
+
 
 	/**
 	 * Obtain all Outbound relationships from the starting node identified by the identifier and identifierType
@@ -435,29 +451,66 @@ public class GraphService {
 	public RecordState getRecordState(String registryObjectId) {
 
 		// if the registryObjectId doesn't exist in the graph
-		Vertex origin = getVertexByIdentifier(registryObjectId,
+		Vertex registryObjectVertex = getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-		if (origin == null) {
+		if (registryObjectVertex == null) {
+			log.debug("No RegistryObjectID Vertex found for RegistryObject[id={}]", registryObjectId);
+			return null;
+		}
+
+		// the registryObjectKey vertex should also exist
+		Collection<Vertex> sameAsNodeCluster = getSameAs(registryObjectVertex.getIdentifier(),
+				registryObjectVertex.getIdentifierType());
+		Vertex keyVertex = sameAsNodeCluster.stream()
+				.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst().orElse(null);
+		if (keyVertex == null) {
+			log.error("No key vertex found for RegistryObject[id={}]", registryObjectId);
 			return null;
 		}
 
 		RecordState state = new RecordState();
 		state.setRegistryObjectId(registryObjectId);
-		state.setOrigin(origin);
-		state.setTitle(origin.getTitle());
+		state.setRegistryObjectKey(keyVertex.getIdentifier());
+		state.setOrigin(registryObjectVertex);
+		state.setTitle(registryObjectVertex.getTitle());
+		state.setRegistryObjectClass(registryObjectVertex.getObjectClass());
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);
-
-		// identical
-		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(),
-				origin.getIdentifierType());
 		state.setIdentical(sameAsNodeCluster);
 
 		// outbound
-		Collection<Relationship> outbounds = getDirectOutboundRelationships(origin.getIdentifier(),
-				origin.getIdentifierType());
+		Collection<Relationship> outbounds = getDuplicateOutboundRelationships(registryObjectVertex.getIdentifier(),
+				registryObjectVertex.getIdentifierType());
+
+		// swap the origin to the vertex for all the outbounds
+		outbounds = outbounds.stream().peek(relationship -> relationship.setFrom(registryObjectVertex)).collect(Collectors.toSet());
+
 		state.setOutbounds(outbounds);
 
 		return state;
+	}
+
+	public void setRegistryObjectKeyNodeTerminated() {
+		String cypherQuery = "MATCH (terminate:Vertex {identifierType:\"ro:key\"})\n"
+				+ "WHERE NOT (terminate)-[:isSameAs]-()\n" + "SET terminate:Terminated;";
+		ResultSummary resultSummary = neo4jClient.query(cypherQuery).run();
+		log.debug("Terminate ro:key nodes ResultSummary[{}]", resultSummary.counters());
+	}
+
+	public void reinstateTerminatedNodes() {
+		String cypherQuery = "MATCH (n:Vertex {identifierType:\"ro:key\"})\n"
+				+ "WHERE (n)-[:isSameAs]-(:RegistryObject)\n" + "REMOVE n:Terminated;";
+		ResultSummary resultSummary = neo4jClient.query(cypherQuery).run();
+		log.debug("Reinstate ro:key nodes ResultSummary[{}]", resultSummary.counters());
+	}
+
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamChildCollection(Vertex from) {
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>", "collection");
+	}
+
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamChildActivity(Vertex from) {
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>", "activity");
 	}
 }

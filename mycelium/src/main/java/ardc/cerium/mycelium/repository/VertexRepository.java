@@ -27,8 +27,8 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 		@QueryHint(name = HINT_CACHEABLE, value = "false"),
 		@QueryHint(name = READ_ONLY, value = "true")
 	})
-	@Query("MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-			+ "relationshipFilter: $filter, minLevel: 1, maxLevel: 100\n"
+	@Query("MATCH (origin:Vertex {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
+			+ "relationshipFilter: $filter, minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 			+ "}) YIELD path WITH nodes(path) as targets\n"
 			+ "MATCH (n:RegistryObject {objectClass: $class})"
 			+ "WHERE n IN targets AND n.identifier <> $identifier RETURN DISTINCT n")

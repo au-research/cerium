@@ -109,7 +109,7 @@ public class MyceliumSideEffectService {
 		}
 
 		if (before != null && GrantsNetworkForgoExecutor.detect(before, after, myceliumService)) {
-			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId()));
+			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId(), before.getRegistryObjectKey(), before.getRegistryObjectClass()));
 		}
 
 		return sideEffects;

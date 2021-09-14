@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.task;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
@@ -27,9 +28,13 @@ class DeleteTaskTest {
     @MockBean
     MyceliumSideEffectService myceliumSideEffectService;
 
+    @MockBean
+    GraphService graphService;
+
     @BeforeEach
     void setUp() {
         when(myceliumService.getMyceliumSideEffectService()).thenReturn(myceliumSideEffectService);
+        when(myceliumService.getGraphService()).thenReturn(graphService);
     }
 
     @Test

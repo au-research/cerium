@@ -43,6 +43,7 @@ public class DeleteTask implements Runnable {
 			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
 
 			myceliumService.deleteRecord(registryObjectId);
+			myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();
 
 			RecordState after = myceliumService.getRecordState(registryObjectId);
 			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", before);

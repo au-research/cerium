@@ -3,12 +3,14 @@ package ardc.cerium.mycelium.util;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class RelationUtil {
 
     /**
@@ -40,6 +42,12 @@ public class RelationUtil {
 
         String fromClass = relationship.getFrom().getObjectClass();
         String toClass = relationship.getTo().getObjectClass();
+        log.debug("Checking Grants Network [from={}, to={}, types={}]", fromClass, toClass, relationTypes);
+
+        // only check RegistryObject -> RegistryObject relations
+        if (fromClass == null || toClass == null) {
+            return false;
+        }
 
         // collection isPartOf collection
         // collection hasPart collection

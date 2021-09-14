@@ -46,7 +46,6 @@ public class RelationshipDocument {
 
     @Indexed(name="to_type")
     private String toType;
-    
 
     @ChildDocument
     List<EdgeDocument> relations;

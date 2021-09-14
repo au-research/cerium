@@ -258,12 +258,17 @@ class GraphServiceTest {
 	@Test
 	void getRecordState_registryObjectExists_notNull() {
 
-		// given a vertex
+		// given a vertex id & key pair
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
 		a.setTitle("Test Object");
+
+		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		b.addLabel(Vertex.Label.Identifier);
+
 		Graph graph = new Graph();
-		graph.addVertex(a);
+		graph.addVertex(a, b);
+		graph.addEdge(new Edge(a, b, RIFCSGraphProvider.RELATION_SAME_AS));
 
 		graphService.ingestGraph(graph);
 
@@ -291,7 +296,7 @@ class GraphServiceTest {
 		c.addLabel(Vertex.Label.RegistryObject);
 		c.setTitle("C");
 
-		Vertex i1 = new Vertex("I1", "local");
+		Vertex i1 = new Vertex("I1", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		i1.addLabel(Vertex.Label.RegistryObject);
 		i1.setTitle("I1");
 

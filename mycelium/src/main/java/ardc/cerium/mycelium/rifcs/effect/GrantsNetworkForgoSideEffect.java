@@ -5,6 +5,12 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class GrantsNetworkForgoSideEffect extends SideEffect{
-    public String registryObjectId;
+public class GrantsNetworkForgoSideEffect extends SideEffect {
+
+	public String registryObjectId;
+
+	public String registryObjectKey;
+
+	public String registryObjectClass;
+
 }

@@ -420,11 +420,10 @@ public class MyceliumIndexingService {
 
 			// delete all edges that has this docID as _root_
 			String edgeQuery = String.format("_root_:%s", docID);
-			Query edgeDeleteQuery = new SimpleQuery(new SimpleStringCriteria(query));
+			Query edgeDeleteQuery = new SimpleQuery(new SimpleStringCriteria(edgeQuery));
 			solrTemplate.delete("relationships", edgeDeleteQuery);
 
 			// and then delete the document itself
-			log.debug("Deleted RelationshipDocument[id={}]", docID);
 			relationshipDocumentRepository.delete(doc);
 		}
 	}

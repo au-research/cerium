@@ -2,10 +2,7 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.rifcs.RecordState;
-import ardc.cerium.mycelium.rifcs.effect.DuplicateInheritanceSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.GrantsNetworkForgoSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
+import ardc.cerium.mycelium.rifcs.effect.*;
 import ardc.cerium.mycelium.rifcs.executor.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,6 +107,11 @@ public class MyceliumSideEffectService {
 
 		if (before != null && GrantsNetworkForgoExecutor.detect(before, after, myceliumService)) {
 			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId(), before.getRegistryObjectKey(), before.getRegistryObjectClass()));
+		}
+
+		if (GrantsNetworkInheritenceExecutor.detect(before, after, myceliumService)) {
+			sideEffects.add(new GrantsNetworkInheritenceSideEffect(after.getRegistryObjectId(),
+					after.getRegistryObjectClass()));
 		}
 
 		return sideEffects;

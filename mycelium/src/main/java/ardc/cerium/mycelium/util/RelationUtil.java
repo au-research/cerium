@@ -22,6 +22,10 @@ public class RelationUtil {
      */
     public static List<Relationship> getRelationshipsDifferences(RecordState from, RecordState to) {
 
+        if (from == null) {
+            return new ArrayList<>();
+        }
+
         if (to == null) {
             return new ArrayList<>(from.getOutbounds());
         }

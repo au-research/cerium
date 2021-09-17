@@ -1,9 +1,6 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
-import ardc.cerium.mycelium.rifcs.effect.DuplicateInheritanceSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.GrantsNetworkForgoSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
+import ardc.cerium.mycelium.rifcs.effect.*;
 import ardc.cerium.mycelium.service.MyceliumService;
 
 public class ExecutorFactory {
@@ -17,6 +14,10 @@ public class ExecutorFactory {
 		}
 		else if (sideEffect instanceof GrantsNetworkForgoSideEffect) {
 			return new GrantsNetworkForgoExecutor((GrantsNetworkForgoSideEffect) sideEffect, myceliumService);
+		}
+		else if (sideEffect instanceof GrantsNetworkInheritenceSideEffect) {
+			return new GrantsNetworkInheritenceExecutor((GrantsNetworkInheritenceSideEffect) sideEffect,
+					myceliumService);
 		}
 
 		return null;

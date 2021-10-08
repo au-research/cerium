@@ -27,8 +27,11 @@ public class EdgeDocument{
     @Indexed(name = "relation_type", type="string")
     private String relationType;
 
-    @Indexed(name = "relation_origin", type="string")
-    private String relationOrigin;
+    @Indexed(name = "relation_type_text", type = "string")
+    private String relationTypeText;
+
+	@Indexed(name = "relation_origin", type = "string")
+	private String relationOrigin;
 
     @Indexed(name = "relation_notes", type="string")
     private String relationNotes;

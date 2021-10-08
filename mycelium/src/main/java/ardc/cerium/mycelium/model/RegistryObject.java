@@ -21,6 +21,9 @@ public class RegistryObject {
 
     private String title;
 
+    @JsonProperty("list_title")
+    private String listTitle;
+
     private String slug;
 
     private String portalUrl;

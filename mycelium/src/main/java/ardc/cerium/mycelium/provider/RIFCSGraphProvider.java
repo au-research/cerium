@@ -125,6 +125,8 @@ public class RIFCSGraphProvider {
 		originNode.setUrl(registryObject.getPortalUrl());
 		originNode.setSlug(registryObject.getSlug());
 		originNode.setPublic(registryObject.getStatus().equals("PUBLISHED"));
+		originNode.setGroup(registryObject.getGroup());
+		originNode.setListTitle(registryObject.getListTitle());
 		graph.addVertex(originNode);
 
 		// add the key origin Node, (id)-[isSameAs]->(key)
@@ -142,6 +144,9 @@ public class RIFCSGraphProvider {
 					IdentifierNormalisationService.getNormalisedIdentifier(identifier);
 					Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
 					identifierNode.addLabel(Vertex.Label.Identifier);
+
+					// todo set identifierNode URL (when available)
+
 					graph.addVertex(identifierNode);
 					Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
 					edge.setOrigin(ORIGIN_IDENTIFIER);
@@ -191,6 +196,9 @@ public class RIFCSGraphProvider {
 						relatedInfoNode.addLabel(Vertex.Label.Identifier);
 						relatedInfoNode.setObjectType(relatedInfo.getType());
 						relatedInfoNode.setObjectClass(relatedInfo.getType());
+
+						// todo set relatedInfoNode URL (when available)
+
 						graph.addVertex(relatedInfoNode);
 
 						// if there's no relatedInfo/relations, the default relation is

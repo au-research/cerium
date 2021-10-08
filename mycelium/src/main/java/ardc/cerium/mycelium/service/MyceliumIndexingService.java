@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.mycelium.model.RelationLookupEntry;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
@@ -198,23 +199,53 @@ public class MyceliumIndexingService {
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
+
 		doc.setFromId(from.getIdentifier());
 		doc.setFromClass(from.getObjectClass());
 		doc.setFromType(from.getObjectType());
 		doc.setFromTitle(from.getTitle());
+		doc.setFromListTitle(from.getListTitle());
+		doc.setFromGroup(from.getGroup());
+		doc.setFromUrl(from.getUrl());
+
 		doc.setToIdentifier(to.getIdentifier());
 		doc.setToIdentifierType(to.getIdentifierType());
 		doc.setToClass(to.getObjectClass());
 		doc.setToType(to.getObjectType());
 		doc.setToTitle(to.getTitle());
+		doc.setToListTitle(to.getListTitle());
+		doc.setToGroup(to.getGroup());
+		doc.setToUrl(to.getUrl());
+
 		List<EdgeDocument> edges = new ArrayList<>();
 		relations.forEach(relation -> {
 			EdgeDocument edge = new EdgeDocument(relation.getType());
+
+			// relationTypeText defaults to the raw value of the relation type
+			String relationTypeText = relation.getType();
+
+			// if we can resolve the relationType we'll get the proper text form for it
+			RelationLookupEntry lookupEntry = RelationLookupService.resolve(relation.getType());
+			if (lookupEntry != null) {
+				if ("collection".equals(from.getObjectClass())) {
+					relationTypeText = lookupEntry.getCollectionText();
+				} else if ("activity".equals(from.getObjectClass())) {
+					relationTypeText = lookupEntry.getActivityText();
+				} else if ("service".equals(from.getObjectClass())) {
+					relationTypeText = lookupEntry.getServiceText();
+				} else if ("party".equals(from.getObjectClass())) {
+					relationTypeText = lookupEntry.getPartyText();
+				}
+			}
+
+			edge.setRelationTypeText(relationTypeText);
+
 			edge.setFromId(from.getIdentifier());
 			edge.setToIdentifier(to.getIdentifier());
 			edge.setRelationOrigin(relation.getOrigin());
 			edge.setRelationInternal(relation.isInternal());
 			edge.setRelationReverse(relation.isReverse());
+
 			edges.add(edge);
 		});
 		doc.setRelations(edges);

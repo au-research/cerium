@@ -46,6 +46,13 @@ public class VertexMapper {
 				if (!node.get("title").isNull()) {
 					vertex.setTitle(node.get("title").asString());
 				}
+				if (!node.get("group").isNull()) {
+					vertex.setGroup(node.get("group").asString());
+				}
+				if (!node.get("listTitle").isNull()) {
+					vertex.setListTitle(node.get("listTitle").asString());
+				}
+
 
 				return vertex;
 			}

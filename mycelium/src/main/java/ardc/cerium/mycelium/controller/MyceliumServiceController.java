@@ -4,11 +4,6 @@ import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.mycelium.model.Vertex;
-import ardc.cerium.mycelium.model.solr.RelationshipDocument;
-import ardc.cerium.mycelium.rifcs.RecordState;
-import ardc.cerium.mycelium.rifcs.effect.GrantsNetworkForgoSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.executor.GrantsNetworkForgoExecutor;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
@@ -17,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -121,24 +114,6 @@ public class MyceliumServiceController {
 		myceliumService.getMyceliumSideEffectService().workQueue(queueID, request);
 
 		return ResponseEntity.ok().body(request);
-	}
-
-	@GetMapping("/test")
-	public ResponseEntity<?> test() {
-		String registryObjectId = "3";
-		String registryObjectKey = "Relationship scenario 37 - 20210817 - C3";
-		String registryObjectClass = "collection";
-
-		Request request = new Request();
-		GrantsNetworkForgoSideEffect sideEffect = new GrantsNetworkForgoSideEffect(registryObjectId, registryObjectKey, registryObjectClass);
-		GrantsNetworkForgoExecutor executor = new GrantsNetworkForgoExecutor(sideEffect, myceliumService);
-		executor.handle();
-
-//		Vertex vertex = myceliumService.getVertexFromRegistryObjectId("1");
-//		myceliumService.getMyceliumIndexingService().indexImplicitLinksForCollection(vertex);
-//		myceliumService.getIndexingService().deleteRelationship(registryObjectId);
-
-		return ResponseEntity.ok().body("OK");
 	}
 
 }

@@ -26,11 +26,20 @@ public class RelationshipDocument {
     @Indexed(name="from_title")
     private String fromTitle;
 
+    @Indexed(name="from_list_title")
+    private String fromListTitle;
+
     @Indexed(name="from_class")
     private String fromClass;
 
     @Indexed(name="from_type")
     private String fromType;
+
+    @Indexed(name="from_group")
+    private String fromGroup;
+
+    @Indexed(name="from_url")
+    private String fromUrl;
 
     @Indexed(name = "to_identifier")
     private String toIdentifier;
@@ -41,11 +50,20 @@ public class RelationshipDocument {
     @Indexed(name="to_title")
     private String toTitle;
 
+    @Indexed(name="to_list_title")
+    private String toListTitle;
+
     @Indexed(name="to_class")
     private String toClass;
 
     @Indexed(name="to_type")
     private String toType;
+
+    @Indexed(name="to_group")
+    private String toGroup;
+
+    @Indexed(name="to_url")
+    private String toUrl;
 
     @ChildDocument
     List<EdgeDocument> relations;

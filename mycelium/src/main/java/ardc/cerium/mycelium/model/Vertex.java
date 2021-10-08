@@ -43,6 +43,12 @@ public class Vertex {
 	@Property("title")
 	private String title;
 
+	@Property("listTitle")
+	private String listTitle;
+
+	@Property("group")
+	private String group;
+
 	@Id
 	@GeneratedValue
 	private Long id;

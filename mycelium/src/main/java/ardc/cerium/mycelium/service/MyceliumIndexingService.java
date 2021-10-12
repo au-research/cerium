@@ -66,25 +66,30 @@ public class MyceliumIndexingService {
 		// duplicates included
 		deleteAllRelationship(from);
 		indexDirectRelationships(from);
+		indexGrantsNetworkRelationships(from);
+	}
 
-		// index implicit links based on the class
+	/**
+	 * Index GrantsNetworkRelationships based on the class
+	 * @param from the {@link Vertex} to index
+	 */
+	public void indexGrantsNetworkRelationships(Vertex from) {
 		switch (from.getObjectClass()) {
-		case "collection":
-			indexImplicitLinksForCollection(from);
-			break;
-		case "party":
-			indexImplicitLinksForParty(from);
-			break;
-		case "activity":
-			indexImplicitLinksForActivity(from);
-			break;
+			case "collection":
+				indexImplicitLinksForCollection(from);
+				break;
+			case "party":
+				indexImplicitLinksForParty(from);
+				break;
+			case "activity":
+				indexImplicitLinksForActivity(from);
+				break;
 		}
 	}
 
 	public void deleteAllRelationship(Vertex from) {
-		Query query = new SimpleQuery("+from_id:" + from.getIdentifier());
-		UpdateResponse response = solrTemplate.delete("relationships", query);
-		log.debug("Deleted Relationships response[{}]", response.getResponse());
+		relationshipDocumentRepository.deleteAllByFromIdEquals(from.getIdentifier());
+		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
 	}
 
 	public void deleteGrantsNetworkEdges(Vertex from) {
@@ -93,13 +98,15 @@ public class MyceliumIndexingService {
 		Cursor<RelationshipDocument> cursor = cursorFor(new Criteria("from_id").is(from.getIdentifier()));
 		while (cursor.hasNext()) {
 			RelationshipDocument doc = cursor.next();
-			if (doc.getRelations() == null) {
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
 				relationshipDocumentRepository.delete(doc);
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK)
-							&& relation.getFromId().equals(from.getIdentifier()))
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK))
+					.filter(relation -> relation.getFromId() != null)
+					.filter(relation -> relation.getFromId().equals(from.getIdentifier()))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
@@ -109,17 +116,20 @@ public class MyceliumIndexingService {
 				relationshipDocumentRepository.delete(doc);
 			}
 		}
+		solrTemplate.commit("relationships");
 
 		log.debug("Deleting Grants Network Edges to Vertex[id={}, type={}]", from.getIdentifier(),
 				from.getIdentifierType());
 		Cursor<RelationshipDocument> toCursor = cursorFor(new Criteria("to_identifier").is(from.getIdentifier()));
 		while (toCursor.hasNext()) {
 			RelationshipDocument doc = toCursor.next();
-			if (doc.getRelations() == null) {
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
 				relationshipDocumentRepository.delete(doc);
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> relation.getToIdentifier() != null)
 					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK)
 							&& relation.getToIdentifier().equals(from.getIdentifier()))
 					.collect(Collectors.toList());
@@ -131,16 +141,26 @@ public class MyceliumIndexingService {
 				relationshipDocumentRepository.delete(doc);
 			}
 		}
+		solrTemplate.commit("relationships");
+	}
+
+	public void regenGrantsNetworkRelationships(Vertex from) {
+		log.debug("Regenerating GrantsNetwork Relationship for Vertex[id={}, type={}]", from.getIdentifier(),
+				from.getIdentifierType());
+		deleteGrantsNetworkEdges(from);
+		indexGrantsNetworkRelationships(from);
 	}
 
 	public Cursor<RelationshipDocument> cursorFor(Criteria... criterion) {
 		Query query = new SimpleQuery("*:*");
 		query.addSort(Sort.by("id"));
+		query.addFilterQuery(new SimpleFilterQuery(new Criteria("type").is("relationship")));
 		for (Criteria criteria : criterion) {
 			query.addFilterQuery(new SimpleFilterQuery(criteria));
 		}
 		query.addProjectionOnField(new SimpleField("*"));
-		query.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship]"));
+		query.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship childFilter=type:edge limit=100]"));
+
 		return solrTemplate.queryForCursor("relationships", query, RelationshipDocument.class);
 	}
 
@@ -195,7 +215,8 @@ public class MyceliumIndexingService {
 	 * @param relations the {@link List} of {@link EdgeDTO} that contains the relations
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
-		log.debug("Indexing relation from {} to {}", from.getIdentifier(), to.getIdentifier());
+		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}]", from.getIdentifier(), to.getIdentifier(),
+				relations.stream().map(EdgeDTO::getType).collect(Collectors.toList()));
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
@@ -263,6 +284,15 @@ public class MyceliumIndexingService {
 		return solrTemplate.queryForObject("relationships", query, RelationshipDocument.class).orElse(null);
 	}
 
+	public RelationshipDocument findExistingRelationshipDocument(String fromID) {
+		Query query = new SimpleQuery("*:*");
+		query.addFilterQuery(new SimpleFilterQuery(new Criteria("from_id").is(fromID)));
+		query.addProjectionOnField(new SimpleField("*"));
+		query.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship]"));
+
+		return solrTemplate.queryForObject("relationships", query, RelationshipDocument.class).orElse(null);
+	}
+
 	/**
 	 * Index a {@link RelationshipDocument} into SOLR.
 	 *
@@ -296,6 +326,12 @@ public class MyceliumIndexingService {
 					existingDocument.getRelations().add(relation);
 				}
 			});
+
+			// filter the relations (shouldn't have to do this)
+			existingDocument.setRelations(existingDocument.getRelations().stream()
+					.filter(relation -> relation.getFromId().equals(existingDocument.getFromId()))
+					.filter(relation -> relation.getToIdentifier().equals(existingDocument.getToIdentifier()))
+					.collect(Collectors.toList()));
 
 			log.trace("Saving existing document");
 			relationshipDocumentRepository.save(existingDocument);

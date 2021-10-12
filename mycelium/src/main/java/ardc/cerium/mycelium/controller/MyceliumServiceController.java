@@ -3,15 +3,30 @@ package ardc.cerium.mycelium.controller;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.core.exception.NotFoundException;
+import ardc.cerium.core.exception.RecordNotFoundException;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.solr.RelationshipDocument;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.effect.GrantsNetworkForgoSideEffect;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
+import ardc.cerium.mycelium.rifcs.executor.Executor;
+import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.solr.core.query.Criteria;
+import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -114,6 +129,30 @@ public class MyceliumServiceController {
 		myceliumService.getMyceliumSideEffectService().workQueue(queueID, request);
 
 		return ResponseEntity.ok().body(request);
+	}
+
+	@PostMapping("/regen-grants-network-relationships")
+	public ResponseEntity<?> regenerateGrantsNetworkRelationships(@Parameter(name = "registryObjectId",
+			description = "ID of the registryObject") String registryObjectId, @Parameter(name = "show") boolean show) {
+
+		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		if (vertex == null) {
+			throw new RecordNotFoundException(registryObjectId);
+		}
+
+		myceliumService.getMyceliumIndexingService().regenGrantsNetworkRelationships(vertex);
+
+		if (!show) {
+			return ResponseEntity.ok().body("OK");
+		}
+
+		Cursor<RelationshipDocument> cursor = myceliumService.getMyceliumIndexingService().cursorFor(new Criteria("from_id").is(registryObjectId));
+		List<RelationshipDocument> relationshipDocuments = new ArrayList<>();
+		while(cursor.hasNext()) {
+			RelationshipDocument doc = cursor.next();
+			relationshipDocuments.add(doc);
+		}
+		return ResponseEntity.ok().body(relationshipDocuments);
 	}
 
 }

@@ -9,6 +9,10 @@ import java.util.stream.Stream;
 
 public interface RelationshipDocumentRepository extends SolrCrudRepository<RelationshipDocument, String> {
 
+    void deleteAllByFromIdEquals(String fromId);
+
+    void deleteAllByToIdentifierEquals(String toIdentifier);
+
     RelationshipDocument findRelationshipDocumentByFromIdAndToIdentifierAndToIdentifierType(String fromId, String toIdentifier, String toIdentifierType);
 
     @Query(fields = { "[child parentFilter=type:relationship]", "*"})

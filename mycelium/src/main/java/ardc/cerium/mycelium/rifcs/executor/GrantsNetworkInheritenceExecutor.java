@@ -51,15 +51,15 @@ public class GrantsNetworkInheritenceExecutor extends Executor {
 
 		if (registryObjectClass.equals("collection")) {
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
-				stream.forEach(myceliumIndexingService::indexImplicitLinksForCollection);
+				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 			}
 		}
 		else if (registryObjectClass.equals("activity")) {
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildActivity(vertex)) {
-				stream.forEach(myceliumIndexingService::indexImplicitLinksForActivity);
+				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 			}
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
-				stream.forEach(myceliumIndexingService::indexImplicitLinksForCollection);
+				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 			}
 		}
 	}

@@ -506,11 +506,26 @@ public class GraphService {
 
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamChildCollection(Vertex from) {
-		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>", "collection");
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|isFunderOf>", "collection");
 	}
 
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamChildActivity(Vertex from) {
 		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>", "activity");
+	}
+
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamParentParty(Vertex from) {
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isOutputOf>|isFundedBy>", "party");
+	}
+
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamParentActivity(Vertex from) {
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isPartOf>", "activity");
+	}
+
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamParentCollection(Vertex from) {
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isPartOf>", "collection");
 	}
 }

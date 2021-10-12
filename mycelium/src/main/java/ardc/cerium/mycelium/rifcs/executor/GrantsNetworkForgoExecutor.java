@@ -40,6 +40,10 @@ public class GrantsNetworkForgoExecutor extends Executor {
 		// the record is updated, and the relations differences contain grants network
 		// relations
 		List<Relationship> differences = RelationUtil.getRelationshipsDifferences(before, after);
+
+		log.debug("Relationship differences count = {}", differences.size());
+		log.debug("Relationship differences grantsNetwork count = {}", differences.stream().filter(RelationUtil::isGrantsNetwork).count());
+
 		return differences.stream().anyMatch(RelationUtil::isGrantsNetwork);
 	}
 
@@ -63,6 +67,8 @@ public class GrantsNetworkForgoExecutor extends Executor {
 
 		log.debug("Found source Vertex[id={}, type={}]", vertex.getIdentifier(), vertex.getIdentifierType());
 
+		myceliumIndexingService.regenGrantsNetworkRelationships(vertex);
+
 		// for collection, all child collections need reindexing of grantsNetwork
 		// for activity, all child activities, child collections need reindexing of
 		// grantsNetwork
@@ -70,31 +76,67 @@ public class GrantsNetworkForgoExecutor extends Executor {
 		String registryObjectClass = sideEffect.getRegistryObjectClass();
 		log.debug("Indexing Affected Relationships for RegistryObject[class={}]", registryObjectClass);
 		if (registryObjectClass.equals("collection")) {
-			// index GrantsNetwork for each child collection
+
+			// regen GrantsNetwork for each child collection
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
 				stream.forEach(collection -> {
-//					myceliumIndexingService.indexVertex(collection);
-					myceliumIndexingService.deleteGrantsNetworkEdges(collection);
-					myceliumIndexingService.indexImplicitLinksForCollection(collection);
+					log.debug("Processing child collection[id={}]", collection.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(collection);
+				});
+			}
+
+			// TODO optimize the detection of edges that need removed instead of regen the grantsNetwork edges
+			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentParty(vertex)) {
+				stream.forEach(party -> {
+					log.debug("Processing parent party[id={}]", party.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(party);
+				});
+			}
+
+			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentCollection(vertex)) {
+				stream.forEach(collection -> {
+					log.debug("Processing parent collection[id={}]", collection.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(collection);
+				});
+			}
+
+			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentActivity(vertex)) {
+				stream.forEach(activity -> {
+					log.debug("Processing parent activity[id={}]", activity.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(activity);
 				});
 			}
 		}
 		else if (registryObjectClass.equals("activity")) {
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildActivity(vertex)) {
 				stream.forEach(activity -> {
-//					myceliumIndexingService.indexVertex(activity);
-					myceliumIndexingService.deleteGrantsNetworkEdges(activity);
-					myceliumIndexingService.indexImplicitLinksForActivity(activity);
+					log.debug("Processing child activity RegistryObject[id={}]", activity.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(activity);
 				});
 			}
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
 				stream.forEach(collection -> {
-//					myceliumIndexingService.indexVertex(collection);
-					myceliumIndexingService.deleteGrantsNetworkEdges(collection);
-					myceliumIndexingService.indexImplicitLinksForCollection(collection);
+					log.debug("Processing child collection RegistryObject[id={}]", collection.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(collection);
+				});
+			}
+
+			// TODO optimize the detection of edges that need removed instead of regen the grantsNetwork edges
+			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentParty(vertex)) {
+				stream.forEach(party -> {
+					log.debug("Processing parent party[id={}]", party.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(party);
+				});
+			}
+
+			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentActivity(vertex)) {
+				stream.forEach(activity -> {
+					log.debug("Processing parent activity[id={}]", activity.getIdentifier());
+					myceliumIndexingService.regenGrantsNetworkRelationships(activity);
 				});
 			}
 		}
+
 		log.info("Finished handling GrantsNetworkForgoExecutor");
 	}
 

@@ -153,7 +153,7 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok().body(relationshipDocuments);
 	}
 
-	@PostMapping("/get-duplicate-records")
+	@GetMapping("/get-duplicate-records")
 	public ResponseEntity<?> getDuplicateRecord(@RequestParam String registryObjectId) {
 		log.debug("Received getDuplicate Request for RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
@@ -166,5 +166,4 @@ public class MyceliumServiceController {
 		log.debug("getDuplicates completed Vertex[identifier={}]", from.getIdentifier());
 		return ResponseEntity.ok().body(duplicates);
 	}
-
 }

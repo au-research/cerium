@@ -15,6 +15,7 @@ import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import ardc.cerium.mycelium.service.GraphService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +24,7 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -153,6 +151,20 @@ public class MyceliumServiceController {
 			relationshipDocuments.add(doc);
 		}
 		return ResponseEntity.ok().body(relationshipDocuments);
+	}
+
+	@PostMapping("/get-duplicate-records")
+	public ResponseEntity<?> getDuplicateRecord(@RequestParam String registryObjectId) {
+		log.debug("Received getDuplicate Request for RegistryObject[id={}]", registryObjectId);
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		if (from == null) {
+			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+			return ResponseEntity.badRequest()
+					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+		}
+		Collection<Vertex> duplicates = myceliumService.getGraphService().getDuplicateRegistryObject(from);
+		log.debug("getDuplicates completed Vertex[identifier={}]", from.getIdentifier());
+		return ResponseEntity.ok().body(duplicates);
 	}
 
 }

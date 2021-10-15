@@ -18,15 +18,14 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,36 +111,29 @@ public class GraphService {
 		}
 	}
 
-
-	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType, Pageable pageable) {
-		String cypherQuery = "MATCH (origin:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
-				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
-				"WITH collect(origin) + collect(duplicates) as identical\n" +
-				"UNWIND identical as from\n" +
-				"WITH distinct from\n" +
-				"MATCH (from)-[r]->(to)\n" +
-				"WHERE type(r) <> \"isSameAs\"\n" +
-				"RETURN from, to, collect(r) as relations\n" +
-				"SKIP "+pageable.getOffset()+" LIMIT "+pageable.getPageSize()+";";
+	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType,
+			Pageable pageable) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + identifier + "\", identifierType: \""
+				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
+				+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n" + "WHERE type(r) <> \"isSameAs\"\n"
+				+ "RETURN from, to, collect(r) as relations\n" + "SKIP " + pageable.getOffset() + " LIMIT "
+				+ pageable.getPageSize() + ";";
 		return getRelationships(cypherQuery);
 	}
 
 	public Collection<Relationship> getDuplicateOutboundRelationships(String identifier, String identifierType) {
-		String cypherQuery = "MATCH (origin:Vertex {identifier: \""+identifier+"\", identifierType: \""+identifierType+"\"})\n" +
-				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
-				"WITH collect(origin) + collect(duplicates) as identical\n" +
-				"UNWIND identical as from\n" +
-				"WITH distinct from\n" +
-				"MATCH (from)-[r]->(to)\n" +
-				"WHERE type(r) <> \"isSameAs\"\n" +
-				"RETURN from, to, collect(r) as relations;";
+		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + identifier + "\", identifierType: \""
+				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
+				+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n" + "WHERE type(r) <> \"isSameAs\"\n"
+				+ "RETURN from, to, collect(r) as relations;";
 		return getRelationships(cypherQuery);
 	}
 
-
 	/**
-	 * Obtain all Outbound relationships from the starting node identified by the identifier and identifierType
-	 *
+	 * Obtain all Outbound relationships from the starting node identified by the
+	 * identifier and identifierType
 	 * @param identifier the Identifier String
 	 * @param identifierType the type of the Identifier as String
 	 * @return a {@link Collection} of {@link Relationship}
@@ -273,8 +265,7 @@ public class GraphService {
 	 * {@link Vertex}
 	 */
 	public Collection<Vertex> getDuplicateRegistryObject(Vertex origin) {
-		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(),
-				origin.getIdentifierType());
+		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(), origin.getIdentifierType());
 
 		// only return the RegistryObject
 		return sameAsNodeCluster.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
@@ -284,7 +275,8 @@ public class GraphService {
 	/**
 	 * Obtaining the duplicate registryObjects. Also contains self.
 	 *
-	 * Utilize {@link #getSameAs(String, String)} with values obtained from the {@link Vertex}
+	 * Utilize {@link #getSameAs(String, String)} with values obtained from the
+	 * {@link Vertex}
 	 * @param vertex the {@link Vertex} to obtain duplicate from
 	 * @return a {@link Collection} of duplicate {@link Vertex}
 	 */
@@ -414,28 +406,24 @@ public class GraphService {
 				+ "    maxLevel: 100})\n" + "YIELD path WITH nodes(path) as targets\n"
 				+ "MATCH (collection:RegistryObject {objectClass: \"collection\"}) WHERE collection IN targets\n"
 				+ "MATCH (party:RegistryObject {objectClass: \"party\"}) WHERE party IN targets\n"
-				+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
-				.bind(registryObjectId).to("identifier")
-				.fetchAs(Vertex.class)
-				.mappedBy((typeSystem, record) -> {
+				+ "RETURN DISTINCT collection SKIP 0 LIMIT 100").bind(registryObjectId).to("identifier")
+				.fetchAs(Vertex.class).mappedBy((typeSystem, record) -> {
 					Node n = record.get("collection").asNode();
 					return vertexMapper.getConverter().convert(n);
 				}).all();
 	}
 
 	public Collection<Vertex> getChildCollection(String registryObjectId) {
-		return neo4jClient.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
+		return neo4jClient
+				.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
 						+ "CALL apoc.path.spanningTree(origin, {\n"
 						+ "    relationshipFilter: $relationshipFilter, minLevel: $minLevel, maxLevel: $maxLevel"
 						+ "}) YIELD path WITH nodes(path) as targets\n"
 						+ "MATCH (collection:RegistryObject {objectClass: 'collection'}) WHERE collection IN targets\n"
 						+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
 				.bind(registryObjectId).to("identifier")
-				.bind("isSameAs|hasPart>|outputs>|funds>|isFunderOf>|hasOutput>").to("relationshipFilter")
-				.bind(1).to("minLevel")
-				.bind(100).to("maxLevel")
-				.fetchAs(Vertex.class)
-				.mappedBy((typeSystem, record) -> {
+				.bind("isSameAs|hasPart>|outputs>|funds>|isFunderOf>|hasOutput>").to("relationshipFilter").bind(1)
+				.to("minLevel").bind(100).to("maxLevel").fetchAs(Vertex.class).mappedBy((typeSystem, record) -> {
 					Node n = record.get("collection").asNode();
 					return vertexMapper.getConverter().convert(n);
 				}).all();
@@ -462,7 +450,8 @@ public class GraphService {
 		Collection<Vertex> sameAsNodeCluster = getSameAs(registryObjectVertex.getIdentifier(),
 				registryObjectVertex.getIdentifierType());
 		Vertex keyVertex = sameAsNodeCluster.stream()
-				.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst().orElse(null);
+				.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
+				.orElse(null);
 		if (keyVertex == null) {
 			log.error("No key vertex found for RegistryObject[id={}]", registryObjectId);
 			return null;
@@ -483,7 +472,8 @@ public class GraphService {
 				registryObjectVertex.getIdentifierType());
 
 		// swap the origin to the vertex for all the outbounds
-		outbounds = outbounds.stream().peek(relationship -> relationship.setFrom(registryObjectVertex)).collect(Collectors.toSet());
+		outbounds = outbounds.stream().peek(relationship -> relationship.setFrom(registryObjectVertex))
+				.collect(Collectors.toSet());
 
 		state.setOutbounds(outbounds);
 
@@ -506,7 +496,8 @@ public class GraphService {
 
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamChildCollection(Vertex from) {
-		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|isFunderOf>", "collection");
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|isFunderOf>",
+				"collection");
 	}
 
 	@Transactional(readOnly = true)
@@ -516,7 +507,8 @@ public class GraphService {
 
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamParentParty(Vertex from) {
-		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isOutputOf>|isFundedBy>", "party");
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isOutputOf>|isFundedBy>",
+				"party");
 	}
 
 	@Transactional(readOnly = true)
@@ -528,4 +520,148 @@ public class GraphService {
 	public Stream<Vertex> streamParentCollection(Vertex from) {
 		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isPartOf>", "collection");
 	}
+
+	/**
+	 * Obtain a Graph of the {@link Vertex} of all immediate relationships
+	 *
+	 * Should include duplicate relationships
+	 * @param from the {@link Vertex} at the center of all the relationships
+	 * @return a {@link Graph} containing the current node and the immediate relationships
+	 */
+	public Graph getRegistryObjectGraph(Vertex from) {
+
+		// add origin node
+		Graph graph = new Graph();
+		graph.addVertex(from);
+
+		// add direct relationships
+		Collection<Relationship> relationships = getMyDuplicateRelationships(from.getIdentifier(),
+				from.getIdentifierType(), PageRequest.of(0, 1000));
+		relationships.forEach(relationship -> {
+
+			Vertex to = relationship.getTo();
+
+			Collection<Vertex> sameAsNodeCluster = getSameAs(to.getIdentifier(), to.getIdentifierType());
+			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
+					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+
+			if (toRelatedObjects.size() > 0) {
+				// is a relatedObject relation
+				toRelatedObjects.forEach(toRelatedObject -> {
+					graph.addVertex(toRelatedObject);
+					relationship.getRelations().forEach(relation -> graph
+							.addEdge(new Edge(from, toRelatedObject, relation.getType(), relation.getId())));
+				});
+			}
+			else if (! to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE) && relationship.getRelations().stream().anyMatch(relation -> relation.getType().equals(RIFCSGraphProvider.RELATION_SAME_AS))) {
+				// does not resolve to registryObject it's a relatedInfo relation
+				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
+				graph.addVertex(to);
+				relationship.getRelations()
+						.forEach(relation -> graph.addEdge(new Edge(from, to, relation.getType(), relation.getId())));
+			}
+		});
+
+		return removeDanglingVertices(graph);
+	}
+
+	/**
+	 * Obtain a graph detailing the relationship path going upwards with GrantsNetwork
+	 * pathing
+	 * @param origin the {@link Vertex} to start the path from
+	 * @return the {@link} Graph containing the GrantsNetwork nodes upward, collapsed
+	 */
+	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
+		String cypherQuery = "MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
+				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ "}) YIELD path RETURN path;";
+
+		Collection<Graph> graphs = neo4jClient.query(cypherQuery).bind(origin.getIdentifier()).to("identifier")
+				.fetchAs(Graph.class).mappedBy((typeSystem, record) -> {
+					Graph graph = new Graph();
+					Path path = record.get("path").asPath();
+					path.nodes().forEach(node -> graph.addVertex(vertexMapper.getConverter().convert(node)));
+					path.relationships().forEach(relationship -> {
+						long startId = relationship.startNodeId();
+						long endId = relationship.endNodeId();
+
+						String relationType = relationship.type();
+
+						Vertex from = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(startId))
+								.findFirst().orElse(null);
+						Vertex to = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(endId))
+								.findFirst().orElse(null);
+						graph.addEdge(new Edge(from, to, relationType, relationship.id()));
+					});
+					return graph;
+				}).all();
+
+		// merge all graphs into a single graph
+		Graph mergedGraph = new Graph();
+		graphs.forEach(graph -> {
+			graph.getVertices().forEach(mergedGraph::addVertex);
+			graph.getEdges().forEach(mergedGraph::addEdge);
+		});
+
+		return removeDanglingVertices(collapseGraph(mergedGraph));
+	}
+
+	/**
+	 * Collapse the given graph
+	 *
+	 * Collapsing a graph means joining the ro:key and the ro:id nodes together,
+	 * effectively merging their relationships
+	 * @param result a {@link Graph} that needs collapsing
+	 * @return the merged and collapsed {@link Graph}
+	 */
+	public Graph collapseGraph(Graph result) {
+
+		// collect identical pairs
+		Map<Object, Object> pairs = new HashMap<>();
+		result.getEdges().forEach(edge -> {
+			String relationType = edge.getType();
+			if (relationType.equals(RIFCSGraphProvider.RELATION_SAME_AS)) {
+				pairs.put(edge.getFrom().getId(), edge.getTo().getId());
+				pairs.put(edge.getTo().getId(), edge.getFrom().getId());
+			}
+		});
+
+		// remove isSameAs edges
+		result.setEdges(
+				result.getEdges().stream().filter(edge -> !edge.getType().equals(RIFCSGraphProvider.RELATION_SAME_AS))
+						.collect(Collectors.toList()));
+
+		// swap around the edges using the pairs
+		result.getEdges().forEach(edge -> {
+			if (edge.getFrom().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)) {
+				Long swappedId = (Long) pairs.get(edge.getFrom().getId());
+				edge.setFrom(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId))
+						.findFirst().orElse(null));
+			}
+			if (edge.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)) {
+				Long swappedId = (Long) pairs.get(edge.getTo().getId());
+				edge.setTo(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId)).findFirst()
+						.orElse(null));
+			}
+		});
+
+		// remove the ro:key vertices
+		result.setVertices(result.getVertices().stream()
+				.filter(vertex -> !vertex.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE))
+				.collect(Collectors.toList()));
+
+		return result;
+	}
+
+	public Graph removeDanglingVertices(Graph graph) {
+		List<Long> validIds = new ArrayList<>();
+		graph.getEdges().forEach(edge -> {
+			validIds.add(edge.getFrom().getId());
+			validIds.add(edge.getTo().getId());
+		});
+		graph.setVertices(graph.getVertices().stream().filter(vertex -> validIds.contains(vertex.getId()))
+				.collect(Collectors.toList()));
+		return graph;
+	}
+
 }

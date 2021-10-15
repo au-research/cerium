@@ -31,4 +31,14 @@ public class Graph {
 		}
 	}
 
+	/**
+	 * Merge with another {@link Graph} results in the inclusion of all vertices and edges
+	 * of the other graph. Uniqueness is handled internally
+	 * @param graph the {@link Graph} to merge with
+	 */
+	public void mergeGraph(Graph graph) {
+		graph.getVertices().forEach(this::addVertex);
+		graph.getEdges().forEach(this::addEdge);
+	}
+
 }

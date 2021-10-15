@@ -3,11 +3,17 @@ package ardc.cerium.mycelium.model;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 public class Edge {
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String type;
 
@@ -37,4 +43,10 @@ public class Edge {
 		this.type = type;
 	}
 
+	public Edge(Vertex from, Vertex to,  String type, Long id) {
+		this.id = id;
+		this.type = type;
+		this.from = from;
+		this.to = to;
+	}
 }

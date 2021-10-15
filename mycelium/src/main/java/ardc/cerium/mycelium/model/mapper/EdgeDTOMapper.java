@@ -24,6 +24,7 @@ public class EdgeDTOMapper {
             @Override
             protected EdgeDTO doForward(Relationship relationship) {
                 EdgeDTO edgeDTO = new EdgeDTO();
+                edgeDTO.setId(relationship.id());
                 edgeDTO.setType(relationship.type());
                 if (!relationship.get("description").isNull()) {
                     edgeDTO.setDescription(relationship.get("description").asString());

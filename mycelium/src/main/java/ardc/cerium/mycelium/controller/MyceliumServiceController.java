@@ -3,19 +3,16 @@ package ardc.cerium.mycelium.controller;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
-import ardc.cerium.core.exception.NotFoundException;
 import ardc.cerium.core.exception.RecordNotFoundException;
+import ardc.cerium.mycelium.model.Edge;
+import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
-import ardc.cerium.mycelium.rifcs.effect.GrantsNetworkForgoSideEffect;
-import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.rifcs.executor.Executor;
-import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
+import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
-import ardc.cerium.mycelium.service.GraphService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +21,9 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -129,11 +128,43 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok().body(request);
 	}
 
-	@PostMapping("/regen-grants-network-relationships")
-	public ResponseEntity<?> regenerateGrantsNetworkRelationships(@Parameter(name = "registryObjectId",
-			description = "ID of the registryObject") String registryObjectId, @Parameter(name = "show") boolean show) {
+	@GetMapping("/get-record-graph")
+	public ResponseEntity<?> getRecordGraph(
+			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId) {
+		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId,
+				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		if (vertex == null) {
+			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+			return ResponseEntity.badRequest()
+					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+		}
 
-		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		GraphService graphService = myceliumService.getGraphService();
+
+		// obtain the immediate relationships, the grants network relationships as graphs
+		// and merge the graph together
+		Graph graph = new Graph();
+		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex));
+		graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
+
+		// manually add the Duplicates into the Graph
+		Collection<Vertex> duplicateRegistryObjects = graphService.getDuplicateRegistryObject(vertex);
+		duplicateRegistryObjects.stream().filter(v -> !v.getId().equals(vertex.getId())).forEach(duplicate -> {
+			graph.addVertex(duplicate);
+			graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
+		});
+		graphService.removeDanglingVertices(graph);
+
+		return ResponseEntity.ok(graph);
+	}
+
+	@PostMapping("/regen-grants-network-relationships")
+	public ResponseEntity<?> regenerateGrantsNetworkRelationships(
+			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId,
+			@Parameter(name = "show") boolean show) {
+
+		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId,
+				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (vertex == null) {
 			throw new RecordNotFoundException(registryObjectId);
 		}
@@ -144,9 +175,10 @@ public class MyceliumServiceController {
 			return ResponseEntity.ok().body("OK");
 		}
 
-		Cursor<RelationshipDocument> cursor = myceliumService.getMyceliumIndexingService().cursorFor(new Criteria("from_id").is(registryObjectId));
+		Cursor<RelationshipDocument> cursor = myceliumService.getMyceliumIndexingService()
+				.cursorFor(new Criteria("from_id").is(registryObjectId));
 		List<RelationshipDocument> relationshipDocuments = new ArrayList<>();
-		while(cursor.hasNext()) {
+		while (cursor.hasNext()) {
 			RelationshipDocument doc = cursor.next();
 			relationshipDocuments.add(doc);
 		}
@@ -166,4 +198,5 @@ public class MyceliumServiceController {
 		log.debug("getDuplicates completed Vertex[identifier={}]", from.getIdentifier());
 		return ResponseEntity.ok().body(duplicates);
 	}
+
 }

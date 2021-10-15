@@ -7,6 +7,8 @@ import lombok.Setter;
 @Setter
 public class EdgeDTO {
 
+	private Long id;
+
 	private String type;
 
 	private String description;

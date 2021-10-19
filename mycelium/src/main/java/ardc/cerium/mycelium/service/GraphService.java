@@ -481,15 +481,15 @@ public class GraphService {
 	}
 
 	public void setRegistryObjectKeyNodeTerminated() {
-		String cypherQuery = "MATCH (terminate:Vertex {identifierType:\"ro:key\"})\n"
-				+ "WHERE NOT (terminate)-[:isSameAs]-()\n" + "SET terminate:Terminated;";
+		String cypherQuery = "MATCH (n:Vertex {identifierType:\"ro:key\"})\n"
+				+ "WHERE NOT exists((n)-[:isSameAs]-(:RegistryObject)) SET n:Terminated;";
 		ResultSummary resultSummary = neo4jClient.query(cypherQuery).run();
 		log.debug("Terminate ro:key nodes ResultSummary[{}]", resultSummary.counters());
 	}
 
 	public void reinstateTerminatedNodes() {
-		String cypherQuery = "MATCH (n:Vertex {identifierType:\"ro:key\"})\n"
-				+ "WHERE (n)-[:isSameAs]-(:RegistryObject)\n" + "REMOVE n:Terminated;";
+		String cypherQuery = "MATCH (n:Vertex {identifierType:\"ro:key\"})-[:isSameAs]-(:RegistryObject)\n"
+				+ "REMOVE n:Terminated;";
 		ResultSummary resultSummary = neo4jClient.query(cypherQuery).run();
 		log.debug("Reinstate ro:key nodes ResultSummary[{}]", resultSummary.counters());
 	}

@@ -41,6 +41,7 @@ public class MyceliumServiceController {
 	 */
 	@PostMapping("/import-record")
 	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam String sideEffectRequestID) {
+		log.info("Importing Record sideEffectRequestId={}", sideEffectRequestID);
 		log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
 
 		// create new Request, store the json payload
@@ -65,7 +66,7 @@ public class MyceliumServiceController {
 
 	@PostMapping("/index-record")
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
-		log.debug("Received Index Request for RegistryObject[id={}]", registryObjectId);
+		log.info("Indexing RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		if (from == null) {
 			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
@@ -88,6 +89,7 @@ public class MyceliumServiceController {
 	@PostMapping("/delete-record")
 	public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId,
 			@RequestParam String sideEffectRequestID) {
+		log.info("Deleting RegistryObject[id={}, sideEffectRequestId={}]", registryObjectId, sideEffectRequestID);
 
 		// create and save the request
 		RequestDTO dto = new RequestDTO();
@@ -108,8 +110,7 @@ public class MyceliumServiceController {
 	@PostMapping("/start-queue-processing")
 	public ResponseEntity<?> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
 			description = "Request ID of the Side Effect Request") String requestId) {
-
-		log.debug("Received request to process SideEffectQueue Request[id={}]", requestId);
+		log.info("Start Queue Processing Request[sideEffectRequestId={}]", requestId);
 
 		Request request = myceliumService.findById(requestId);
 
@@ -130,7 +131,14 @@ public class MyceliumServiceController {
 
 	@GetMapping("/get-record-graph")
 	public ResponseEntity<?> getRecordGraph(
-			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId) {
+			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId,
+			@RequestParam(defaultValue = "true") boolean includeReverse,
+			@RequestParam(defaultValue = "true") boolean includeInternal,
+			@RequestParam(defaultValue = "true") boolean includeDuplicates,
+			@RequestParam(defaultValue = "true") boolean includeGrantsNetwork,
+			@RequestParam(defaultValue = "true") boolean includeInterLinking) {
+
+		log.info("Obtaining graph for RegistryObject[id={}]", registryObjectId);
 		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (vertex == null) {
@@ -139,20 +147,33 @@ public class MyceliumServiceController {
 					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
 		}
 
+		// todo includeReverse=true
+		// todo includeInternal=true
+
 		GraphService graphService = myceliumService.getGraphService();
 
 		// obtain the immediate relationships, the grants network relationships as graphs
 		// and merge the graph together
 		Graph graph = new Graph();
+		graph.addVertex(vertex);
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex));
-		graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
+		if (includeGrantsNetwork) {
+			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
+		}
 
 		// manually add the Duplicates into the Graph
-		Collection<Vertex> duplicateRegistryObjects = graphService.getDuplicateRegistryObject(vertex);
-		duplicateRegistryObjects.stream().filter(v -> !v.getId().equals(vertex.getId())).forEach(duplicate -> {
-			graph.addVertex(duplicate);
-			graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
-		});
+		if (includeDuplicates) {
+			Collection<Vertex> duplicateRegistryObjects = graphService.getDuplicateRegistryObject(vertex);
+			duplicateRegistryObjects.stream().filter(v -> !v.getId().equals(vertex.getId())).forEach(duplicate -> {
+				graph.addVertex(duplicate);
+				graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
+			});
+		}
+
+		// todo includeInterLinking=true
+		// todo includeCluster=true
+
+		// clean up the data before returning
 		graphService.removeDanglingVertices(graph);
 
 		return ResponseEntity.ok(graph);
@@ -162,7 +183,7 @@ public class MyceliumServiceController {
 	public ResponseEntity<?> regenerateGrantsNetworkRelationships(
 			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId,
 			@Parameter(name = "show") boolean show) {
-
+		log.info("Regenerate Grants Network Relationships RegistryObject[id={}]", registryObjectId);
 		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (vertex == null) {
@@ -187,7 +208,7 @@ public class MyceliumServiceController {
 
 	@GetMapping("/get-duplicate-records")
 	public ResponseEntity<?> getDuplicateRecord(@RequestParam String registryObjectId) {
-		log.debug("Received getDuplicate Request for RegistryObject[id={}]", registryObjectId);
+		log.info("Get Duplicate Record RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		if (from == null) {
 			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);

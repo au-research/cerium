@@ -42,7 +42,8 @@ public class GrantsNetworkForgoExecutor extends Executor {
 		List<Relationship> differences = RelationUtil.getRelationshipsDifferences(before, after);
 
 		log.debug("Relationship differences count = {}", differences.size());
-		log.debug("Relationship differences grantsNetwork count = {}", differences.stream().filter(RelationUtil::isGrantsNetwork).count());
+		log.debug("Relationship differences grantsNetwork count = {}",
+				differences.stream().filter(RelationUtil::isGrantsNetwork).count());
 
 		return differences.stream().anyMatch(RelationUtil::isGrantsNetwork);
 	}
@@ -60,14 +61,19 @@ public class GrantsNetworkForgoExecutor extends Executor {
 		}
 
 		if (vertex == null) {
-			log.error("KeyVertex is also not found for RegistryObjec[id={}, key={}]", sideEffect.getRegistryObjectId(),
+			log.error("KeyVertex is also not found for RegistryObject[id={}, key={}]", sideEffect.getRegistryObjectId(),
 					sideEffect.getRegistryObjectKey());
 			return;
 		}
 
 		log.debug("Found source Vertex[id={}, type={}]", vertex.getIdentifier(), vertex.getIdentifierType());
 
-		myceliumIndexingService.regenGrantsNetworkRelationships(vertex);
+		// regenerate grants network relationships if the RegistryObject still exists
+		// if only the ro:key vertex remains (record deletion), only fixing other record
+		// would be required
+		if (vertex.hasLabel(Vertex.Label.RegistryObject)) {
+			myceliumIndexingService.regenGrantsNetworkRelationships(vertex);
+		}
 
 		// for collection, all child collections need reindexing of grantsNetwork
 		// for activity, all child activities, child collections need reindexing of
@@ -85,7 +91,8 @@ public class GrantsNetworkForgoExecutor extends Executor {
 				});
 			}
 
-			// TODO optimize the detection of edges that need removed instead of regen the grantsNetwork edges
+			// TODO optimize the detection of edges that need removed instead of regen the
+			// grantsNetwork edges
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentParty(vertex)) {
 				stream.forEach(party -> {
 					log.debug("Processing parent party[id={}]", party.getIdentifier());
@@ -121,7 +128,8 @@ public class GrantsNetworkForgoExecutor extends Executor {
 				});
 			}
 
-			// TODO optimize the detection of edges that need removed instead of regen the grantsNetwork edges
+			// TODO optimize the detection of edges that need removed instead of regen the
+			// grantsNetwork edges
 			try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentParty(vertex)) {
 				stream.forEach(party -> {
 					log.debug("Processing parent party[id={}]", party.getIdentifier());

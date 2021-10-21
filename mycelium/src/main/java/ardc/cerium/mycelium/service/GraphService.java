@@ -1,10 +1,7 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
-import ardc.cerium.mycelium.model.Edge;
-import ardc.cerium.mycelium.model.Graph;
-import ardc.cerium.mycelium.model.Relationship;
-import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
@@ -526,17 +523,28 @@ public class GraphService {
 	 *
 	 * Should include duplicate relationships
 	 * @param from the {@link Vertex} at the center of all the relationships
+	 * @param excludeRelationTypes
 	 * @return a {@link Graph} containing the current node and the immediate relationships
 	 */
-	public Graph getRegistryObjectGraph(Vertex from) {
+	public Graph getRegistryObjectGraph(Vertex from, List<String> excludeRelationTypes) {
 
 		// add origin node
 		Graph graph = new Graph();
 		graph.addVertex(from);
 
 		// add direct relationships
-		Collection<Relationship> relationships = getMyDuplicateRelationships(from.getIdentifier(),
-				from.getIdentifierType(), PageRequest.of(0, 1000));
+
+		StringBuilder cypherQuery = new StringBuilder("MATCH (origin:Vertex {identifier: \"" + from.getIdentifier() + "\", identifierType: \""
+				+ from.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
+				+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n");
+		cypherQuery.append("WHERE type(r) <> \"isSameAs\"\n");
+		for (String relationType: excludeRelationTypes) {
+			cypherQuery.append("AND type(r) <> \"").append(relationType).append("\"\n");
+		}
+		cypherQuery.append("RETURN from, to, collect(r) as relations;");
+		Collection<Relationship> relationships = getRelationships(cypherQuery.toString());
+
 		relationships.forEach(relationship -> {
 
 			Vertex to = relationship.getTo();
@@ -704,7 +712,7 @@ public class GraphService {
 		List<String> ids = vertices.stream().map(Vertex::getIdentifier).collect(Collectors.toList());
 		Graph graph = new Graph();
 		vertices.forEach(vertex -> {
-			Graph subGraph = getRegistryObjectGraph(vertex);
+			Graph subGraph = getRegistryObjectGraph(vertex, new ArrayList<>());
 			subGraph.setVertices(subGraph.getVertices().stream().filter(v -> ids.contains(v.getIdentifier()))
 					.collect(Collectors.toList()));
 			subGraph.setEdges(subGraph.getEdges().stream().filter(
@@ -713,6 +721,31 @@ public class GraphService {
 			graph.mergeGraph(subGraph);
 		});
 		return graph;
+	}
+
+	public Collection<RelationTypeGroup> getRelationTypeGrouping(Vertex from) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType})\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"WITH collect(origin) + collect(duplicates) as identical\n" +
+				"UNWIND identical as from\n" +
+				"WITH distinct from\n" +
+				"MATCH (from)-[r]->(k:Identifier)-[:isSameAs]-(to)\n" +
+				"WHERE type(r) <> 'isSameAs'\n" +
+				"RETURN labels(to) as labels, TYPE(r) as relation, to.objectClass as class, to.objectType as type, count(to) as total;";
+		return neo4jClient.query(cypherQuery)
+				.bind(from.getIdentifier()).to("identifier")
+				.bind(from.getIdentifierType()).to("identifierType")
+				.fetchAs(RelationTypeGroup.class)
+				.mappedBy((typeSystem, record) -> {
+					RelationTypeGroup group = new RelationTypeGroup();
+					group.setLabels(record.get("labels").asList().stream().map(Object::toString)
+							.map(Vertex.Label::valueOf).collect(Collectors.toList()));
+					group.setRelation(record.get("relation").asString());
+					group.setObjectClass(record.get("class").asString());
+					group.setObjectType(record.get("type").asString());
+					group.setCount(record.get("total").asInt());
+					return group;
+				}).all();
 	}
 
 }

@@ -68,7 +68,7 @@ public class Vertex {
 	}
 
 	public enum Label {
-		Vertex, RegistryObject, Identifier, DataSource
+		Vertex, RegistryObject, Identifier, DataSource, Cluster
 	}
 
 }

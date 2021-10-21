@@ -6,6 +6,7 @@ import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.exception.RecordNotFoundException;
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Graph;
+import ardc.cerium.mycelium.model.RelationTypeGroup;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
@@ -21,9 +22,7 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -137,7 +136,8 @@ public class MyceliumServiceController {
 			@RequestParam(defaultValue = "true") boolean includeInternal,
 			@RequestParam(defaultValue = "true") boolean includeDuplicates,
 			@RequestParam(defaultValue = "true") boolean includeGrantsNetwork,
-			@RequestParam(defaultValue = "true") boolean includeInterLinking) {
+			@RequestParam(defaultValue = "true") boolean includeInterLinking,
+			@RequestParam(defaultValue = "true") boolean includeCluster) {
 
 		log.info("Obtaining graph for RegistryObject[id={}]", registryObjectId);
 		Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(registryObjectId,
@@ -157,7 +157,27 @@ public class MyceliumServiceController {
 		// and merge the graph together
 		Graph graph = new Graph();
 		graph.addVertex(vertex);
-		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex));
+
+		// relationTypeGrouping (clustering)
+		Collection<RelationTypeGroup> relationTypeGroups = graphService.getRelationTypeGrouping(vertex);
+		List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() > 20).collect(Collectors.toList());
+
+		List<String> overLimitRelationType = new ArrayList<>();
+		if (includeCluster) {
+			overLimitGroups.forEach(group -> {
+				Vertex cluster = new Vertex(UUID.randomUUID().toString(), "ro:cluster");
+				cluster.setId(new Random().nextLong());
+				cluster.addLabel(Vertex.Label.Cluster);
+				group.getLabels().forEach(cluster::addLabel);
+				cluster.setObjectClass(group.getObjectClass());
+				cluster.setObjectType(group.getObjectType());
+				graph.addVertex(cluster);
+				graph.addEdge(new Edge(vertex, cluster, group.getRelation(), new Random().nextLong()));
+			});
+			overLimitRelationType = overLimitGroups.stream().map(RelationTypeGroup::getRelation).collect(Collectors.toList());
+		}
+
+		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex, overLimitRelationType));
 
 		if (includeGrantsNetwork) {
 			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
@@ -179,8 +199,9 @@ public class MyceliumServiceController {
 			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
 		}
 
-		// todo includeInterLinking=true
-		// todo includeCluster=true
+
+
+
 
 		// clean up the data before returning
 		graphService.removeDanglingVertices(graph);

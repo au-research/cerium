@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -157,6 +158,7 @@ public class MyceliumServiceController {
 		Graph graph = new Graph();
 		graph.addVertex(vertex);
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex));
+
 		if (includeGrantsNetwork) {
 			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
 		}
@@ -168,6 +170,13 @@ public class MyceliumServiceController {
 				graph.addVertex(duplicate);
 				graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
 			});
+		}
+
+		// interlinking between
+		if (includeInterLinking) {
+			List<Vertex> otherDirectlyRelatedVertices = graph.getVertices().stream()
+					.filter(v -> !v.getIdentifier().equals(vertex.getIdentifier())).collect(Collectors.toList());
+			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
 		}
 
 		// todo includeInterLinking=true

@@ -591,7 +591,9 @@ public class GraphService {
 								.findFirst().orElse(null);
 						Vertex to = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(endId))
 								.findFirst().orElse(null);
-						graph.addEdge(new Edge(from, to, relationType, relationship.id()));
+						if (from != null && to != null) {
+							graph.addEdge(new Edge(from, to, relationType, relationship.id()));
+						}
 					});
 					return graph;
 				}).all();
@@ -603,7 +605,10 @@ public class GraphService {
 			graph.getEdges().forEach(mergedGraph::addEdge);
 		});
 
-		return removeDanglingVertices(collapseGraph(mergedGraph));
+		collapseGraph(mergedGraph);
+		removeDanglingVertices(mergedGraph);
+
+		return mergedGraph;
 	}
 
 	/**
@@ -616,7 +621,7 @@ public class GraphService {
 	 */
 	public Graph collapseGraph(Graph result) {
 
-		// collect identical pairs
+		// collect identical pairs in the existing graph
 		Map<Object, Object> pairs = new HashMap<>();
 		result.getEdges().forEach(edge -> {
 			String relationType = edge.getType();
@@ -634,14 +639,36 @@ public class GraphService {
 		// swap around the edges using the pairs
 		result.getEdges().forEach(edge -> {
 			if (edge.getFrom().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)) {
-				Long swappedId = (Long) pairs.get(edge.getFrom().getId());
-				edge.setFrom(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId))
-						.findFirst().orElse(null));
+				// try to obtain the existing vertex in the graph if it's presented
+				if (pairs.containsKey(edge.getFrom().getId())) {
+					Long swappedId = (Long) pairs.get(edge.getFrom().getId());
+					edge.setFrom(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId))
+							.findFirst().orElse(null));
+				} else {
+					// if we can't find the vertex in the existing graph, obtain the vertex from the database
+					Vertex resolvedFromVertex = getRegistryObjectByKeyVertex(edge.getFrom());
+					if (resolvedFromVertex != null) {
+						edge.setFrom(resolvedFromVertex);
+					} else {
+						log.warn("Failed to obtain resolved vertex for Vertex[identifier={}] for Edge[from.id={}, to.id={}, type={}]", edge.getFrom().getIdentifier(), edge.getFrom().getId(), edge.getTo().getId(), edge.getType());
+					}
+				}
 			}
+
+			// similar with from
 			if (edge.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)) {
-				Long swappedId = (Long) pairs.get(edge.getTo().getId());
-				edge.setTo(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId)).findFirst()
-						.orElse(null));
+				if (pairs.containsKey(edge.getTo().getId())) {
+					Long swappedId = (Long) pairs.get(edge.getTo().getId());
+					edge.setTo(result.getVertices().stream().filter(vertex -> vertex.getId().equals(swappedId)).findFirst()
+							.orElse(null));
+				} else {
+					Vertex resolvedToVertex = getRegistryObjectByKeyVertex(edge.getTo());
+					if (resolvedToVertex != null) {
+						edge.setTo(resolvedToVertex);
+					} else {
+						log.warn("Failed to obtain resolved vertex for Vertex[identifier={}] for Edge[from.id={}, to.id={}, type={}]", edge.getTo().getIdentifier(), edge.getFrom().getId(), edge.getTo().getId(), edge.getType());
+					}
+				}
 			}
 		});
 
@@ -653,6 +680,15 @@ public class GraphService {
 		return result;
 	}
 
+	public Vertex getRegistryObjectByKeyVertex(Vertex keyVertex) {
+		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject) RETURN n;";
+		return neo4jClient.query(cypherQuery).bind(keyVertex.getIdentifier()).to("identifier").fetchAs(Vertex.class)
+				.mappedBy((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return vertexMapper.getConverter().convert(node);
+				}).one().orElse(null);
+	}
+
 	public Graph removeDanglingVertices(Graph graph) {
 		List<Long> validIds = new ArrayList<>();
 		graph.getEdges().forEach(edge -> {
@@ -661,6 +697,15 @@ public class GraphService {
 		});
 		graph.setVertices(graph.getVertices().stream().filter(vertex -> validIds.contains(vertex.getId()))
 				.collect(Collectors.toList()));
+		return graph;
+	}
+
+	public Graph getGraphBetweenVertices(List<Vertex> vertices) {
+		Graph graph = new Graph();
+		vertices.forEach(vertex -> {
+			Graph subGraph = getRegistryObjectGraph(vertex);
+			graph.mergeGraph(subGraph);
+		});
 		return graph;
 	}
 

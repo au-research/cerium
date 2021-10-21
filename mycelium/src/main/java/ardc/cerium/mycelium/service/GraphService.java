@@ -701,9 +701,15 @@ public class GraphService {
 	}
 
 	public Graph getGraphBetweenVertices(List<Vertex> vertices) {
+		List<String> ids = vertices.stream().map(Vertex::getIdentifier).collect(Collectors.toList());
 		Graph graph = new Graph();
 		vertices.forEach(vertex -> {
 			Graph subGraph = getRegistryObjectGraph(vertex);
+			subGraph.setVertices(subGraph.getVertices().stream().filter(v -> ids.contains(v.getIdentifier()))
+					.collect(Collectors.toList()));
+			subGraph.setEdges(subGraph.getEdges().stream().filter(
+					edge -> ids.contains(edge.getFrom().getIdentifier()) && ids.contains(edge.getTo().getIdentifier()))
+					.collect(Collectors.toList()));
 			graph.mergeGraph(subGraph);
 		});
 		return graph;

@@ -64,6 +64,11 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok(request);
 	}
 
+	/**
+	 * Index a RegistryObject by ID
+	 * @param registryObjectId the RegistryObject ID to index
+	 * @return a String response
+	 */
 	@PostMapping("/index-record")
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
 		log.info("Indexing RegistryObject[id={}]", registryObjectId);
@@ -77,6 +82,7 @@ public class MyceliumServiceController {
 		myceliumService.indexVertex(from);
 		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 
+		// todo formulate a formal response, Request?
 		return ResponseEntity.ok("Done!");
 	}
 
@@ -107,8 +113,15 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok(request);
 	}
 
+	/**
+	 * Starts the SideEffectQueue processing asynchronously.
+	 *
+	 * The progress can be monitored by polling the RequestID via the {@link MyceliumRequestResourceController}
+	 * @param requestId the uuid of the SideEffectRequestID
+	 * @return the {@link Request} with the current status updated to RUNNING
+	 */
 	@PostMapping("/start-queue-processing")
-	public ResponseEntity<?> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
+	public ResponseEntity<Request> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
 			description = "Request ID of the Side Effect Request") String requestId) {
 		log.info("Start Queue Processing Request[sideEffectRequestId={}]", requestId);
 
@@ -129,11 +142,28 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok().body(request);
 	}
 
+	/**
+	 * Obtain a Graphical representation of a RegistryObject Vertex in the form of a list
+	 * of Vertices and Edges that is fit for direct visualisation
+	 * @param registryObjectId the RegistryObject ID of the origin Vertex
+	 * @param includeReverseExternal whether to include reverse external relationships
+	 * (defaults to true)
+	 * @param includeReverseInternal whether to include reverse internal relationships
+	 * (defaults to true)
+	 * @param includeDuplicates whether to include isSameAs relationships and vertices
+	 * (defaults to true)
+	 * @param includeGrantsNetwork whether to include the GrantsNetwork path upwards
+	 * (defaults to true)
+	 * @param includeInterLinking whether to include relationships found between any of
+	 * the visible nodes (defaults to true)
+	 * @param includeCluster whether to include cluster nodes when
+	 * @return a {@link Graph} with all relevant vertices and edges
+	 */
 	@GetMapping("/get-record-graph")
 	public ResponseEntity<?> getRecordGraph(
 			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId,
-			@RequestParam(defaultValue = "true") boolean includeReverse,
-			@RequestParam(defaultValue = "true") boolean includeInternal,
+			@RequestParam(defaultValue = "true") boolean includeReverseExternal,
+			@RequestParam(defaultValue = "true") boolean includeReverseInternal,
 			@RequestParam(defaultValue = "true") boolean includeDuplicates,
 			@RequestParam(defaultValue = "true") boolean includeGrantsNetwork,
 			@RequestParam(defaultValue = "true") boolean includeInterLinking,
@@ -148,10 +178,10 @@ public class MyceliumServiceController {
 					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
 		}
 
-		// todo includeReverse=true
-		// todo includeInternal=true
-
 		GraphService graphService = myceliumService.getGraphService();
+
+		// todo includeReverseExternal=true
+		// todo includeReverseInternal=true
 
 		// obtain the immediate relationships, the grants network relationships as graphs
 		// and merge the graph together
@@ -160,7 +190,8 @@ public class MyceliumServiceController {
 
 		// relationTypeGrouping (clustering)
 		Collection<RelationTypeGroup> relationTypeGroups = graphService.getRelationTypeGrouping(vertex);
-		List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() > 20).collect(Collectors.toList());
+		List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() > 20)
+				.collect(Collectors.toList());
 
 		List<String> overLimitRelationType = new ArrayList<>();
 		if (includeCluster) {
@@ -174,11 +205,15 @@ public class MyceliumServiceController {
 				graph.addVertex(cluster);
 				graph.addEdge(new Edge(vertex, cluster, group.getRelation(), new Random().nextLong()));
 			});
-			overLimitRelationType = overLimitGroups.stream().map(RelationTypeGroup::getRelation).collect(Collectors.toList());
+			overLimitRelationType = overLimitGroups.stream().map(RelationTypeGroup::getRelation)
+					.collect(Collectors.toList());
 		}
 
+		// add the immediate relationships (include Duplicate), excludes the
+		// overLimitRelationTypes
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex, overLimitRelationType));
 
+		// add the GrantsNetworkPath
 		if (includeGrantsNetwork) {
 			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
 		}
@@ -192,23 +227,27 @@ public class MyceliumServiceController {
 			});
 		}
 
-		// interlinking between
+		// interlinking between current graph vertices
 		if (includeInterLinking) {
 			List<Vertex> otherDirectlyRelatedVertices = graph.getVertices().stream()
 					.filter(v -> !v.getIdentifier().equals(vertex.getIdentifier())).collect(Collectors.toList());
 			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
 		}
 
-
-
-
-
-		// clean up the data before returning
+		// clean up the data
 		graphService.removeDanglingVertices(graph);
 
 		return ResponseEntity.ok(graph);
 	}
 
+	/**
+	 * Helper API to regenerate a GrantsNetworkRelationships Only for a given RegistryObjectId
+	 *
+	 * Development/Testing API.
+	 * @param registryObjectId the RegistryObject Id to have GrantsNetwork edges regenerated in SOLR
+	 * @param show whether to show the RelationshipsDocument generated (defaults to false)
+	 * @return a string response OK when all is good
+	 */
 	@PostMapping("/regen-grants-network-relationships")
 	public ResponseEntity<?> regenerateGrantsNetworkRelationships(
 			@Parameter(name = "registryObjectId", description = "ID of the registryObject") String registryObjectId,
@@ -236,6 +275,12 @@ public class MyceliumServiceController {
 		return ResponseEntity.ok().body(relationshipDocuments);
 	}
 
+	/**
+	 * Obtain a Collection of Duplicate RegistryObject Vertices for a given RegistryObject Vertex
+	 *
+	 * @param registryObjectId the RegistryObjectId
+	 * @return a list of duplicate RegistryObject (include the origin Vertex)
+	 */
 	@GetMapping("/get-duplicate-records")
 	public ResponseEntity<?> getDuplicateRecord(@RequestParam String registryObjectId) {
 		log.info("Get Duplicate Record RegistryObject[id={}]", registryObjectId);

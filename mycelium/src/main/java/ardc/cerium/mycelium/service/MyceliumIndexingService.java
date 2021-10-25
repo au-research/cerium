@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RELATION_RELATED_TO;
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
 
 @Slf4j
 @Service
@@ -197,7 +198,7 @@ public class MyceliumIndexingService {
 				toRelatedObjects
 						.forEach(toRelatedObject -> indexRelation(from, toRelatedObject, relationship.getRelations()));
 			}
-			else {
+			else if (! to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
 				// does not resolve to registryObject it's a relatedInfo relation
 				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
 				indexRelation(from, to, relationship.getRelations());

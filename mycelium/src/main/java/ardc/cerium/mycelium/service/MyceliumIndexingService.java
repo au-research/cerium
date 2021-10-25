@@ -89,7 +89,7 @@ public class MyceliumIndexingService {
 
 	public void deleteAllRelationship(Vertex from) {
 		relationshipDocumentRepository.deleteAllByFromIdEquals(from.getIdentifier());
-		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
+		//relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
 	}
 
 	public void deleteGrantsNetworkEdges(Vertex from) {

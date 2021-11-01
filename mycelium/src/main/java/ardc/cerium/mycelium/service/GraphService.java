@@ -292,6 +292,16 @@ public class GraphService {
 				})).one().orElse(null);
 	}
 
+	public Collection<String> getVertexIdentifiersByType(String identifierType) {
+		return neo4jClient
+				.query("MATCH (n:Vertex {identifierType: $identifierType})\n" + "RETURN n;")
+				.bind(identifierType).to("identifierType").fetchAs(String.class)
+				.mappedBy(((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return node.get("identifier").asString();
+				})).all();
+	}
+
 	/**
 	 * Obtain all relations for a given Vertex
 	 *

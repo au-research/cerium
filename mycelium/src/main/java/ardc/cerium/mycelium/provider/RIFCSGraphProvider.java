@@ -27,6 +27,8 @@ public class RIFCSGraphProvider {
 
 	public static final String RIFCS_ID_IDENTIFIER_TYPE = "ro:id";
 
+	public static final String DATASOURCE_ID_IDENTIFIER_TYPE = "ds:id";
+
 	public static final String RELATION_SAME_AS = "isSameAs";
 
 	public static final String RELATION_RELATED_TO = "isRelatedTo";

@@ -3,12 +3,12 @@ package ardc.cerium.mycelium.service;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
-import ardc.cerium.mycelium.model.Graph;
-import ardc.cerium.mycelium.model.RegistryObject;
-import ardc.cerium.mycelium.model.Relationship;
-import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
+import ardc.cerium.mycelium.rifcs.model.datasource.settings.PrimaryKeySetting;
+import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.task.DeleteTask;
 import ardc.cerium.mycelium.task.ImportTask;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -133,4 +134,95 @@ public class MyceliumService {
 		return new PageImpl<>(result, pageable, total);
 	}
 
+	public void importDataSource(DataSource dto) {
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dto.getId(), RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+
+		// dataSourceVertex doesn't exist, create it
+		if (dataSourceVertex == null) {
+			dataSourceVertex = new Vertex(dto.getId(), RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+			graphService.ingestVertex(dataSourceVertex);
+		}
+
+		// update the edges according to primaryKeySettings from dto
+		// delete all edges from the vertex
+		PrimaryKeySetting primaryKeySetting = dto.getPrimaryKeySetting();
+		if (primaryKeySetting.isEnabled()) {
+			Graph graph = new Graph();
+			graph.addVertex(dataSourceVertex);
+			Vertex finalDataSourceVertex1 = dataSourceVertex;
+			primaryKeySetting.getPrimaryKeys().forEach(primaryKey -> {
+				Vertex primaryKeyVertex = new Vertex(primaryKey.getKey(), RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+				graph.addVertex(primaryKeyVertex);
+				if (primaryKey.getRelationTypeFromCollection() != null) {
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "collection_"+primaryKey.getRelationTypeFromCollection()));
+				}
+				if (primaryKey.getRelationTypeFromParty() != null) {
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "party_"+primaryKey.getRelationTypeFromParty()));
+				}
+				if (primaryKey.getRelationTypeFromActivity() != null) {
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "activity_"+primaryKey.getRelationTypeFromActivity()));
+				}
+				if (primaryKey.getRelationTypeFromService() != null) {
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "service_"+primaryKey.getRelationTypeFromService()));
+				}
+			});
+			graphService.ingestGraph(graph);
+		}
+	}
+
+	public List<DataSource> getDataSources() {
+		Collection<String>dataSourceIds = graphService.getVertexIdentifiersByType(RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		return dataSourceIds.stream().map(this::getDataSourceById).collect(Collectors.toList());
+	}
+
+	public DataSource getDataSourceById(String dataSourceId) {
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+
+		DataSource dataSource = new DataSource();
+		dataSource.setId(dataSourceVertex.getIdentifier());
+
+		PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
+		Collection<Relationship> primaryKeySettings = graphService.getDirectOutboundRelationships(dataSourceVertex.getIdentifier(), dataSourceVertex.getIdentifierType());
+		if (primaryKeySettings.size() == 0) {
+			primaryKeySetting.setEnabled(false);
+		} else {
+			primaryKeySettings.forEach(relationship -> {
+				String toKey = relationship.getTo().getIdentifier();
+				PrimaryKey primaryKey = primaryKeySetting.getPrimaryKeys().stream()
+						.filter(setting -> setting.getKey().equals(toKey)).findFirst().orElse(null);
+				if (primaryKey == null) {
+					// does not exist
+					PrimaryKey pk = new PrimaryKey();
+					pk.setKey(toKey);
+					relationship.getRelations().forEach(relation -> {
+						String relationType = relation.getType();
+						String[] bits = relationType.split("_");
+						switch (bits[0]) {
+							case "collection":
+								pk.setRelationTypeFromCollection(bits[1]);
+								break;
+							case "party":
+								pk.setRelationTypeFromParty(bits[1]);
+								break;
+							case "service":
+								pk.setRelationTypeFromService(bits[1]);
+								break;
+							case "activity":
+								pk.setRelationTypeFromActivity(bits[1]);
+								break;
+						}
+					});
+					primaryKeySetting.getPrimaryKeys().add(pk);
+				}
+			});
+		}
+
+		dataSource.setPrimaryKeySetting(primaryKeySetting);
+		return dataSource;
+	}
+
+	public void deleteDataSourceById(String dataSourceId) {
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		graphService.deleteVertex(dataSourceVertex);
+	}
 }

@@ -134,23 +134,31 @@ public class MyceliumService {
 		return new PageImpl<>(result, pageable, total);
 	}
 
+	/**
+	 * Import a DataSource into the Graph
+	 *
+	 * @param dto the {@link DataSource} deserialized
+	 */
 	public void importDataSource(DataSource dto) {
 		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dto.getId(), RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 
 		// dataSourceVertex doesn't exist, create it
 		if (dataSourceVertex == null) {
+			log.debug("Creating DataSource[id={}]", dto.getId());
 			dataSourceVertex = new Vertex(dto.getId(), RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+			dataSourceVertex.addLabel(Vertex.Label.DataSource);
+			dataSourceVertex.setTitle(dto.getTitle());
 			graphService.ingestVertex(dataSourceVertex);
 		}
 
 		// update the edges according to primaryKeySettings from dto
-		// delete all edges from the vertex
 		PrimaryKeySetting primaryKeySetting = dto.getPrimaryKeySetting();
 		if (primaryKeySetting.isEnabled()) {
 			Graph graph = new Graph();
 			graph.addVertex(dataSourceVertex);
 			Vertex finalDataSourceVertex1 = dataSourceVertex;
 			primaryKeySetting.getPrimaryKeys().forEach(primaryKey -> {
+				// the edge to add in will be in the format of $class_$relationType (e.g. collection_isFundedBy)
 				Vertex primaryKeyVertex = new Vertex(primaryKey.getKey(), RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 				graph.addVertex(primaryKeyVertex);
 				if (primaryKey.getRelationTypeFromCollection() != null) {
@@ -170,31 +178,53 @@ public class MyceliumService {
 		}
 	}
 
+	/**
+	 * Get all DataSource
+	 *
+	 * @return a {@link List} of {@link DataSource}
+	 */
 	public List<DataSource> getDataSources() {
 		Collection<String>dataSourceIds = graphService.getVertexIdentifiersByType(RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		return dataSourceIds.stream().map(this::getDataSourceById).collect(Collectors.toList());
 	}
 
+	/**
+	 * Obtain a {@link DataSource} instance
+	 *
+	 * @param dataSourceId the data source id
+	 * @return {@link DataSource} populated with properties
+	 */
 	public DataSource getDataSourceById(String dataSourceId) {
-		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 
+		// try to obtain a vertex
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		if (dataSourceVertex == null) {
+			return null;
+		}
+
+		// convert the obtained Vertex to a DataSource instance, could be done as a Mapper instead
 		DataSource dataSource = new DataSource();
 		dataSource.setId(dataSourceVertex.getIdentifier());
+		dataSource.setTitle(dataSourceVertex.getTitle());
 
+		// convert outbound relationships from the Vertex to PrimaryKeySetting
 		PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
 		Collection<Relationship> primaryKeySettings = graphService.getDirectOutboundRelationships(dataSourceVertex.getIdentifier(), dataSourceVertex.getIdentifierType());
 		if (primaryKeySettings.size() == 0) {
 			primaryKeySetting.setEnabled(false);
 		} else {
 			primaryKeySettings.forEach(relationship -> {
+				// no need to loop through primaryKey since the graphService.getDirectOutboundRelationships
+				// would group them into Relationship
+				// (DataSource)-[Relationship*edge]->(pk)
 				String toKey = relationship.getTo().getIdentifier();
 				PrimaryKey primaryKey = primaryKeySetting.getPrimaryKeys().stream()
 						.filter(setting -> setting.getKey().equals(toKey)).findFirst().orElse(null);
 				if (primaryKey == null) {
-					// does not exist
 					PrimaryKey pk = new PrimaryKey();
 					pk.setKey(toKey);
 					relationship.getRelations().forEach(relation -> {
+						// relation is in $class_$type format (e.g. collection_isFundedBy)
 						String relationType = relation.getType();
 						String[] bits = relationType.split("_");
 						switch (bits[0]) {
@@ -221,6 +251,11 @@ public class MyceliumService {
 		return dataSource;
 	}
 
+	/**
+	 * Remove the DataSource from the Graph
+	 *
+	 * @param dataSourceId the data source id
+	 */
 	public void deleteDataSourceById(String dataSourceId) {
 		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		graphService.deleteVertex(dataSourceVertex);

@@ -126,7 +126,7 @@ public class MyceliumSideEffectService {
 	public List<SideEffect> detectChanges(DataSource before, DataSource after) {
 		List<SideEffect> sideEffects = new ArrayList<>();
 
-		if (PrimaryKeyAdditionExecutor.detect(before, after)) {
+		if (PrimaryKeyAdditionExecutor.detect(before, after, myceliumService)) {
 			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(before, after);
 			differences.forEach(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(before.getId(), pk)));
 		}

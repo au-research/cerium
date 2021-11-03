@@ -9,6 +9,11 @@ import java.util.stream.Collectors;
 public class DataSourceUtil {
 
     public static List<PrimaryKey> getPrimaryKeyDifferences(DataSource from, DataSource to) {
+
+        if (from == null && to.getPrimaryKeySetting().getPrimaryKeys().size() > 0) {
+            return to.getPrimaryKeySetting().getPrimaryKeys();
+        }
+
         return to.getPrimaryKeySetting().getPrimaryKeys().stream()
                 .filter(pk -> !from.getPrimaryKeySetting().getPrimaryKeys().contains(pk))
                 .collect(Collectors.toList());

@@ -108,6 +108,10 @@ public class MyceliumService {
 		return graphService.getVertexByIdentifier(registryObjectId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 	}
 
+	public Vertex getRegistryObjectVertexFromKey(String key) {
+		return graphService.getRegistryObjectByKey(key);
+	}
+
 	public void deleteRecord(String recordId) throws Exception {
 		Vertex vertex = graphService.getVertexByIdentifier(recordId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (vertex == null) {

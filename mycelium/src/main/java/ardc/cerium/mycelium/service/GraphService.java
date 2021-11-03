@@ -759,12 +759,27 @@ public class GraphService {
 
 	/**
 	 * Resolve 'ro:key' Vertex to the RegistryObject Vertex
+	 * todo refactor to use getRegistryObjectByKey instead
 	 * @param keyVertex the "ro:key" Vertex
 	 * @return the {@link Vertex} resolved, or null if not found
 	 */
 	public Vertex getRegistryObjectByKeyVertex(Vertex keyVertex) {
 		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject) RETURN n;";
 		return neo4jClient.query(cypherQuery).bind(keyVertex.getIdentifier()).to("identifier").fetchAs(Vertex.class)
+				.mappedBy((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return vertexMapper.getConverter().convert(node);
+				}).one().orElse(null);
+	}
+
+	/**
+	 * Resolve 'ro:key' Vertex to the RegistryObject Vertex
+	 * @param key the "ro:key" as string
+	 * @return the {@link Vertex} resolved, or null if not found
+	 */
+	public Vertex getRegistryObjectByKey(String key) {
+		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject) RETURN n;";
+		return neo4jClient.query(cypherQuery).bind(key).to("identifier").fetchAs(Vertex.class)
 				.mappedBy((typeSystem, record) -> {
 					Node node = record.get("n").asNode();
 					return vertexMapper.getConverter().convert(node);

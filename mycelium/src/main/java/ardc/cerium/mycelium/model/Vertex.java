@@ -37,9 +37,6 @@ public class Vertex {
 	@Property("url")
 	private String url;
 
-	@Property("slug")
-	private String slug;
-
 	@Property("title")
 	private String title;
 
@@ -48,6 +45,9 @@ public class Vertex {
 
 	@Property("group")
 	private String group;
+
+	@Property("dataSourceId")
+	private String dataSourceId;
 
 	@Id
 	@GeneratedValue

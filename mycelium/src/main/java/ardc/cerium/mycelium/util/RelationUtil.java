@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.util;
 
+import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.rifcs.RecordState;
@@ -94,6 +95,18 @@ public class RelationUtil {
         }
 
         return false;
+    }
+
+    public static EdgeDTO getEdgeDTO(Edge edge) {
+        EdgeDTO dto = new EdgeDTO();
+        dto.setType(edge.getType());
+        dto.setInternal(edge.isInternal());
+        dto.setPublic(edge.isPublic());
+        dto.setOrigin(edge.getOrigin());
+        dto.setReverse(edge.isReverse());
+        dto.setDescription(edge.getDescription());
+        dto.setUrl(edge.getUrl());
+        return dto;
     }
 
 

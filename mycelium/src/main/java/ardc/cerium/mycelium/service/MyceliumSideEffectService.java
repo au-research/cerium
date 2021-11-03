@@ -62,7 +62,7 @@ public class MyceliumSideEffectService {
 	}
 
 	@Async
-	public void workQueue(String queueID, Request request) {
+	public void workQueue(String queueID) {
 		log.debug("Start working RQueue[id={}]", queueID);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		while (!queue.isEmpty()) {
@@ -79,6 +79,11 @@ public class MyceliumSideEffectService {
 			executor.handle();
 		}
 		log.info("Finish working RQueue[id={}]", queueID);
+	}
+
+	@Async
+	public void workQueue(String queueID, Request request) {
+		this.workQueue(queueID);
 
 		request.setStatus(Request.Status.COMPLETED);
 		myceliumRequestService.save(request);

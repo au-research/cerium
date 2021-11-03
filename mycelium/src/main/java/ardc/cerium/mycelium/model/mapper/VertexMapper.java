@@ -52,7 +52,9 @@ public class VertexMapper {
 				if (!node.get("listTitle").isNull()) {
 					vertex.setListTitle(node.get("listTitle").asString());
 				}
-
+				if (!node.get("dataSourceId").isNull()) {
+					vertex.setDataSourceId(node.get("dataSourceId").asString());
+				}
 
 				return vertex;
 			}

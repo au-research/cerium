@@ -48,6 +48,6 @@ public class ImportDataSourceTask implements Runnable{
         sideEffects.forEach(sideEffect -> myceliumSideEffectService.addToQueue(queueID, sideEffect));
 
         // todo work the queue asynchronously
-//        myceliumSideEffectService.workQueue(queueID, request);
+        myceliumSideEffectService.workQueue(queueID);
     }
 }

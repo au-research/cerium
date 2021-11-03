@@ -5,11 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
 @EqualsAndHashCode
-public class PrimaryKey {
+public class PrimaryKey implements Serializable {
 
 	private String key;
 

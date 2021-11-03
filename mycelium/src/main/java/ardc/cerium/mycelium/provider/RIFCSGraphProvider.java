@@ -125,7 +125,7 @@ public class RIFCSGraphProvider {
 		originNode.setObjectClass(registryObject.getClassification());
 		originNode.setTitle(registryObject.getTitle());
 		originNode.setUrl(registryObject.getPortalUrl());
-		originNode.setSlug(registryObject.getSlug());
+		originNode.setDataSourceId(registryObject.getDataSource().getId().toString());
 		originNode.setPublic(registryObject.getStatus().equals("PUBLISHED"));
 		originNode.setGroup(registryObject.getGroup());
 		originNode.setListTitle(registryObject.getListTitle());

@@ -23,6 +23,26 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 
 	// @formatter:off
 	@QueryHints(value = {
+			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
+			@QueryHint(name = HINT_CACHEABLE, value = "false"),
+			@QueryHint(name = READ_ONLY, value = "true")
+	})
+	@Query("MATCH (n:RegistryObject {dataSourceId: $dataSourceId}) RETURN n;")
+	Stream<Vertex> streamRegistryObjectByDataSourceId(@Param("dataSourceId") String dataSourceId);
+	// @formatter:on
+
+	// @formatter:off
+	@QueryHints(value = {
+			@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
+			@QueryHint(name = HINT_CACHEABLE, value = "false"),
+			@QueryHint(name = READ_ONLY, value = "true")
+	})
+	@Query("MATCH (n:RegistryObject {dataSourceId: $dataSourceId, objectClass: $objectClass}) RETURN n;")
+	Stream<Vertex> streamRegistryObjectByDataSourceAndClass(@Param("dataSourceId") String dataSourceId, @Param("objectClass") String objectClass);
+	// @formatter:on
+
+	// @formatter:off
+	@QueryHints(value = {
 		@QueryHint(name = HINT_FETCH_SIZE, value = "100"),
 		@QueryHint(name = HINT_CACHEABLE, value = "false"),
 		@QueryHint(name = READ_ONLY, value = "true")

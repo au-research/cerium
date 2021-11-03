@@ -52,23 +52,44 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		// this primaryKey should be added to all RegistryObject belongs to this
 		// DataSource
 		GraphService graphService = getMyceliumService().getGraphService();
+		MyceliumIndexingService myceliumIndexingService = getMyceliumService().getMyceliumIndexingService();
 		PrimaryKey pk = sideEffect.getPrimaryKey();
 		String toKey = pk.getKey();
-
+		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
 		DataSource dataSource = getMyceliumService().getDataSourceById(sideEffect.getDataSourceId());
 
 		// insert the PK edges to neo4j and SOLR
 		if (pk.getRelationTypeFromCollection() != null) {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"collection")) {
-				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromCollection()));
+				stream.forEach(from -> {
+					String relationType = pk.getRelationTypeFromCollection();
+					this.insertPKEdges(from, toKey, relationType);
+					if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)){
+						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
+							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+						}
+					}
+				});
 			}
 		}
 
 		if (pk.getRelationTypeFromActivity() != null) {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"activity")) {
-				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromActivity()));
+				stream.forEach(from -> {
+					String relationType = pk.getRelationTypeFromActivity();
+					this.insertPKEdges(from, toKey, relationType);
+					if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)){
+						try (Stream<Vertex> childStream = graphService.streamChildActivity(from)) {
+							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+						}
+						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
+							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+						}
+
+					}
+				});
 			}
 		}
 
@@ -81,8 +102,14 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 
 		if (pk.getRelationTypeFromParty() != null) {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
-					"activity")) {
-				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromParty()));
+					"party")) {
+				stream.forEach(from -> {
+					String relationType = pk.getRelationTypeFromParty();
+					this.insertPKEdges(from, toKey, relationType);
+					if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)){
+						myceliumIndexingService.indexGrantsNetworkRelationships(from);
+					}
+				});
 			}
 		}
 
@@ -91,12 +118,12 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 
 	private void insertPKEdges(Vertex from, String toKey, String relationType) {
 
-		Vertex keyVertex = getMyceliumService().getGraphService().getVertexByIdentifier(toKey,
-				RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
-		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
-
 		GraphService graphService = getMyceliumService().getGraphService();
 		MyceliumIndexingService indexingService = getMyceliumService().getIndexingService();
+
+		Vertex keyVertex = graphService.getVertexByIdentifier(toKey,
+				RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
 
 		// insert into Neo4j
 		Edge edge = new Edge(from, keyVertex, relationType);

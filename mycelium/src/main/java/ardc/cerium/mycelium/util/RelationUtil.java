@@ -54,44 +54,54 @@ public class RelationUtil {
             return false;
         }
 
-        // collection isPartOf collection
-        // collection hasPart collection
+        return relationTypes.stream().anyMatch(relationType -> isGrantsNetwork(fromClass, toClass, relationType));
+    }
+
+	/**
+     * Helper function to determine if a single relation between 2 RegistryObject is considered a GrantsNetwork
+     *
+	 * @param fromClass the string of the 'from' class
+	 * @param toClass the string of the 'to' class
+	 * @param relationType the relationType string
+	 * @return true if the relation is considered as part of a GrantsNetwork
+	 */
+    public static boolean isGrantsNetwork(String fromClass, String toClass, String relationType) {
         if (fromClass.equals("collection") && toClass.equals("collection")) {
-            return relationTypes.contains("isPartOf") || relationTypes.contains("hasPart");
+            return relationType.equals("isPartOf") || relationType.equals("hasPart");
         }
 
         // collection isProducedBy activity
         // collection isOutputOf activity
         if (fromClass.equals("collection") && toClass.equals("activity")) {
-            return relationTypes.contains("isProducedBy") || relationTypes.contains("isOutputOf");
+            return relationType.equals("isProducedBy") || relationType.equals("isOutputOf");
         }
 
         // collection isFundedBy party
         if (fromClass.equals("collection") && toClass.equals("party")) {
-            return relationTypes.contains("isFundedBy");
+            return relationType.equals("isFundedBy");
         }
 
         // activity produces collection
         // activity hasOutput collection
         if (fromClass.equals("activity") && toClass.equals("collection")) {
-            return relationTypes.contains("produces") || relationTypes.contains("hasOutput");
+            return relationType.equals("produces") || relationType.equals("hasOutput");
         }
 
         // activity isPartOf activity
         // activity hasPart activity
         if (fromClass.equals("activity") && toClass.equals("activity")) {
-            return relationTypes.contains("isPartOf") || relationTypes.contains("hasPart");
+            return relationType.equals("isPartOf") || relationType.equals("hasPart");
         }
 
         // activity isFundedBy party
         if (fromClass.equals("activity") && toClass.equals("party")) {
-            return relationTypes.contains("isFundedBy");
+            return relationType.equals("isFundedBy");
         }
 
         // party isFunderOf collection
         // party isFunderOf activity
         if (fromClass.equals("party") && (toClass.equals("collection") || toClass.equals("activity"))) {
-            return relationTypes.contains("isFunderOf");
+            return relationType.equals("isFunderOf");
         }
 
         return false;

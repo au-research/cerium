@@ -32,12 +32,24 @@ class RelationUtilTest {
         relationship.setRelations(List.of(c1IsPartOfC2));
 
         assertThat(RelationUtil.isGrantsNetwork(relationship)).isTrue();
-
-        // c1 hasAssociationWith c2 is not a grants network relation
-        EdgeDTO c1HasAssociationWithC2 = new EdgeDTO();
-        c1IsPartOfC2.setType("hasAssociationWith");
-        relationship.setRelations(List.of(c1HasAssociationWithC2));
-        assertThat(RelationUtil.isGrantsNetwork(relationship)).isFalse();
     }
 
+    @Test
+	void isGrantsNetwork_not() {
+        Vertex c1 = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+        c1.setObjectClass("collection");
+        Vertex c2 = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+        c2.setObjectClass("collection");
+
+        Relationship relationship = new Relationship();
+        relationship.setFrom(c1);
+        relationship.setTo(c2);
+
+        EdgeDTO c1HasAssocC2 = new EdgeDTO();
+        c1HasAssocC2.setType("hasAssociationWith");
+        relationship.setRelations(List.of(c1HasAssocC2));
+
+        // c1 hasAssociationWith c2 is not a grants network relation
+        assertThat(RelationUtil.isGrantsNetwork(relationship)).isFalse();
+	}
 }

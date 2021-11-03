@@ -14,6 +14,6 @@ public class DataSource {
 
 	private String title;
 
-	private PrimaryKeySetting primaryKeySetting;
+	private PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
 
 }

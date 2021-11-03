@@ -19,6 +19,9 @@ public class ExecutorFactory {
 			return new GrantsNetworkInheritenceExecutor((GrantsNetworkInheritenceSideEffect) sideEffect,
 					myceliumService);
 		}
+		else if (sideEffect instanceof PrimaryKeyAdditionSideEffect) {
+			return new PrimaryKeyAdditionExecutor((PrimaryKeyAdditionSideEffect) sideEffect, myceliumService);
+		}
 
 		return null;
 	}

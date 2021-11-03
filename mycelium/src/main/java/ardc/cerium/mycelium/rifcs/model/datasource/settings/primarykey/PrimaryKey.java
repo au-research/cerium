@@ -1,12 +1,14 @@
 package ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
+@EqualsAndHashCode
 public class PrimaryKey {
 
 	private String key;

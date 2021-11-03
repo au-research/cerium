@@ -40,7 +40,7 @@ public class MyceliumServiceController {
 	 * @return the {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/import-record")
-	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam String sideEffectRequestID) {
+	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam(required=false) String sideEffectRequestID) {
 		log.info("Importing Record sideEffectRequestId={}", sideEffectRequestID);
 		log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
 

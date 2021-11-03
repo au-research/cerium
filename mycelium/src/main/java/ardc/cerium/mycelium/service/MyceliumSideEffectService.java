@@ -5,6 +5,9 @@ import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.*;
 import ardc.cerium.mycelium.rifcs.executor.*;
+import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
+import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
+import ardc.cerium.mycelium.util.DataSourceUtil;
 import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +119,18 @@ public class MyceliumSideEffectService {
 			sideEffects.add(new GrantsNetworkInheritenceSideEffect(after.getRegistryObjectId(),
 					after.getRegistryObjectClass()));
 		}
+
+		return sideEffects;
+	}
+
+	public List<SideEffect> detectChanges(DataSource before, DataSource after) {
+		List<SideEffect> sideEffects = new ArrayList<>();
+
+		if (PrimaryKeyAdditionExecutor.detect(before, after)) {
+			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(before, after);
+			differences.forEach(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(before.getId(), pk)));
+		}
+
 
 		return sideEffects;
 	}

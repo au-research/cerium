@@ -1,7 +1,6 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
-import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.*;
@@ -9,7 +8,6 @@ import ardc.cerium.mycelium.rifcs.executor.*;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.util.DataSourceUtil;
-import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RQueue;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -118,7 +115,8 @@ public class MyceliumSideEffectService {
 		}
 
 		if (before != null && GrantsNetworkForgoExecutor.detect(before, after, myceliumService)) {
-			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId(), before.getRegistryObjectKey(), before.getRegistryObjectClass()));
+			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId(),
+					before.getRegistryObjectKey(), before.getRegistryObjectClass()));
 		}
 
 		if (GrantsNetworkInheritenceExecutor.detect(before, after, myceliumService)) {
@@ -136,11 +134,27 @@ public class MyceliumSideEffectService {
 			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(after, before);
 			differences.forEach(pk -> {
 				Vertex roVertex = myceliumService.getRegistryObjectVertexFromKey(pk.getKey());
-				if (roVertex != null) {
-					String registryObjectId = roVertex.getIdentifier();
-					SideEffect effect = new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(), registryObjectId);
-					sideEffects.add(effect);
+				if (roVertex == null) {
+					return;
 				}
+
+				if (pk.getRelationTypeFromCollection() != null) {
+					sideEffects.add(new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(),
+							roVertex.getIdentifier(), roVertex.getObjectClass(), pk.getRelationTypeFromCollection()));
+				}
+				if (pk.getRelationTypeFromService() != null) {
+					sideEffects.add(new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(),
+							roVertex.getIdentifier(), roVertex.getObjectClass(), pk.getRelationTypeFromService()));
+				}
+				if (pk.getRelationTypeFromParty() != null) {
+					sideEffects.add(new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(),
+							roVertex.getIdentifier(), roVertex.getObjectClass(), pk.getRelationTypeFromParty()));
+				}
+				if (pk.getRelationTypeFromActivity() != null) {
+					sideEffects.add(new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(),
+							roVertex.getIdentifier(), roVertex.getObjectClass(), pk.getRelationTypeFromActivity()));
+				}
+
 			});
 		}
 

@@ -1,6 +1,5 @@
 package ardc.cerium.mycelium.rifcs.effect;
 
-import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,5 +12,9 @@ public class PrimaryKeyDeletionSideEffect extends SideEffect {
 	private final String key;
 
 	private final String registryObjectId;
+
+	private final String registryObjectClass;
+
+	private final String relationType;
 
 }

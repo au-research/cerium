@@ -1,13 +1,18 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.effect.PrimaryKeyDeletionSideEffect;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
+import ardc.cerium.mycelium.service.GraphService;
+import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.util.DataSourceUtil;
+import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 public class PrimaryKeyDeletionExecutor extends Executor {
@@ -36,7 +41,27 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 		String registryObjectId = sideEffect.getRegistryObjectId();
 		getMyceliumService().getMyceliumIndexingService().deletePrimaryKeyEdges(registryObjectId);
 
-		// todo handle deletion of extra edges in SOLR when the relationType deleted is a GrantsNetwork
+		// handle deletion of extra edges in SOLR when the relationType deleted is a GrantsNetwork
+		String toClass = sideEffect.getRegistryObjectClass();
+		String relationType = sideEffect.getRelationType();
+		String dataSourceId = sideEffect.getDataSourceId();
+		GraphService graphService = getMyceliumService().getGraphService();
+		MyceliumIndexingService myceliumIndexingService = getMyceliumService().getMyceliumIndexingService();
+		if (RelationUtil.isGrantsNetwork("collection", toClass, relationType)) {
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSourceId, "collection")) {
+				stream.forEach(myceliumIndexingService::regenGrantsNetworkRelationships);
+			}
+		}
+		if (RelationUtil.isGrantsNetwork("activity", toClass, relationType)) {
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSourceId, "activity")) {
+				stream.forEach(myceliumIndexingService::regenGrantsNetworkRelationships);
+			}
+		}
+		if (RelationUtil.isGrantsNetwork("party", toClass, relationType)) {
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSourceId, "party")) {
+				stream.forEach(myceliumIndexingService::regenGrantsNetworkRelationships);
+			}
+		}
 	}
 
 }

@@ -22,6 +22,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof PrimaryKeyAdditionSideEffect) {
 			return new PrimaryKeyAdditionExecutor((PrimaryKeyAdditionSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof PrimaryKeyDeletionSideEffect) {
+			return new PrimaryKeyDeletionExecutor((PrimaryKeyDeletionSideEffect) sideEffect, myceliumService);
+		}
 
 		return null;
 	}

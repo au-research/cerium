@@ -859,4 +859,10 @@ public class GraphService {
 		return vertexRepository.streamRegistryObjectByDataSourceAndClass(dataSourceId, objectClass);
 	}
 
+	public void deletePrimaryKeyEdge(String key) {
+		log.debug("Deleting PrimaryLink edges Vertex[key={}]", key);
+		String cypherQuery = "MATCH (n:Vertex {identifier: $key, identifierType: 'ro:key'})-[r]-() WHERE r.origin = $origin DELETE r;";
+		neo4jClient.query(cypherQuery).bind(key).to("key").bind(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK).to("origin").run();
+	}
+
 }

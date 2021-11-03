@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.model.Relationship;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.*;
 import ardc.cerium.mycelium.rifcs.executor.*;
@@ -131,11 +132,22 @@ public class MyceliumSideEffectService {
 	public List<SideEffect> detectChanges(DataSource before, DataSource after) {
 		List<SideEffect> sideEffects = new ArrayList<>();
 
+		if (PrimaryKeyDeletionExecutor.detect(before, after, myceliumService)) {
+			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(after, before);
+			differences.forEach(pk -> {
+				Vertex roVertex = myceliumService.getRegistryObjectVertexFromKey(pk.getKey());
+				if (roVertex != null) {
+					String registryObjectId = roVertex.getIdentifier();
+					SideEffect effect = new PrimaryKeyDeletionSideEffect(before.getId(), pk.getKey(), registryObjectId);
+					sideEffects.add(effect);
+				}
+			});
+		}
+
 		if (PrimaryKeyAdditionExecutor.detect(before, after, myceliumService)) {
 			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(before, after);
 			differences.forEach(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(before.getId(), pk)));
 		}
-
 
 		return sideEffects;
 	}

@@ -6,6 +6,7 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.solr.EdgeDocument;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RELATION_RELATED_TO;
-import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.*;
 
 @Slf4j
 @Service
@@ -133,6 +133,56 @@ public class MyceliumIndexingService {
 					.filter(relation -> relation.getToIdentifier() != null)
 					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK)
 							&& relation.getToIdentifier().equals(from.getIdentifier()))
+					.collect(Collectors.toList());
+			if (updatedEdges.size() > 0) {
+				doc.setRelations(updatedEdges);
+				relationshipDocumentRepository.save(doc);
+			}
+			else {
+				relationshipDocumentRepository.delete(doc);
+			}
+		}
+		solrTemplate.commit("relationships");
+	}
+
+	public void deletePrimaryKeyEdges(String registryObjectId) {
+		log.debug("Deleting PrimaryKey Edges from Vertex[id={}]", registryObjectId);
+		Cursor<RelationshipDocument> cursor = cursorFor(new Criteria("from_id").is(registryObjectId));
+		while (cursor.hasNext()) {
+			RelationshipDocument doc = cursor.next();
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
+				relationshipDocumentRepository.delete(doc);
+				continue;
+			}
+			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK))
+					.filter(relation -> relation.getFromId() != null)
+					.filter(relation -> relation.getFromId().equals(registryObjectId))
+					.collect(Collectors.toList());
+			if (updatedEdges.size() > 0) {
+				doc.setRelations(updatedEdges);
+				relationshipDocumentRepository.save(doc);
+			}
+			else {
+				relationshipDocumentRepository.delete(doc);
+			}
+		}
+		solrTemplate.commit("relationships");
+
+		log.debug("Deleting PrimaryKey Edges to Vertex[id={}]", registryObjectId);
+		Cursor<RelationshipDocument> toCursor = cursorFor(new Criteria("to_identifier").is(registryObjectId));
+		while (toCursor.hasNext()) {
+			RelationshipDocument doc = toCursor.next();
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
+				relationshipDocumentRepository.delete(doc);
+				continue;
+			}
+			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> relation.getToIdentifier() != null)
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK)
+							&& relation.getToIdentifier().equals(registryObjectId))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);

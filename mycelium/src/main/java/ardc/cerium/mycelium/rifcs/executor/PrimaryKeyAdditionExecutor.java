@@ -10,7 +10,6 @@ import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKe
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
-import ardc.cerium.mycelium.service.RelationLookupService;
 import ardc.cerium.mycelium.util.DataSourceUtil;
 import ardc.cerium.mycelium.util.RelationUtil;
 
@@ -54,47 +53,53 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		// DataSource
 		GraphService graphService = getMyceliumService().getGraphService();
 		PrimaryKey pk = sideEffect.getPrimaryKey();
-		Vertex to = getMyceliumService().getRegistryObjectVertexFromKey(pk.getKey());
+		String toKey = pk.getKey();
+
 		DataSource dataSource = getMyceliumService().getDataSourceById(sideEffect.getDataSourceId());
 
 		// insert the PK edges to neo4j and SOLR
 		if (pk.getRelationTypeFromCollection() != null) {
-			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(
-					dataSource.getId(), "collection")) {
-				stream.forEach(from -> this.insertPKEdges(from, to, pk.getRelationTypeFromCollection()));
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+					"collection")) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromCollection()));
 			}
 		}
 
 		if (pk.getRelationTypeFromActivity() != null) {
-			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(
-					dataSource.getId(), "activity")) {
-				stream.forEach(from -> this.insertPKEdges(from, to, pk.getRelationTypeFromActivity()));
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+					"activity")) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromActivity()));
 			}
 		}
 
 		if (pk.getRelationTypeFromService() != null) {
-			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(
-					dataSource.getId(), "service")) {
-				stream.forEach(from -> this.insertPKEdges(from, to, pk.getRelationTypeFromService()));
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+					"service")) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromService()));
 			}
 		}
 
 		if (pk.getRelationTypeFromParty() != null) {
-			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(
-					dataSource.getId(), "activity")) {
-				stream.forEach(from -> this.insertPKEdges(from, to, pk.getRelationTypeFromParty()));
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+					"activity")) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromParty()));
 			}
 		}
 
 		// todo handle GrantsNetwork if the PrimaryKey relation is a GrantsNetwork edge
 	}
 
-	private void insertPKEdges(Vertex from, Vertex to, String relationType) {
+	private void insertPKEdges(Vertex from, String toKey, String relationType) {
+
+		Vertex keyVertex = getMyceliumService().getGraphService().getVertexByIdentifier(toKey,
+				RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
+
 		GraphService graphService = getMyceliumService().getGraphService();
 		MyceliumIndexingService indexingService = getMyceliumService().getIndexingService();
 
 		// insert into Neo4j
-		Edge edge = new Edge(from, to, relationType);
+		Edge edge = new Edge(from, keyVertex, relationType);
 		edge.setOrigin(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK);
 		Edge reversedEdge = RIFCSGraphProvider.getReversedEdge(edge);
 		graphService.ingestEdge(edge);
@@ -103,8 +108,8 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		// index in SOLR
 		EdgeDTO dto = RelationUtil.getEdgeDTO(edge);
 		EdgeDTO reversedDTO = RelationUtil.getEdgeDTO(reversedEdge);
-		indexingService.indexRelation(from, to, List.of(dto));
-		indexingService.indexRelation(to, from, List.of(reversedDTO));
+		indexingService.indexRelation(from, roVertex, List.of(dto));
+		indexingService.indexRelation(roVertex, from, List.of(reversedDTO));
 	}
 
 }

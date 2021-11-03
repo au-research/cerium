@@ -30,16 +30,4 @@ public class RDAHarvestController {
 		return ResponseEntity.ok("Done");
 	}
 
-	@GetMapping("/test")
-	public ResponseEntity<?> test() {
-
-		try (Stream<Vertex> stream = myceliumService.getGraphService().streamRegistryObjectFromDataSource("1")) {
-			stream.forEach(ro -> {
-				log.info("RegistryObject[id={}, type={}]", ro.getIdentifier(), ro.getIdentifierType());
-			});
-		}
-
-		return ResponseEntity.ok("Done");
-	}
-
 }

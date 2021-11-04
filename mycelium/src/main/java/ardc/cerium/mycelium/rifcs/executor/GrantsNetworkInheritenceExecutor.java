@@ -49,18 +49,40 @@ public class GrantsNetworkInheritenceExecutor extends Executor {
 
 		Vertex vertex = myceliumService.getVertexFromRegistryObjectId(sideEffect.getRegistryObjectId());
 
-		if (registryObjectClass.equals("collection")) {
-			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
-				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
-			}
-		}
-		else if (registryObjectClass.equals("activity")) {
-			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildActivity(vertex)) {
-				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
-			}
-			try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
-				stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
-			}
+		switch (registryObjectClass) {
+			case "collection":
+				myceliumIndexingService.indexImplicitLinksForCollection(vertex);
+				try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
+					stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+				}
+				break;
+			case "activity":
+				myceliumIndexingService.indexImplicitLinksForActivity(vertex);
+
+				// going down the tree
+				try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildActivity(vertex)) {
+					stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+				}
+				try (Stream<Vertex> stream = myceliumService.getGraphService().streamChildCollection(vertex)) {
+					stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+				}
+
+				// going up the tree and then down
+				try (Stream<Vertex> stream = myceliumService.getGraphService().streamParentActivity(vertex)) {
+					stream.forEach(parentActivity -> {
+						myceliumIndexingService.indexGrantsNetworkRelationships(parentActivity);
+						try (Stream<Vertex> parentsCollectionChildrenStream = myceliumService.getGraphService()
+								.streamChildCollection(parentActivity)) {
+							parentsCollectionChildrenStream
+									.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+						}
+					});
+				}
+
+				break;
+			case "party":
+				myceliumIndexingService.indexImplicitLinksForParty(vertex);
+				break;
 		}
 	}
 

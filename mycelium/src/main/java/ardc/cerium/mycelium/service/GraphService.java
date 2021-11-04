@@ -617,7 +617,7 @@ public class GraphService {
 				});
 			}
 			else if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)
-					&& relationship.getRelations().stream()
+					&& ! relationship.getRelations().stream()
 							.anyMatch(relation -> relation.getType().equals(RIFCSGraphProvider.RELATION_SAME_AS))) {
 				// does not resolve to registryObject it's a relatedInfo relation
 				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");

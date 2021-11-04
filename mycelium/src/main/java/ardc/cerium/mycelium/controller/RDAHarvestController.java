@@ -36,15 +36,4 @@ public class RDAHarvestController {
 		return ResponseEntity.ok("Done");
 	}
 
-	@GetMapping("/test")
-	public ResponseEntity<?> test() {
-		DataSource ds = myceliumService.getDataSourceById("1");
-		PrimaryKey pk = ds.getPrimaryKeySetting().getPrimaryKeys().stream().filter(p -> p.getKey().equals("pk1")).findFirst().orElse(null);
-		PrimaryKeyAdditionSideEffect sideEffect = new PrimaryKeyAdditionSideEffect("1", pk);
-		Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
-		executor.handle();
-
-		return ResponseEntity.ok("Done");
-	}
-
 }

@@ -9,7 +9,7 @@ import ardc.cerium.mycelium.rifcs.effect.DuplicateInheritanceSideEffect;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
-import ardc.cerium.mycelium.service.RelationLookupService;
+import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -102,15 +102,8 @@ public class DuplicateInheritanceExecutor extends Executor {
 			myDuplicates.forEach(dupe -> {
 				indexingService.indexRelation(dupe, to, outbound.getRelations());
 
-				List<EdgeDTO> reversedEdges = outbound.getRelations().stream().map(edgeDTO -> {
-					EdgeDTO reversedEdge = new EdgeDTO();
-					reversedEdge.setReverse(true);
-					reversedEdge.setOrigin(edgeDTO.getOrigin());
-					reversedEdge.setType(RelationLookupService.getReverse(edgeDTO.getType()));
-					reversedEdge.setInternal(edgeDTO.isInternal());
-					reversedEdge.setPublic(edgeDTO.isPublic());
-					return reversedEdge;
-				}).collect(Collectors.toList());
+				List<EdgeDTO> reversedEdges = outbound.getRelations().stream().map(RelationUtil::getReversed)
+						.collect(Collectors.toList());
 				indexingService.indexRelation(to, dupe, reversedEdges);
 			});
 		});

@@ -6,11 +6,10 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.solr.EdgeDocument;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
-import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
+import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -245,8 +244,12 @@ public class MyceliumIndexingService {
 
 			if (toRelatedObjects.size() > 0) {
 				log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
-				toRelatedObjects
-						.forEach(toRelatedObject -> indexRelation(from, toRelatedObject, relationship.getRelations()));
+				toRelatedObjects.forEach(toRelatedObject -> {
+					indexRelation(from, toRelatedObject, relationship.getRelations());
+					List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
+							.map(RelationUtil::getReversed).collect(Collectors.toList());
+					indexRelation(toRelatedObject, from, reversedRelations);
+				});
 			}
 			else if (! to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
 				// does not resolve to registryObject it's a relatedInfo relation

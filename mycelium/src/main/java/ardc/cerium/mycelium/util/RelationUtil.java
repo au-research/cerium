@@ -4,6 +4,7 @@ import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.service.RelationLookupService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -117,6 +118,18 @@ public class RelationUtil {
         dto.setDescription(edge.getDescription());
         dto.setUrl(edge.getUrl());
         return dto;
+    }
+
+    public static EdgeDTO getReversed(EdgeDTO edgeDTO) {
+        EdgeDTO reversedEdge = new EdgeDTO();
+        reversedEdge.setType(RelationLookupService.getReverse(edgeDTO.getType()));
+        reversedEdge.setReverse(true);
+        reversedEdge.setOrigin(edgeDTO.getOrigin());
+        reversedEdge.setInternal(edgeDTO.isInternal());
+        reversedEdge.setPublic(edgeDTO.isPublic());
+        reversedEdge.setDescription(edgeDTO.getDescription());
+        reversedEdge.setUrl(edgeDTO.getUrl());
+        return reversedEdge;
     }
 
 

@@ -4,6 +4,7 @@ import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.PrimaryKeyAdditionSideEffect;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
@@ -12,11 +13,13 @@ import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.util.DataSourceUtil;
 import ardc.cerium.mycelium.util.RelationUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class PrimaryKeyAdditionExecutor extends Executor {
 
 	private final PrimaryKeyAdditionSideEffect sideEffect;
@@ -47,6 +50,27 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		return differences.size() > 0;
 	}
 
+	/**
+	 * Detect if {@link PrimaryKeyAdditionSideEffect} is applicable
+	 * @param before the before {@link RecordState}
+	 * @param after the after {@link RecordState}
+	 * @param myceliumService the {@link MyceliumService} to access the graph resources
+	 * @return true if the RegistryObject imported should be a PrimaryKey
+	 */
+	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
+
+		// registryObject is created, before has to be null
+		if (before != null) {
+			return false;
+		}
+
+		// check if the after state's data source settings has a primary key equals to
+		// that of the record
+		DataSource dataSource = myceliumService.getDataSourceById(after.getDataSourceId());
+		return dataSource != null && dataSource.getPrimaryKeySetting().getPrimaryKeys().stream()
+				.anyMatch(primaryKey -> primaryKey.getKey().equals(after.getRegistryObjectKey()));
+	}
+
 	@Override
 	public void handle() {
 		// this primaryKey should be added to all RegistryObject belongs to this
@@ -65,7 +89,7 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 				stream.forEach(from -> {
 					String relationType = pk.getRelationTypeFromCollection();
 					this.insertPKEdges(from, toKey, relationType);
-					if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)){
+					if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)) {
 						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
@@ -80,14 +104,13 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 				stream.forEach(from -> {
 					String relationType = pk.getRelationTypeFromActivity();
 					this.insertPKEdges(from, toKey, relationType);
-					if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)){
+					if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)) {
 						try (Stream<Vertex> childStream = graphService.streamChildActivity(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
 						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
-
 					}
 				});
 			}
@@ -101,12 +124,11 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		}
 
 		if (pk.getRelationTypeFromParty() != null) {
-			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
-					"party")) {
+			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(), "party")) {
 				stream.forEach(from -> {
 					String relationType = pk.getRelationTypeFromParty();
 					this.insertPKEdges(from, toKey, relationType);
-					if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)){
+					if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)) {
 						myceliumIndexingService.indexGrantsNetworkRelationships(from);
 					}
 				});
@@ -117,13 +139,18 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 	}
 
 	private void insertPKEdges(Vertex from, String toKey, String relationType) {
-
+		log.debug("Inserting PrimaryKey Edge FromVertex[id={}] ToKey[id={}]", from.getIdentifier(), toKey);
 		GraphService graphService = getMyceliumService().getGraphService();
 		MyceliumIndexingService indexingService = getMyceliumService().getIndexingService();
 
-		Vertex keyVertex = graphService.getVertexByIdentifier(toKey,
-				RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex keyVertex = graphService.getVertexByIdentifier(toKey, RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
+
+		// don't want to insert PK edge from itself to itself
+		if (from.getIdentifier().equals(roVertex.getIdentifier())) {
+			log.debug("Skipping Inserting self PrimaryKey Edge FromVertex[id={}] ToKey[id={}]", from.getIdentifier(), toKey);
+			return;
+		}
 
 		// insert into Neo4j
 		Edge edge = new Edge(from, keyVertex, relationType);

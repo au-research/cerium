@@ -103,6 +103,43 @@ public class MyceliumSideEffectService {
 			return sideEffects;
 		}
 
+		// when a registryObject is deleted, and it happens to be a PrimaryKey in a dataSource
+		if (PrimaryKeyDeletionExecutor.detect(before, after, myceliumService)) {
+			String dataSourceId = before.getDataSourceId();
+			DataSource dataSource = myceliumService.getDataSourceById(dataSourceId);
+			String registryObjectKey = before.getRegistryObjectKey();
+			dataSource.getPrimaryKeySetting().getPrimaryKeys().stream()
+					.filter(primaryKey -> primaryKey.getKey().equals(registryObjectKey)).findFirst()
+					.ifPresent(pk -> {
+						String registryObjectId = before.getRegistryObjectId();
+						String registryObjectClass = before.getRegistryObjectClass();
+						if (pk.getRelationTypeFromActivity() != null) {
+							sideEffects.add(new PrimaryKeyDeletionSideEffect(dataSourceId, registryObjectKey,
+									registryObjectId, registryObjectClass, pk.getRelationTypeFromActivity()));
+						}
+						if (pk.getRelationTypeFromParty() != null) {
+							sideEffects.add(new PrimaryKeyDeletionSideEffect(dataSourceId, registryObjectKey,
+									registryObjectId, registryObjectClass, pk.getRelationTypeFromParty()));
+						}
+						if (pk.getRelationTypeFromService() != null) {
+							sideEffects.add(new PrimaryKeyDeletionSideEffect(dataSourceId, registryObjectKey,
+									registryObjectId, registryObjectClass, pk.getRelationTypeFromService()));
+						}
+						if (pk.getRelationTypeFromCollection() != null) {
+							sideEffects.add(new PrimaryKeyDeletionSideEffect(dataSourceId, registryObjectKey,
+									registryObjectId, registryObjectClass, pk.getRelationTypeFromCollection()));
+						}
+					});
+		}
+
+		// when a registryObject is created, and it happens to be a PrimaryKey in a dataSource
+		if (PrimaryKeyAdditionExecutor.detect(before, after, myceliumService)) {
+			DataSource dataSource = myceliumService.getDataSourceById(after.getDataSourceId());
+			dataSource.getPrimaryKeySetting().getPrimaryKeys().stream()
+					.filter(primaryKey -> primaryKey.getKey().equals(after.getRegistryObjectKey())).findFirst()
+					.ifPresent(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(after.getDataSourceId(), pk)));
+		}
+
 		if (DuplicateInheritanceExecutor.detect(before, after, myceliumService)) {
 			log.debug("Detected DuplicateInheritanceSideEffect");
 			sideEffects.add(new DuplicateInheritanceSideEffect(after.getRegistryObjectId()));

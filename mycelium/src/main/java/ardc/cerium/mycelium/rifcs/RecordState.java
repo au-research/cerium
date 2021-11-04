@@ -24,6 +24,8 @@ public class RecordState {
 
 	private Vertex origin;
 
+	private String dataSourceId;
+
 	private Collection<Vertex> identical = new ArrayList<>();
 
 	private Collection<Relationship> outbounds = new ArrayList<>();

@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.PrimaryKeyDeletionSideEffect;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
@@ -28,6 +29,19 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 		List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(after, before);
 
 		return differences.size() > 0;
+	}
+
+	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
+
+		// registryObject is deleted, after has to be null
+		if (after != null) {
+			return false;
+		}
+
+		// check if the before key is any of the dataSource's primaryKey
+		DataSource dataSource = myceliumService.getDataSourceById(before.getDataSourceId());
+		return dataSource != null && dataSource.getPrimaryKeySetting().getPrimaryKeys().stream()
+				.anyMatch(primaryKey -> primaryKey.getKey().equals(before.getRegistryObjectKey()));
 	}
 
 	@Override

@@ -1,6 +1,12 @@
 package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.rifcs.effect.PrimaryKeyAdditionSideEffect;
+import ardc.cerium.mycelium.rifcs.effect.SideEffect;
+import ardc.cerium.mycelium.rifcs.executor.Executor;
+import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
+import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
+import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.RDAHarvestingService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +33,17 @@ public class RDAHarvestController {
 	@GetMapping("/harvest")
 	public ResponseEntity<?> harvest(@RequestParam String rdaUrl) {
 		rdaHarvestingService.harvest(rdaUrl);
+		return ResponseEntity.ok("Done");
+	}
+
+	@GetMapping("/test")
+	public ResponseEntity<?> test() {
+		DataSource ds = myceliumService.getDataSourceById("1");
+		PrimaryKey pk = ds.getPrimaryKeySetting().getPrimaryKeys().stream().filter(p -> p.getKey().equals("pk1")).findFirst().orElse(null);
+		PrimaryKeyAdditionSideEffect sideEffect = new PrimaryKeyAdditionSideEffect("1", pk);
+		Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
+		executor.handle();
+
 		return ResponseEntity.ok("Done");
 	}
 

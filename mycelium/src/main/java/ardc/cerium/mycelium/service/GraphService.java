@@ -470,6 +470,7 @@ public class GraphService {
 		state.setOrigin(registryObjectVertex);
 		state.setTitle(registryObjectVertex.getTitle());
 		state.setRegistryObjectClass(registryObjectVertex.getObjectClass());
+		state.setDataSourceId(registryObjectVertex.getDataSourceId());
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);
 		state.setIdentical(sameAsNodeCluster);
@@ -777,8 +778,11 @@ public class GraphService {
 	 * @return the {@link Vertex} resolved, or null if not found
 	 */
 	public Vertex getRegistryObjectByKey(String key) {
-		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject) RETURN n;";
-		return neo4jClient.query(cypherQuery).bind(key).to("identifier").fetchAs(Vertex.class)
+		String cypherQuery = "MATCH (k:Vertex {identifier: $identifier, identifierType: $identifierType})-[:isSameAs]-(n:RegistryObject) RETURN n;";
+		return neo4jClient.query(cypherQuery)
+				.bind(key).to("identifier")
+				.bind(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE).to("identifierType")
+				.fetchAs(Vertex.class)
 				.mappedBy((typeSystem, record) -> {
 					Node node = record.get("n").asNode();
 					return vertexMapper.getConverter().convert(node);

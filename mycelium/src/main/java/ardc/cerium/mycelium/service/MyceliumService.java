@@ -5,7 +5,6 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
-import ardc.cerium.mycelium.rifcs.DataSourceState;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.PrimaryKeySetting;
@@ -25,7 +24,6 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -141,11 +139,11 @@ public class MyceliumService {
 
 	/**
 	 * Import a DataSource into the Graph
-	 *
 	 * @param dto the {@link DataSource} deserialized
 	 */
 	public void importDataSource(DataSource dto) {
-		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dto.getId(), RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dto.getId(),
+				RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 
 		// dataSourceVertex doesn't exist, create it
 		if (dataSourceVertex == null) {
@@ -163,20 +161,25 @@ public class MyceliumService {
 			graph.addVertex(dataSourceVertex);
 			Vertex finalDataSourceVertex1 = dataSourceVertex;
 			primaryKeySetting.getPrimaryKeys().forEach(primaryKey -> {
-				// the edge to add in will be in the format of $class_$relationType (e.g. collection_isFundedBy)
+				// the edge to add in will be in the format of $class_$relationType (e.g.
+				// collection_isFundedBy)
 				Vertex primaryKeyVertex = new Vertex(primaryKey.getKey(), RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 				graph.addVertex(primaryKeyVertex);
 				if (primaryKey.getRelationTypeFromCollection() != null) {
-					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "collection_"+primaryKey.getRelationTypeFromCollection()));
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex,
+							"collection_" + primaryKey.getRelationTypeFromCollection()));
 				}
 				if (primaryKey.getRelationTypeFromParty() != null) {
-					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "party_"+primaryKey.getRelationTypeFromParty()));
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex,
+							"party_" + primaryKey.getRelationTypeFromParty()));
 				}
 				if (primaryKey.getRelationTypeFromActivity() != null) {
-					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "activity_"+primaryKey.getRelationTypeFromActivity()));
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex,
+							"activity_" + primaryKey.getRelationTypeFromActivity()));
 				}
 				if (primaryKey.getRelationTypeFromService() != null) {
-					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex, "service_"+primaryKey.getRelationTypeFromService()));
+					graph.addEdge(new Edge(finalDataSourceVertex1, primaryKeyVertex,
+							"service_" + primaryKey.getRelationTypeFromService()));
 				}
 			});
 			graphService.ingestGraph(graph);
@@ -185,41 +188,45 @@ public class MyceliumService {
 
 	/**
 	 * Get all DataSource
-	 *
 	 * @return a {@link List} of {@link DataSource}
 	 */
 	public List<DataSource> getDataSources() {
-		Collection<String>dataSourceIds = graphService.getVertexIdentifiersByType(RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		Collection<String> dataSourceIds = graphService
+				.getVertexIdentifiersByType(RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		return dataSourceIds.stream().map(this::getDataSourceById).collect(Collectors.toList());
 	}
 
 	/**
 	 * Obtain a {@link DataSource} instance
-	 *
 	 * @param dataSourceId the data source id
 	 * @return {@link DataSource} populated with properties
 	 */
 	public DataSource getDataSourceById(String dataSourceId) {
 
 		// try to obtain a vertex
-		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId,
+				RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		if (dataSourceVertex == null) {
 			return null;
 		}
 
-		// convert the obtained Vertex to a DataSource instance, could be done as a Mapper instead
+		// convert the obtained Vertex to a DataSource instance, could be done as a Mapper
+		// instead
 		DataSource dataSource = new DataSource();
 		dataSource.setId(dataSourceVertex.getIdentifier());
 		dataSource.setTitle(dataSourceVertex.getTitle());
 
 		// convert outbound relationships from the Vertex to PrimaryKeySetting
 		PrimaryKeySetting primaryKeySetting = new PrimaryKeySetting();
-		Collection<Relationship> primaryKeySettings = graphService.getDirectOutboundRelationships(dataSourceVertex.getIdentifier(), dataSourceVertex.getIdentifierType());
+		Collection<Relationship> primaryKeySettings = graphService
+				.getDirectOutboundRelationships(dataSourceVertex.getIdentifier(), dataSourceVertex.getIdentifierType());
 		if (primaryKeySettings.size() == 0) {
 			primaryKeySetting.setEnabled(false);
-		} else {
+		}
+		else {
 			primaryKeySettings.forEach(relationship -> {
-				// no need to loop through primaryKey since the graphService.getDirectOutboundRelationships
+				// no need to loop through primaryKey since the
+				// graphService.getDirectOutboundRelationships
 				// would group them into Relationship
 				// (DataSource)-[Relationship*edge]->(pk)
 				String toKey = relationship.getTo().getIdentifier();
@@ -233,18 +240,18 @@ public class MyceliumService {
 						String relationType = relation.getType();
 						String[] bits = relationType.split("_");
 						switch (bits[0]) {
-							case "collection":
-								pk.setRelationTypeFromCollection(bits[1]);
-								break;
-							case "party":
-								pk.setRelationTypeFromParty(bits[1]);
-								break;
-							case "service":
-								pk.setRelationTypeFromService(bits[1]);
-								break;
-							case "activity":
-								pk.setRelationTypeFromActivity(bits[1]);
-								break;
+						case "collection":
+							pk.setRelationTypeFromCollection(bits[1]);
+							break;
+						case "party":
+							pk.setRelationTypeFromParty(bits[1]);
+							break;
+						case "service":
+							pk.setRelationTypeFromService(bits[1]);
+							break;
+						case "activity":
+							pk.setRelationTypeFromActivity(bits[1]);
+							break;
 						}
 					});
 					primaryKeySetting.getPrimaryKeys().add(pk);
@@ -258,11 +265,12 @@ public class MyceliumService {
 
 	/**
 	 * Remove the DataSource from the Graph
-	 *
 	 * @param dataSourceId the data source id
 	 */
 	public void deleteDataSourceById(String dataSourceId) {
-		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId, RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
+		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId,
+				RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		graphService.deleteVertex(dataSourceVertex);
 	}
+
 }

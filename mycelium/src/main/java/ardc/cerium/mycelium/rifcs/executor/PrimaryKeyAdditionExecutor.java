@@ -87,6 +87,7 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"collection")) {
 				stream.forEach(from -> {
+					// index GrantsNetwork for all child collections
 					String relationType = pk.getRelationTypeFromCollection();
 					this.insertPKEdges(from, toKey, relationType);
 					if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)) {
@@ -105,9 +106,11 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 					String relationType = pk.getRelationTypeFromActivity();
 					this.insertPKEdges(from, toKey, relationType);
 					if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)) {
+						// index GrantsNetwork for all child activities
 						try (Stream<Vertex> childStream = graphService.streamChildActivity(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
+						// index GrantsNetwork for all child collections
 						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
@@ -119,6 +122,7 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		if (pk.getRelationTypeFromService() != null) {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"service")) {
+				// no GrantsNetwork affecting services
 				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromService()));
 			}
 		}
@@ -128,6 +132,7 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 				stream.forEach(from -> {
 					String relationType = pk.getRelationTypeFromParty();
 					this.insertPKEdges(from, toKey, relationType);
+					// index GrantsNetwork for all child parties (shouldn't really happen)
 					if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)) {
 						myceliumIndexingService.indexGrantsNetworkRelationships(from);
 					}
@@ -138,6 +143,12 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		// todo handle GrantsNetwork if the PrimaryKey relation is a GrantsNetwork edge
 	}
 
+	/**
+	 * Helper function to insert a Primary Key into Neo4j and SOLR
+	 * @param from the origin RegistryObject {@link Vertex}
+	 * @param toKey the target PrimaryKey
+	 * @param relationType the relationType to the PrimaryKey
+	 */
 	private void insertPKEdges(Vertex from, String toKey, String relationType) {
 		log.debug("Inserting PrimaryKey Edge FromVertex[id={}] ToKey[id={}]", from.getIdentifier(), toKey);
 		GraphService graphService = getMyceliumService().getGraphService();
@@ -148,18 +159,19 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 
 		// don't want to insert PK edge from itself to itself
 		if (from.getIdentifier().equals(roVertex.getIdentifier())) {
-			log.debug("Skipping Inserting self PrimaryKey Edge FromVertex[id={}] ToKey[id={}]", from.getIdentifier(), toKey);
+			log.debug("Skipping Inserting self PrimaryKey Edge FromVertex[id={}] ToKey[id={}]", from.getIdentifier(),
+					toKey);
 			return;
 		}
 
-		// insert into Neo4j
+		// insert into Neo4j + reversed edge
 		Edge edge = new Edge(from, keyVertex, relationType);
 		edge.setOrigin(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK);
 		Edge reversedEdge = RIFCSGraphProvider.getReversedEdge(edge);
 		graphService.ingestEdge(edge);
 		graphService.ingestEdge(reversedEdge);
 
-		// index in SOLR
+		// index in SOLR + reversed edge
 		EdgeDTO dto = RelationUtil.getEdgeDTO(edge);
 		EdgeDTO reversedDTO = RelationUtil.getEdgeDTO(reversedEdge);
 		indexingService.indexRelation(from, roVertex, List.of(dto));

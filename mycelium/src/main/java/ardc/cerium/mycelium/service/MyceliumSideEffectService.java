@@ -82,9 +82,10 @@ public class MyceliumSideEffectService {
 	@Async
 	public void workQueue(String queueID, Request request) {
 		this.workQueue(queueID);
-
 		request.setStatus(Request.Status.COMPLETED);
 		myceliumRequestService.save(request);
+
+		// todo callback when the queue finished depends on the request
 	}
 
 	/**
@@ -164,9 +165,16 @@ public class MyceliumSideEffectService {
 		return sideEffects;
 	}
 
+	/**
+	 * Detect Changes for {@link DataSource}
+	 * @param before the {@link DataSource} state before the mutation
+	 * @param after the {@link DataSource} state after the mutation
+	 * @return a {@link List} of {@link SideEffect} to be executed
+	 */
 	public List<SideEffect> detectChanges(DataSource before, DataSource after) {
 		List<SideEffect> sideEffects = new ArrayList<>();
 
+		// when a DataSourceSettings changed and PrimaryKey were removed
 		if (PrimaryKeyDeletionExecutor.detect(before, after, myceliumService)) {
 			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(after, before);
 			differences.forEach(pk -> {
@@ -195,6 +203,8 @@ public class MyceliumSideEffectService {
 			});
 		}
 
+		// when a DataSourceSetting changed and PrimaryKey are added
+		// applicable also when a DataSource is created or first imported
 		if (PrimaryKeyAdditionExecutor.detect(before, after, myceliumService)) {
 			List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(before, after);
 			differences.forEach(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(before.getId(), pk)));

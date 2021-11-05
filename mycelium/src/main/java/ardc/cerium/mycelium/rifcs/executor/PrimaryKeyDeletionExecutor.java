@@ -25,12 +25,26 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 		this.setMyceliumService(myceliumService);
 	}
 
+	/**
+	 * Detect if {@link PrimaryKeyDeletionSideEffect} is applicable
+	 * @param before the {@link DataSource} state before the mutation
+	 * @param after the {@link DataSource} state after the mutation
+	 * @param myceliumService the {@link MyceliumService} to access services
+	 * @return true if the DataSource has additional primaryKey in the settings
+	 */
 	public static boolean detect(DataSource before, DataSource after, MyceliumService myceliumService) {
 		List<PrimaryKey> differences = DataSourceUtil.getPrimaryKeyDifferences(after, before);
 
 		return differences.size() > 0;
 	}
 
+	/**
+	 * Detect if {@link PrimaryKeyDeletionSideEffect} is applicable
+	 * @param before the {@link RecordState} before RegistryObject mutation
+	 * @param after the {@link RecordState} after RegistryObject mutation
+	 * @param myceliumService the {@link MyceliumService} to access services
+	 * @return true if the RegistryObject is deleted and was a PrimaryKey
+	 */
 	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
 
 		// registryObject is deleted, after has to be null
@@ -55,7 +69,8 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 		String registryObjectId = sideEffect.getRegistryObjectId();
 		getMyceliumService().getMyceliumIndexingService().deletePrimaryKeyEdges(registryObjectId);
 
-		// handle deletion of extra edges in SOLR when the relationType deleted is a GrantsNetwork
+		// handle deletion of extra edges in SOLR when the relationType deleted is a
+		// GrantsNetwork
 		String toClass = sideEffect.getRegistryObjectClass();
 		String relationType = sideEffect.getRelationType();
 		String dataSourceId = sideEffect.getDataSourceId();

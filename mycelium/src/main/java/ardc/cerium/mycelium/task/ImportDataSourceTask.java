@@ -47,7 +47,7 @@ public class ImportDataSourceTask implements Runnable{
         String queueID = String.format("mycelium.queue.effect.datasource.%s", dataSource.getId());
         sideEffects.forEach(sideEffect -> myceliumSideEffectService.addToQueue(queueID, sideEffect));
 
-        // todo work the queue asynchronously
+        // work the queue asynchronously
         myceliumSideEffectService.workQueue(queueID);
     }
 }

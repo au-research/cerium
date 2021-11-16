@@ -25,6 +25,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof PrimaryKeyDeletionSideEffect) {
 			return new PrimaryKeyDeletionExecutor((PrimaryKeyDeletionSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof RelatedInfoRealisationSideEffect) {
+			return new RelatedInfoRealisationExecutor((RelatedInfoRealisationSideEffect) sideEffect, myceliumService);
+		}
 
 		return null;
 	}

@@ -598,4 +598,8 @@ public class MyceliumIndexingService {
 
 	}
 
+	public void deleteRelationshipDocument(RelationshipDocument doc) {
+		relationshipDocumentRepository.delete(doc);
+	}
+
 }

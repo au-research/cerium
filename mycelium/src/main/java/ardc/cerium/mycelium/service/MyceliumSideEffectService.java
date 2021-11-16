@@ -133,6 +133,13 @@ public class MyceliumSideEffectService {
 					});
 		}
 
+		if (RelatedInfoRealisationExecutor.detect(before, after, myceliumService)) {
+			List<Vertex> realisedIdentifiers = RelatedInfoRealisationExecutor.getRealisedIdentifiers(before, after, myceliumService);
+			for (Vertex realisedIdentifier : realisedIdentifiers) {
+				sideEffects.add(new RelatedInfoRealisationSideEffect(realisedIdentifier.getIdentifier()));
+			}
+		}
+
 		// when a registryObject is created, and it happens to be a PrimaryKey in a dataSource
 		if (PrimaryKeyAdditionExecutor.detect(before, after, myceliumService)) {
 			DataSource dataSource = myceliumService.getDataSourceById(after.getDataSourceId());

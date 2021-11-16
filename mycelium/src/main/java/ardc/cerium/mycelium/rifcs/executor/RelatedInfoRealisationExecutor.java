@@ -1,0 +1,105 @@
+package ardc.cerium.mycelium.rifcs.executor;
+
+import ardc.cerium.mycelium.model.Relationship;
+import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.solr.RelationshipDocument;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.effect.RelatedInfoRealisationSideEffect;
+import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
+import ardc.cerium.mycelium.service.MyceliumIndexingService;
+import ardc.cerium.mycelium.service.MyceliumService;
+import org.springframework.data.solr.core.query.Criteria;
+import org.springframework.data.solr.core.query.result.Cursor;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class RelatedInfoRealisationExecutor extends Executor {
+
+	private final RelatedInfoRealisationSideEffect sideEffect;
+
+	public RelatedInfoRealisationExecutor(RelatedInfoRealisationSideEffect sideEffect,
+			MyceliumService myceliumService) {
+		this.sideEffect = sideEffect;
+		this.setMyceliumService(myceliumService);
+	}
+
+	/**
+	 * Detect if {@link RelatedInfoRealisationSideEffect} is applicable
+	 *
+	 * @param before the {@link DataSource} state before the mutation
+	 * @param after the {@link DataSource} state after the mutation
+	 * @param myceliumService the {@link MyceliumService} to access services
+	 * @return true if {@link RelatedInfoRealisationSideEffect} is detected
+	 */
+	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
+
+		// no identifier should be realised if the record is deleted
+		if (after == null) {
+			return false;
+		}
+
+		// if the after state contains additional Identifier Vertex and those identifier
+		// vertices has non isSameAs relationships
+		List<Vertex> realisedIdentifiers = getRealisedIdentifiers(before, after, myceliumService);
+
+		return realisedIdentifiers.size() > 0;
+	}
+
+	public static List<Vertex> getRealisedIdentifiers(RecordState before, RecordState after,
+			MyceliumService myceliumService) {
+
+		// no identifier should be realised if the record is deleted
+		if (after == null) {
+			return new ArrayList<>();
+		}
+
+		// obtain identifier differences
+		List<Vertex> addedIdentifiers = after.getIdentical().stream()
+				.filter(vertex -> vertex.hasLabel(Vertex.Label.Identifier))
+				.filter(vertex -> !vertex.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE))
+				.collect(Collectors.toList());
+
+		// if the record wasn't created but was updated, then get the differences
+		if (before != null) {
+			addedIdentifiers = after.getIdentical().stream()
+					.filter(vertex -> !before.getIdentical().contains(vertex))
+					.collect(Collectors.toList());
+		}
+
+		// realised identifiers are identifiers that has direct relationships
+		return addedIdentifiers.stream().filter(vertex -> {
+			Collection<Relationship> directOutboundRelationships = myceliumService.getGraphService()
+					.getDirectOutboundRelationships(vertex.getIdentifier(), vertex.getIdentifierType());
+			return directOutboundRelationships.size() > 0;
+		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public void handle() {
+
+		String identifier = sideEffect.getIdentifierValue();
+
+		MyceliumIndexingService indexingService = getMyceliumService().getIndexingService();
+
+		// find all the RelationshipDocument that to_identifier=<realisedIdentifier>
+		Cursor<RelationshipDocument> cursor = indexingService.cursorFor(new Criteria("to_identifier").is(identifier));
+		while (cursor.hasNext()) {
+			RelationshipDocument doc = cursor.next();
+
+			String fromId = doc.getFromId();
+
+			// remove RelatedInfo relationships to the Identifier
+			indexingService.deleteRelationshipDocument(doc);
+
+			// reprocess the relationship source vertex to include the new realised
+			// RelatedObject relationship
+			Vertex vertex = getMyceliumService().getVertexFromRegistryObjectId(fromId);
+			indexingService.indexDirectRelationships(vertex);
+		}
+	}
+
+}

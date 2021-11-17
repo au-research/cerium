@@ -89,10 +89,18 @@ public class GraphService {
 	 * @param vertex the {@link Vertex}
 	 */
 	public void ingestVertex(Vertex vertex) {
-		// todo update the vertex
-		if (!vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
-				vertex.getIdentifierType())) {
+		Vertex existing = getVertexByIdentifier(vertex.getIdentifier(), vertex.getIdentifierType());
+		if (existing == null) {
+			// create
 			vertexRepository.save(vertex);
+		} else {
+			// update existing
+			existing.setTitle(vertex.getTitle());
+			existing.setObjectClass(vertex.getObjectClass());
+			existing.setObjectType(vertex.getObjectType());
+			existing.setUrl(vertex.getUrl());
+			existing.setGroup(vertex.getGroup());
+			vertexRepository.save(existing);
 		}
 	}
 
@@ -657,6 +665,23 @@ public class GraphService {
 								.findFirst().orElse(null);
 						Vertex to = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(endId))
 								.findFirst().orElse(null);
+
+						// attempt to resolve any identifier to a registryObject
+						if (from != null && !from.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+							Vertex resolvedRegistryObjectVertex = getDuplicateRegistryObject(from).stream()
+									.findFirst().orElse(null);
+							if (resolvedRegistryObjectVertex != null) {
+								from = resolvedRegistryObjectVertex;
+							}
+						}
+						if (to != null && !to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+							Vertex resolvedRegistryObjectVertex = getDuplicateRegistryObject(to).stream()
+									.findFirst().orElse(null);
+							if (resolvedRegistryObjectVertex != null) {
+								to = resolvedRegistryObjectVertex;
+							}
+						}
+
 						if (from != null && to != null) {
 							graph.addEdge(new Edge(from, to, relationType, relationship.id()));
 						}
@@ -696,6 +721,11 @@ public class GraphService {
 				pairs.put(edge.getTo().getId(), edge.getFrom().getId());
 			}
 		});
+
+		// if there's no identical pair, no need for collapsing
+		if (pairs.size() == 0) {
+			return result;
+		}
 
 		// remove isSameAs edges
 		result.setEdges(

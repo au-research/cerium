@@ -28,6 +28,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof RelatedInfoRealisationSideEffect) {
 			return new RelatedInfoRealisationExecutor((RelatedInfoRealisationSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof DuplicateForgoSideEffect) {
+			return new DuplicateForgoExecutor((DuplicateForgoSideEffect) sideEffect, myceliumService);
+		}
 
 		return null;
 	}

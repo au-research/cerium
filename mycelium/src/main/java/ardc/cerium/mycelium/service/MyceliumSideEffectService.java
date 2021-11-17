@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -148,8 +149,15 @@ public class MyceliumSideEffectService {
 					.ifPresent(pk -> sideEffects.add(new PrimaryKeyAdditionSideEffect(after.getDataSourceId(), pk)));
 		}
 
+		if (DuplicateForgoExecutor.detect(before, after, myceliumService)) {
+			List<String> priorRegistryObjectIds = before.getIdentical().stream()
+					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
+					.map(Vertex::getIdentifier)
+					.collect(Collectors.toList());
+			sideEffects.add(new DuplicateForgoSideEffect(priorRegistryObjectIds));
+		}
+
 		if (DuplicateInheritanceExecutor.detect(before, after, myceliumService)) {
-			log.debug("Detected DuplicateInheritanceSideEffect");
 			sideEffects.add(new DuplicateInheritanceSideEffect(after.getRegistryObjectId()));
 		}
 

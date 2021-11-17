@@ -153,6 +153,7 @@ public class MyceliumSideEffectService {
 			List<String> priorRegistryObjectIds = before.getIdentical().stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
 					.map(Vertex::getIdentifier)
+					.filter(identifier -> !identifier.equals(before.getRegistryObjectId()))
 					.collect(Collectors.toList());
 			sideEffects.add(new DuplicateForgoSideEffect(priorRegistryObjectIds));
 		}

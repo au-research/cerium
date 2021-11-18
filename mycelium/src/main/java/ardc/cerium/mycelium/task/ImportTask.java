@@ -77,6 +77,8 @@ public class ImportTask implements Runnable {
 		catch (Exception e) {
 			log.error("Error Ingesting RequestID:{} Reason:{}", request.getId(), e.getMessage());
 			e.printStackTrace();
+		} finally {
+			myceliumService.getMyceliumRequestService().getRequestService().closeLoggerFor(request);
 		}
 	}
 

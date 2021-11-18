@@ -183,7 +183,10 @@ public class RequestService {
 		LoggerContext context = (LoggerContext) LogManager.getContext(true);
 		Configuration configuration = context.getConfiguration();
 		context.getLogger(loggerName).getAppenders()
-				.forEach((s, appender) -> context.getLogger(loggerName).removeAppender(appender));
+				.forEach((s, appender) -> {
+					appender.stop();
+					context.getLogger(loggerName).removeAppender(appender);
+				});
 		configuration.removeLogger(loggerName);
 		context.updateLoggers();
 		loggers.remove(loggerName);

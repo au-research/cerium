@@ -77,8 +77,7 @@ public class RelationLookupService {
 	 * @return true|false whether the relationType is included
 	 */
 	public static boolean contains(String relationType) {
-		// remove all non word characters and lowercase the relationType
-		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
+		relationType = cleanWords(relationType);
 		return lookupTable.containsKey(relationType);
 	}
 
@@ -88,8 +87,7 @@ public class RelationLookupService {
 	 * @return the {@link RelationLookupEntry} from the lookup table
 	 */
 	public static RelationLookupEntry resolve(String relationType) {
-		// remove all non word characters and lowercase the relationType to simplify it
-		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
+		relationType = cleanWords(relationType);
 		if (lookupTable.containsKey(relationType)) {
 			return lookupTable.get(relationType);
 		}
@@ -102,13 +100,26 @@ public class RelationLookupService {
 	 * @return the reverse String of the relationType
 	 */
 	public static String getReverse(String relationType) {
-		// remove all non word characters and lowercase the relationType to "simplify" it
-		relationType = relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
+		relationType = cleanWords(relationType);
 		if (lookupTable.containsKey(relationType)) {
 			RelationLookupEntry entry = lookupTable.get(relationType);
 			return entry.getReverseRelationType();
 		}
 		return null;
+	}
+
+	/**
+	 * Clean the relationType for resolving
+	 * Remove all non word characters and lowercase the relationType to simplify it
+	 *
+	 * @param relationType the relation string
+	 * @return the simplified relation string
+	 */
+	public static String cleanWords(String relationType) {
+		if (relationType == null) {
+			return "";
+		}
+		return relationType.replaceAll("\\W", "").toLowerCase(Locale.ROOT);
 	}
 
 	/**

@@ -132,5 +132,11 @@ public class RelationUtil {
         return reversedEdge;
     }
 
+    public static EdgeDTO getReversed(EdgeDTO edgeDTO, String defaultRelationType) {
+        EdgeDTO reversedEdge = getReversed(edgeDTO);
+        reversedEdge.setType(RelationLookupService.getReverse(edgeDTO.getType(), defaultRelationType));
+        return reversedEdge;
+    }
+
 
 }

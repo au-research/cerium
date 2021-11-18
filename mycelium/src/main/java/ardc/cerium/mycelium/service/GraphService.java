@@ -353,7 +353,7 @@ public class GraphService {
 			Node fromNode = record.get("from").asNode();
 			Vertex fromVertex = vertexMapper.getConverter().convert(fromNode);
 
-			// convert to to toVertex
+			// convert to toVertex
 			Node toNode = record.get("to").asNode();
 			Vertex toVertex = vertexMapper.getConverter().convert(toNode);
 

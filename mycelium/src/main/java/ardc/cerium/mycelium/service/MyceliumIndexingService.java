@@ -89,7 +89,7 @@ public class MyceliumIndexingService {
 
 	public void deleteAllRelationship(Vertex from) {
 		relationshipDocumentRepository.deleteAllByFromIdEquals(from.getIdentifier());
-		//relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
+		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
 	}
 
 	public void deleteGrantsNetworkEdges(Vertex from) {
@@ -247,7 +247,7 @@ public class MyceliumIndexingService {
 				toRelatedObjects.forEach(toRelatedObject -> {
 					indexRelation(from, toRelatedObject, relationship.getRelations());
 					List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
-							.map(RelationUtil::getReversed).collect(Collectors.toList());
+							.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO)).collect(Collectors.toList());
 					indexRelation(toRelatedObject, from, reversedRelations);
 				});
 			}
@@ -269,8 +269,9 @@ public class MyceliumIndexingService {
 	 * @param relations the {@link List} of {@link EdgeDTO} that contains the relations
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
+		List<String> relationTypes = relations.stream().map(EdgeDTO::getType).collect(Collectors.toList());
 		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}]", from.getIdentifier(), to.getIdentifier(),
-				relations.stream().map(EdgeDTO::getType).collect(Collectors.toList()));
+				relationTypes);
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();

@@ -2,9 +2,11 @@ package ardc.cerium.mycelium.task;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.core.common.service.RequestService;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.service.GraphService;
+import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +35,18 @@ class ImportTaskTest {
 	@MockBean
 	GraphService graphService;
 
+	@MockBean
+	MyceliumRequestService myceliumRequestService;
+
+	@MockBean
+	RequestService requestService;
+
 	@BeforeEach
 	void setUp() {
 		when(myceliumService.getMyceliumSideEffectService()).thenReturn(myceliumSideEffectService);
 		when(myceliumService.getGraphService()).thenReturn(graphService);
+		when(myceliumService.getMyceliumRequestService()).thenReturn(myceliumRequestService);
+		when(myceliumRequestService.getRequestService()).thenReturn(requestService);
 	}
 
 	@Test
@@ -63,6 +73,7 @@ class ImportTaskTest {
 		verify(myceliumService, times(1)).ingestRegistryObject(any(RegistryObject.class));
 		verify(myceliumSideEffectService, times(1)).detectChanges(any(RecordState.class), any(RecordState.class));
 		verify(myceliumSideEffectService, times(1)).queueSideEffects(any(Request.class), anyList());
+		verify(requestService, times(1)).closeLoggerFor(request);
 	}
 
 }

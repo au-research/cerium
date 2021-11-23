@@ -84,28 +84,42 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 
 		// insert the PK edges to neo4j and SOLR
 		if (pk.getRelationTypeFromCollection() != null) {
+			String relationType = pk.getRelationTypeFromCollection();
+
+			// insert the pk edge first
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"collection")) {
-				stream.forEach(from -> {
-					// index GrantsNetwork for all child collections
-					String relationType = pk.getRelationTypeFromCollection();
-					this.insertPKEdges(from, toKey, relationType);
-					if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, relationType));
+			}
+
+			// then check for grantsNetwork
+			if (RelationUtil.isGrantsNetwork("collection", roVertex.getObjectClass(), relationType)) {
+				try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+						"collection")) {
+					stream.forEach(from -> {
+						// index GrantsNetwork for all child collections
 						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
-					}
-				});
+					});
+				}
 			}
 		}
 
 		if (pk.getRelationTypeFromActivity() != null) {
+			String relationType = pk.getRelationTypeFromActivity();
+
+			// insert the pk edge first
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"activity")) {
-				stream.forEach(from -> {
-					String relationType = pk.getRelationTypeFromActivity();
-					this.insertPKEdges(from, toKey, relationType);
-					if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)) {
+				stream.forEach(from -> this.insertPKEdges(from, toKey, relationType));
+			}
+
+			// then check for grantsNetwork
+			if (RelationUtil.isGrantsNetwork("activity", roVertex.getObjectClass(), relationType)) {
+				try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
+						"activity")) {
+					stream.forEach(from -> {
 						// index GrantsNetwork for all child activities
 						try (Stream<Vertex> childStream = graphService.streamChildActivity(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
@@ -114,33 +128,33 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 						try (Stream<Vertex> childStream = graphService.streamChildCollection(from)) {
 							childStream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
 						}
-					}
-				});
+					});
+				}
 			}
 		}
 
 		if (pk.getRelationTypeFromService() != null) {
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(),
 					"service")) {
-				// no GrantsNetwork affecting services
 				stream.forEach(from -> this.insertPKEdges(from, toKey, pk.getRelationTypeFromService()));
 			}
+			// no GrantsNetwork affecting services
 		}
 
 		if (pk.getRelationTypeFromParty() != null) {
+			String relationType = pk.getRelationTypeFromParty();
+
+			// insert the pk edge
 			try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(), "party")) {
-				stream.forEach(from -> {
-					String relationType = pk.getRelationTypeFromParty();
-					this.insertPKEdges(from, toKey, relationType);
-					// index GrantsNetwork for all child parties (shouldn't really happen)
-					if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)) {
-						myceliumIndexingService.indexGrantsNetworkRelationships(from);
-					}
-				});
+				stream.forEach(from -> this.insertPKEdges(from, toKey, relationType));
+			}
+
+			if (RelationUtil.isGrantsNetwork("party", roVertex.getObjectClass(), relationType)) {
+				try (Stream<Vertex> stream = graphService.streamRegistryObjectFromDataSource(dataSource.getId(), "party")) {
+					stream.forEach(myceliumIndexingService::indexGrantsNetworkRelationships);
+				}
 			}
 		}
-
-		// todo handle GrantsNetwork if the PrimaryKey relation is a GrantsNetwork edge
 	}
 
 	/**

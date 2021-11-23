@@ -528,7 +528,7 @@ public class GraphService {
 	 */
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamChildCollection(Vertex from) {
-		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|isFunderOf>",
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|hasOutput>|isFunderOf>",
 				"collection");
 	}
 

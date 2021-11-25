@@ -17,4 +17,6 @@ public class Relation {
     private String description;
 
     private String url;
+
+    private String notes;
 }

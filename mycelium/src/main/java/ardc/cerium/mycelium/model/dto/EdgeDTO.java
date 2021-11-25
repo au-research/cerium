@@ -15,6 +15,8 @@ public class EdgeDTO {
 
 	private String url;
 
+	private String notes;
+
 	private String origin;
 
 	private boolean isReverse = false;

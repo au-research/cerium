@@ -42,6 +42,12 @@ public class EdgeDocument{
     @Indexed(name = "relation_internal", type="boolean")
     private boolean relationInternal;
 
+    @Indexed(name = "relation_description", type="string")
+    private String relationDescription;
+
+    @Indexed(name = "relation_url", type="string")
+    private String relationUrl;
+
     public EdgeDocument(String relationType) {
         this.id = UUID.randomUUID().toString();
         this.relationType = relationType;

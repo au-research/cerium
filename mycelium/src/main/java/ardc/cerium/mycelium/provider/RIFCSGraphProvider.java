@@ -7,6 +7,7 @@ import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
+import ardc.cerium.mycelium.util.IdentifierUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -170,6 +171,9 @@ public class RIFCSGraphProvider {
 				relatedObject.getRelation().forEach(relation -> {
 					Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
 					edge.setOrigin(ORIGIN_RELATED_OBJECT);
+					edge.setUrl(relation.getUrl());
+					edge.setDescription(relation.getDescription());
+					edge.setNotes(relation.getNotes());
 					graph.addEdge(edge);
 
 					// reversed edge for relatedObject relationships
@@ -198,6 +202,8 @@ public class RIFCSGraphProvider {
 						relatedInfoNode.addLabel(Vertex.Label.Identifier);
 						relatedInfoNode.setObjectType(relatedInfo.getType());
 						relatedInfoNode.setObjectClass(relatedInfo.getType());
+						relatedInfoNode.setUrl(IdentifierUtil.getUrl(relatedInfoIdentifier.getValue(),relatedInfoIdentifier.getType()));
+
 
 						// todo set relatedInfoNode URL (when available)
 

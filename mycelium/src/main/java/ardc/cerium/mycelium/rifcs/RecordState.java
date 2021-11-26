@@ -20,6 +20,8 @@ public class RecordState {
 
 	private String registryObjectClass;
 
+	private String registryObjectType;
+
 	private String group;
 
 	private Vertex origin;
@@ -29,5 +31,7 @@ public class RecordState {
 	private Collection<Vertex> identical = new ArrayList<>();
 
 	private Collection<Relationship> outbounds = new ArrayList<>();
+
+	private Collection<Vertex> identifiers = new ArrayList<>();
 
 }

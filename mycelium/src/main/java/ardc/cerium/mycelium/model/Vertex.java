@@ -49,6 +49,9 @@ public class Vertex {
 	@Property("dataSourceId")
 	private String dataSourceId;
 
+	@Property("notes")
+	private String notes;
+
 	@Id
 	@GeneratedValue
 	private Long id;

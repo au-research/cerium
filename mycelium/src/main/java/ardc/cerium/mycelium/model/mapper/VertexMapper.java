@@ -55,7 +55,9 @@ public class VertexMapper {
 				if (!node.get("dataSourceId").isNull()) {
 					vertex.setDataSourceId(node.get("dataSourceId").asString());
 				}
-
+				if (!node.get("notes").isNull()) {
+					vertex.setNotes(node.get("notes").asString());
+				}
 				return vertex;
 			}
 

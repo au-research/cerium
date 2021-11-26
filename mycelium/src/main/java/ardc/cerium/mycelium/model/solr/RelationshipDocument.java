@@ -41,6 +41,9 @@ public class RelationshipDocument {
     @Indexed(name="from_url")
     private String fromUrl;
 
+    @Indexed(name="from_notes")
+    private String fromNotes;
+
     @Indexed(name = "to_identifier")
     private String toIdentifier;
 
@@ -64,6 +67,9 @@ public class RelationshipDocument {
 
     @Indexed(name="to_url")
     private String toUrl;
+
+    @Indexed(name="to_notes")
+    private String toNotes;
 
     @ChildDocument
     List<EdgeDocument> relations;

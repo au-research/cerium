@@ -59,6 +59,8 @@ public class RIFCSGraphProvider {
 		reversedEdge.setInternal(edge.isInternal());
 		reversedEdge.setOrigin(edge.getOrigin());
 		reversedEdge.setPublic(edge.isPublic());
+		reversedEdge.setUrl(edge.getUrl());
+		reversedEdge.setDescription(edge.getDescription());
 
 		// flip the reverse value
 		reversedEdge.setReverse(!edge.isReverse());
@@ -173,7 +175,6 @@ public class RIFCSGraphProvider {
 					edge.setOrigin(ORIGIN_RELATED_OBJECT);
 					edge.setUrl(relation.getUrl());
 					edge.setDescription(relation.getDescription());
-					edge.setNotes(relation.getNotes());
 					graph.addEdge(edge);
 
 					// reversed edge for relatedObject relationships
@@ -203,7 +204,7 @@ public class RIFCSGraphProvider {
 						relatedInfoNode.setObjectType(relatedInfo.getType());
 						relatedInfoNode.setObjectClass(relatedInfo.getType());
 						relatedInfoNode.setUrl(IdentifierUtil.getUrl(relatedInfoIdentifier.getValue(),relatedInfoIdentifier.getType()));
-
+						relatedInfoNode.setNotes(relatedInfo.getNotes());
 
 						// todo set relatedInfoNode URL (when available)
 

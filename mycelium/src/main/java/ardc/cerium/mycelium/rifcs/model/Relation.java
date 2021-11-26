@@ -18,5 +18,4 @@ public class Relation {
 
     private String url;
 
-    private String notes;
 }

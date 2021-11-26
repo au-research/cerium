@@ -99,6 +99,7 @@ public class GraphService {
 			existing.setObjectClass(vertex.getObjectClass());
 			existing.setObjectType(vertex.getObjectType());
 			existing.setUrl(vertex.getUrl());
+			existing.setNotes(vertex.getNotes());
 			existing.setGroup(vertex.getGroup());
 			vertexRepository.save(existing);
 		}
@@ -232,6 +233,8 @@ public class GraphService {
 				.merge(relation)
 				.set(relation.property("origin").to(Cypher.literalOf(edge.getOrigin())),
 						relation.property("reverse").to(Cypher.literalOf(edge.isReverse())),
+						relation.property("description").to(Cypher.literalOf(edge.getDescription())),
+						relation.property("url").to(Cypher.literalOf(edge.getUrl())),
 						relation.property("internal").to(Cypher.literalOf(edge.isInternal())),
 						relation.property("public").to(Cypher.literalOf(edge.isPublic())),
 						relation.property("duplicate").to(Cypher.literalOf(edge.isDuplicate())))

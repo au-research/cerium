@@ -488,12 +488,13 @@ public class GraphService {
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);
 		state.setIdentical(sameAsNodeCluster);
-
+		Collection<Vertex> vIdentifiers = getSameAs(registryObjectVertex.getIdentifier(),
+				registryObjectVertex.getIdentifierType());
 		// Remove ID and Key Identifiers before adding them to the identifiers state
-		sameAsNodeCluster.removeIf(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)
+		vIdentifiers.removeIf(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)
 				|| v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE));
 
-		state.setIdentifiers(sameAsNodeCluster);
+		state.setIdentifiers(vIdentifiers);
 
 		// outbound
 		Collection<Relationship> outbounds = getDuplicateOutboundRelationships(registryObjectVertex.getIdentifier(),

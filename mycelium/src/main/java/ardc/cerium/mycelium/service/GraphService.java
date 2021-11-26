@@ -650,8 +650,8 @@ public class GraphService {
 	 */
 	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
 		String cypherQuery = "MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
-				+ "}) YIELD path RETURN path;";
+				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ "}) YIELD path RETURN path LIMIT 500;";
 
 		Collection<Graph> graphs = neo4jClient.query(cypherQuery).bind(origin.getIdentifier()).to("identifier")
 				.fetchAs(Graph.class).mappedBy((typeSystem, record) -> {

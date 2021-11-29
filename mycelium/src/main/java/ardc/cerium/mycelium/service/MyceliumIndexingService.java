@@ -321,7 +321,6 @@ public class MyceliumIndexingService {
 			edge.setRelationOrigin(relation.getOrigin());
 			edge.setRelationInternal(relation.isInternal());
 			edge.setRelationReverse(relation.isReverse());
-			edge.setRelationNotes(relation.getNotes());
 			edge.setRelationDescription(relation.getDescription());
 			edge.setRelationUrl(relation.getUrl());
 

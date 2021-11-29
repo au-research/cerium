@@ -25,4 +25,8 @@ public class RelationDocument {
 
     private String origin;
 
+    private String url;
+
+    private String description;
+
 }

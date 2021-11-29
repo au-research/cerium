@@ -33,9 +33,6 @@ public class EdgeDocument{
 	@Indexed(name = "relation_origin", type = "string")
 	private String relationOrigin;
 
-    @Indexed(name = "relation_notes", type="string")
-    private String relationNotes;
-
     @Indexed(name = "relation_reverse", type="boolean")
     private boolean relationReverse;
 

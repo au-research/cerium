@@ -25,7 +25,6 @@ public class Edge {
 
 	private String url;
 
-	private String notes;
 
 	// todo consider making this into enumeration
 	// possible values: Direct, Duplicate, GrantsNetwork, PrimaryKey

@@ -400,6 +400,7 @@ public class MyceliumIndexingService {
 			log.trace("Does not found existing, saving new doc");
 			relationshipDocumentRepository.save(doc);
 		}
+		solrTemplate.commit("relationships");
 	}
 
 	/**

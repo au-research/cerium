@@ -31,7 +31,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof DuplicateForgoSideEffect) {
 			return new DuplicateForgoExecutor((DuplicateForgoSideEffect) sideEffect, myceliumService);
 		}
-
+		else if (sideEffect instanceof IdentifierForgoSideEffect) {
+			return new IdentifierForgoExecutor((IdentifierForgoSideEffect) sideEffect, myceliumService);
+		}
 		return null;
 	}
 

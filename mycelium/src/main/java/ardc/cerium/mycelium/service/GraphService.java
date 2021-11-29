@@ -475,16 +475,26 @@ public class GraphService {
 			return null;
 		}
 
+
+
 		RecordState state = new RecordState();
 		state.setRegistryObjectId(registryObjectId);
 		state.setRegistryObjectKey(keyVertex.getIdentifier());
 		state.setOrigin(registryObjectVertex);
 		state.setTitle(registryObjectVertex.getTitle());
 		state.setRegistryObjectClass(registryObjectVertex.getObjectClass());
+		state.setRegistryObjectType(registryObjectVertex.getObjectType());
 		state.setDataSourceId(registryObjectVertex.getDataSourceId());
 		// TODO obtain group from vertex (require Vertex to have group property)
 		state.setGroup(null);
 		state.setIdentical(sameAsNodeCluster);
+		Collection<Vertex> vIdentifiers = getSameAs(registryObjectVertex.getIdentifier(),
+				registryObjectVertex.getIdentifierType());
+		// Remove ID and Key Identifiers before adding them to the identifiers state
+		vIdentifiers.removeIf(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)
+				|| v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE));
+
+		state.setIdentifiers(vIdentifiers);
 
 		// outbound
 		Collection<Relationship> outbounds = getDuplicateOutboundRelationships(registryObjectVertex.getIdentifier(),

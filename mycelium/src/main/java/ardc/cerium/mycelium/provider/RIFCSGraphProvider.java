@@ -222,14 +222,17 @@ public class RIFCSGraphProvider {
 						}
 
 						// Otherwise, for each relation element, it's a separate edge
-						relatedInfoRelations.forEach(relatedInfoRelation -> {
-							Edge edge = new Edge(originNode, relatedInfoNode, relatedInfoRelation.getType());
+						relatedInfo.getRelation().forEach(relation -> {
+							Edge edge = new Edge(originNode, relatedInfoNode, relation.getType());
 							edge.setOrigin(ORIGIN_RELATED_INFO);
+							edge.setUrl(relation.getUrl());
+							edge.setDescription(relation.getDescription());
 							graph.addEdge(edge);
 
 							// reversed edge for relatedInfo relationships
 							graph.addEdge(getReversedEdge(edge));
 						});
+
 					}catch(ContentNotSupportedException e){
 						log.info(e.getMessage());
 					}

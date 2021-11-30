@@ -111,9 +111,14 @@ public class GraphService {
 	 */
 	public void deleteVertex(Vertex vertex) {
 		// todo update the vertex
-		if (vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
-				vertex.getIdentifierType())) {
-			vertexRepository.delete(vertex);
+		// we can't delete null so do a try catch
+		try {
+			if (vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
+					vertex.getIdentifierType())) {
+				vertexRepository.delete(vertex);
+			}
+		}catch(Exception e){
+			log.error("Unable to delete Vertex {}", vertex);
 		}
 	}
 

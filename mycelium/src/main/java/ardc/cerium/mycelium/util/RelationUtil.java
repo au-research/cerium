@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.util;
 
 import ardc.cerium.mycelium.model.Edge;
 import ardc.cerium.mycelium.model.Relationship;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.service.RelationLookupService;
@@ -123,7 +124,8 @@ public class RelationUtil {
     public static EdgeDTO getReversed(EdgeDTO edgeDTO) {
         EdgeDTO reversedEdge = new EdgeDTO();
         reversedEdge.setType(RelationLookupService.getReverse(edgeDTO.getType()));
-        reversedEdge.setReverse(true);
+        // RDA-554
+        reversedEdge.setReverse(!edgeDTO.isReverse());
         reversedEdge.setOrigin(edgeDTO.getOrigin());
         reversedEdge.setInternal(edgeDTO.isInternal());
         reversedEdge.setPublic(edgeDTO.isPublic());
@@ -138,5 +140,14 @@ public class RelationUtil {
         return reversedEdge;
     }
 
+    public static boolean isInternal(Vertex from, Vertex to){
+        // RDA-553
+        // Internal edge is between two registry Objects that are part of the same datasource
+        // if the datasource of the two registry Object are set and are different
+        // the relation is not internal
+        return from.getDataSourceId() == null || to.getDataSourceId() == null ||
+                from.getDataSourceId().isEmpty() || to.getDataSourceId().isEmpty() ||
+                from.getDataSourceId().equals(to.getDataSourceId());
+    }
 
 }

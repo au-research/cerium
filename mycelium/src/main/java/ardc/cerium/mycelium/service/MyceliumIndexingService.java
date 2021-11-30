@@ -246,6 +246,7 @@ public class MyceliumIndexingService {
 				log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
 				toRelatedObjects.forEach(toRelatedObject -> {
 					indexRelation(from, toRelatedObject, relationship.getRelations());
+
 					List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
 							.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO)).collect(Collectors.toList());
 					indexRelation(toRelatedObject, from, reversedRelations);
@@ -270,8 +271,10 @@ public class MyceliumIndexingService {
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
 		List<String> relationTypes = relations.stream().map(EdgeDTO::getType).collect(Collectors.toList());
-		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}]", from.getIdentifier(), to.getIdentifier(),
-				relationTypes);
+		List<Boolean> directions = relations.stream().map(EdgeDTO::isReverse).collect(Collectors.toList());
+		// RDA-554 checking for issues with reverse direction
+		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}][{}]", from.getIdentifier(), to.getIdentifier(),
+				relationTypes, directions);
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
@@ -315,11 +318,10 @@ public class MyceliumIndexingService {
 			}
 
 			edge.setRelationTypeText(relationTypeText);
-
 			edge.setFromId(from.getIdentifier());
 			edge.setToIdentifier(to.getIdentifier());
 			edge.setRelationOrigin(relation.getOrigin());
-			edge.setRelationInternal(relation.isInternal());
+			edge.setRelationInternal(RelationUtil.isInternal(from, to));
 			edge.setRelationReverse(relation.isReverse());
 			edge.setRelationDescription(relation.getDescription());
 			edge.setRelationUrl(relation.getUrl());

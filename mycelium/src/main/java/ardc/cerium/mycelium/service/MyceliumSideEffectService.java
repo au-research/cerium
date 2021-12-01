@@ -181,7 +181,7 @@ public class MyceliumSideEffectService {
 		if (IdentifierForgoExecutor.detect(before, after)) {
 			String registryObjectId = before.getRegistryObjectId();
 			for (Vertex vIdentifier : before.getIdentifiers()) {
-				if(after.getIdentifiers().isEmpty() || !after.getIdentifiers().contains(vIdentifier)) {
+				if(after == null || after.getIdentifiers().isEmpty() || !after.getIdentifiers().contains(vIdentifier)) {
 					log.debug("missing Identifier found {}", vIdentifier.getIdentifier());
 					sideEffects.add(new IdentifierForgoSideEffect(registryObjectId,vIdentifier.getIdentifier(),
 							before.getTitle(), before.getRegistryObjectClass(), before.getRegistryObjectType()));

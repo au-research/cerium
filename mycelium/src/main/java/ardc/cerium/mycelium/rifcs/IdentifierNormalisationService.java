@@ -52,6 +52,7 @@ public class IdentifierNormalisationService {
                     value = value.substring(value.indexOf("-") - 4, value.indexOf("-") + 15);
                 }
             break;
+            case "raid":
             case "handle":
                 value = value.toLowerCase(Locale.ROOT);
                 if(value.contains("hdl:")){
@@ -131,7 +132,7 @@ public class IdentifierNormalisationService {
             return "orcid";
         }
         if(value.contains("HANDLE.")  || value.contains("HDL:")){
-            if(StringUtils.countMatches(value, "HTTP:") > 1){
+            if(StringUtils.countMatches(value, "HTTP:") > 1 || type.contains("raid")){
                 // unable to confirm it's a handle
                 return type;
             }

@@ -62,6 +62,12 @@ class IdentifierNormalisationServiceTest {
         testCase.put("expectedValue","doi.org/1.234/455");
         testCase.put("expectedType","url");
         testCases.add(testCase);
+        testCase = new HashMap<String, String>();
+        testCase.put("value","http://hdl.handle.net/2328.1/1134");
+        testCase.put("type","raid");
+        testCase.put("expectedValue","2328.1/1134");
+        testCase.put("expectedType","raid");
+        testCases.add(testCase);
         Identifier identifier = new Identifier();
         String newValue = null;
         String newType = null;

@@ -1,9 +1,5 @@
 package ardc.cerium.mycelium.util;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Locale;
-
 public class IdentifierUtil {
 
     public static String getUrl(String identifierValue, String identifierType){
@@ -13,6 +9,7 @@ public class IdentifierUtil {
                 return String.format("https://doi.org/%s", identifierValue);
             case "orcid":
                 return String.format("http://orcid.org/%s", identifierValue);
+            case "raid":
             case "handle":
                 return String.format("http://hdl.handle.net/%s", identifierValue);
             case "purl":
@@ -41,28 +38,6 @@ public class IdentifierUtil {
                     return String.format("http://,%s", identifierValue);
                 }
                 return String.format("http://isni.org/,%s", identifierValue);
-            case "raid":
-                identifierValue = identifierValue.toLowerCase(Locale.ROOT);
-                if(identifierValue.contains("hdl:")){
-                    identifierValue = identifierValue.substring(identifierValue.indexOf("hdl:") + 4);
-                }
-                else if(identifierValue.contains("http")){
-                    try {
-                        URL url = new URL(identifierValue);
-                        identifierValue = url.getPath().substring(1);
-                    }catch(MalformedURLException ignored){
-
-                    }
-                }
-                else if(identifierValue.contains("handle.")){
-                    try {
-                        URL url = new URL("https://" + identifierValue);
-                        identifierValue = url.getPath().substring(1);
-                    }catch(MalformedURLException ignored){
-
-                    }
-                }
-                return String.format("http://hdl.handle.net/,%s", identifierValue);
             default:
                 return null;
         }

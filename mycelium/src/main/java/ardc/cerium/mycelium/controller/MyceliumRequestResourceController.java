@@ -6,6 +6,7 @@ import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import org.apache.logging.log4j.core.Logger;
 import org.redisson.api.RQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,9 +29,13 @@ public class MyceliumRequestResourceController {
 	MyceliumSideEffectService myceliumSideEffectService;
 
 	@PostMapping(value = "/")
-	public ResponseEntity<RequestDTO> store(@RequestBody RequestDTO requestDTO) throws Exception {
+	public ResponseEntity<RequestDTO> store(@RequestParam(required = false) String batchID, @RequestBody RequestDTO requestDTO) throws Exception {
 		myceliumRequestService.validateRequestDTO(requestDTO);
 		Request request = myceliumRequestService.createRequest(requestDTO);
+		request.setAttribute("BatchID", batchID);
+		Logger requestLogger = myceliumRequestService.getRequestService().getLoggerFor(request);
+		requestLogger.info("RDA Registry BatchID: {}", batchID);
+		myceliumRequestService.save(request);
 
 		RequestDTO dto = myceliumRequestService.getRequestMapper().getConverter().convert(request);
 		URI location = URI.create("/api/resources/requests/" + dto.getId().toString());
@@ -62,10 +67,6 @@ public class MyceliumRequestResourceController {
 	@GetMapping(value = "/{id}/queue")
 	public ResponseEntity<?> showQueue(@PathVariable String id) {
 		Request request = myceliumRequestService.findById(id);
-		if (! request.getType().equals(MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE)) {
-			throw new RuntimeException("Queue is only applicable for "
-					+ MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE + " type Request");
-		}
 
 		String queueID = myceliumSideEffectService.getQueueID(request.getId().toString());
 		RQueue<SideEffect> sideEffectRQueue = myceliumSideEffectService.getQueue(queueID);

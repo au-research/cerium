@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.core.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,6 +39,13 @@ public class ImportTask implements Runnable {
 		parseRequest(request);
 	}
 
+	public ImportTask(String json, Request request, MyceliumService myceliumService) {
+		this.json = json;
+		this.request = request;
+		this.myceliumService = myceliumService;
+		this.myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
+	}
+
 	public void parseRequest(Request request) {
 		String payloadPath = request.getAttribute(Attribute.PAYLOAD_PATH);
 		try {
@@ -51,8 +59,12 @@ public class ImportTask implements Runnable {
 	@Override
 	public void run() {
 
+		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
+
 		try {
+			requestLogger.debug("Ingesting Payload[json={}]", json);
 			RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
+			requestLogger.info("Ingesting RegistryObject[id={}]", registryObject.getRegistryObjectId());
 
 			RecordState before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
 			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
@@ -69,10 +81,17 @@ public class ImportTask implements Runnable {
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
 			// add the SideEffects to the queue
-			myceliumSideEffectService.queueSideEffects(request, sideEffects);
+			if (!sideEffects.isEmpty()) {
+				myceliumSideEffectService.queueSideEffects(request, sideEffects);
+				requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObject.getRegistryObjectId());
+				requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObject.getRegistryObjectId(), sideEffects);
+			} else {
+				requestLogger.info("No sideEffect found for RegistryObject[id={}]", registryObject.getRegistryObjectId());
+			}
 
 			request.setMessage("ImportTask successfully completed");
 			request.setStatus(Request.Status.COMPLETED);
+
 		}
 		catch (Exception e) {
 			log.error("Error Ingesting RequestID:{} Reason:{}", request.getId(), e.getMessage());

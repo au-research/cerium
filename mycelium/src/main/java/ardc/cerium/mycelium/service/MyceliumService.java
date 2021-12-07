@@ -84,8 +84,18 @@ public class MyceliumService {
 		importTask.run();
 	}
 
+	public void runImportTask(String json, Request request) {
+		ImportTask importTask = new ImportTask(json, request, this);
+		importTask.run();
+	}
+
 	public void runDeleteTask(Request request) {
 		DeleteTask deleteTask = new DeleteTask(request, this);
+		deleteTask.run();
+	}
+
+	public void runDeleteTask(String registryObjectId, Request request) {
+		DeleteTask deleteTask = new DeleteTask(registryObjectId, request, this);
 		deleteTask.run();
 	}
 

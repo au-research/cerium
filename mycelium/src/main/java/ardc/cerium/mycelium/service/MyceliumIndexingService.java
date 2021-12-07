@@ -285,6 +285,7 @@ public class MyceliumIndexingService {
 		doc.setFromTitle(from.getTitle());
 		doc.setFromListTitle(from.getListTitle());
 		doc.setFromGroup(from.getGroup());
+		doc.setFromNotes(from.getNotes());
 		doc.setFromUrl(from.getUrl());
 
 		doc.setToIdentifier(to.getIdentifier());
@@ -294,6 +295,7 @@ public class MyceliumIndexingService {
 		doc.setToTitle(to.getTitle());
 		doc.setToListTitle(to.getListTitle());
 		doc.setToGroup(to.getGroup());
+		doc.setToNotes(to.getNotes());
 		doc.setToUrl(to.getUrl());
 
 		List<EdgeDocument> edges = new ArrayList<>();

@@ -42,48 +42,6 @@ class MyceliumServiceControllerTest {
 	MockMvc mockMvc;
 
 	@Test
-	@DisplayName("Given a payload, when importing returns 200")
-	void importRequestCompleted() throws Exception {
-
-		String scenario1Path = "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml";
-		String rifcs = Helpers.readFile(scenario1Path);
-
-		Request mockedRequest = new Request();
-		mockedRequest.setStatus(Request.Status.COMPLETED);
-		mockedRequest.setAttribute(Attribute.PAYLOAD_PATH, scenario1Path);
-
-		RecordState mockedState = new RecordState();
-		mockedState.setRegistryObjectId("1");
-
-		RegistryObject registryObject = new RegistryObject();
-		registryObject.setRegistryObjectId(1L);
-
-		when(myceliumService.createRequest(any(RequestDTO.class))).thenReturn(mockedRequest);
-		when(myceliumService.save(any(Request.class))).thenReturn(mockedRequest);
-		when(myceliumService.getRecordState(any(String.class))).thenReturn(mockedState);
-		when(myceliumService.parsePayloadToRegistryObject(any(String.class))).thenReturn(registryObject);
-		doAnswer(invocationOnMock -> {
-			mockedRequest.setStatus(Request.Status.COMPLETED);
-			return null;
-		}).when(myceliumService).runImportTask(mockedRequest);
-
-		// @formatter:off
-		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-				.post(IMPORT_ENDPOINT)
-				.param("sideEffectRequestID", UUID.randomUUID().toString())
-				.content(rifcs)
-				.accept(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(request)
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value(Request.Status.COMPLETED.toString()));
-		// @formatter:on
-
-		// the request must also be validated
-		verify(myceliumService, times(1)).validateRequest(any(Request.class));
-	}
-
-	@Test
 	@DisplayName("When an exception is thrown in the service, the handler returns a BadRequest well formed response")
 	void importRequestValidated() throws Exception {
 		String scenario1Path = "src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml";

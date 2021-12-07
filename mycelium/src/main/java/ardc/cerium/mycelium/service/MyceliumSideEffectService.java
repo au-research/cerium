@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKe
 import ardc.cerium.mycelium.util.DataSourceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Async;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MyceliumSideEffectService {
 
-	public static final String QUEUE_PREFIX = "mycelium.affected.queue";
+	public static final String QUEUE_PREFIX = "mycelium.queue";
 
 	public static final String REQUEST_ATTRIBUTE_REQUEST_ID = "SIDE_EFFECT_REQUEST_ID";
 
@@ -52,15 +53,13 @@ public class MyceliumSideEffectService {
 	}
 
 	public void queueSideEffects(Request request, List<SideEffect> sideEffects) {
-		String requestId = request.getAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID);
-		String queueID = getQueueID(requestId);
+		String queueID = getQueueID(request.getId().toString());
 		sideEffects.forEach(sideEffect -> {
 			addToQueue(queueID, sideEffect);
 			log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
 		});
 	}
 
-	@Async
 	public void workQueue(String queueID) {
 		log.debug("Start working RQueue[id={}]", queueID);
 		RQueue<SideEffect> queue = getQueue(queueID);
@@ -82,7 +81,26 @@ public class MyceliumSideEffectService {
 
 	@Async
 	public void workQueue(String queueID, Request request) {
-		this.workQueue(queueID);
+
+		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
+		RQueue<SideEffect> queue = getQueue(queueID);
+		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
+
+		while (!queue.isEmpty()) {
+			SideEffect sideEffect = queue.poll();
+
+			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
+
+			if (executor == null) {
+				log.error("No executor found for sideEffect[class={}]", sideEffect.getClass());
+				continue;
+			}
+
+			requestLogger.info("Handling SideEffect[class={}] with executor[class={}]", sideEffect.getClass(), executor.getClass());
+			executor.handle();
+		}
+		requestLogger.info("Finished queue processing Queue[id={}]", queueID);
+
 		request.setStatus(Request.Status.COMPLETED);
 		myceliumRequestService.save(request);
 

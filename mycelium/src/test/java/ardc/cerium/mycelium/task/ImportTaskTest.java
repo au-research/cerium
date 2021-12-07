@@ -9,10 +9,12 @@ import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import org.apache.logging.log4j.core.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -41,12 +43,16 @@ class ImportTaskTest {
 	@MockBean
 	RequestService requestService;
 
+	@Mock
+	private Logger loggerMock;
+
 	@BeforeEach
 	void setUp() {
 		when(myceliumService.getMyceliumSideEffectService()).thenReturn(myceliumSideEffectService);
 		when(myceliumService.getGraphService()).thenReturn(graphService);
 		when(myceliumService.getMyceliumRequestService()).thenReturn(myceliumRequestService);
 		when(myceliumRequestService.getRequestService()).thenReturn(requestService);
+		when(requestService.getLoggerFor(any(Request.class))).thenReturn(loggerMock);
 	}
 
 	@Test
@@ -72,7 +78,6 @@ class ImportTaskTest {
 		verify(myceliumService, times(2)).getRecordState(mockedRegistryObject.getRegistryObjectId().toString());
 		verify(myceliumService, times(1)).ingestRegistryObject(any(RegistryObject.class));
 		verify(myceliumSideEffectService, times(1)).detectChanges(any(RecordState.class), any(RecordState.class));
-		verify(myceliumSideEffectService, times(1)).queueSideEffects(any(Request.class), anyList());
 		verify(requestService, times(1)).closeLoggerFor(request);
 	}
 

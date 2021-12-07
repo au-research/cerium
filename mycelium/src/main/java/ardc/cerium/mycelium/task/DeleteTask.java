@@ -9,6 +9,7 @@ import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.core.Logger;
 
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class DeleteTask implements Runnable {
 
 	private final Request request;
 
+	private final String registryObjectId;
+
 	/**
 	 * Instantiation with an Import {@link Request}. The XML will be obtained from the
 	 * Request's PAYLOAD_PATH
@@ -31,12 +34,21 @@ public class DeleteTask implements Runnable {
 		this.request = request;
 		this.myceliumService = myceliumService;
 		this.myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
+		registryObjectId = request.getAttribute(Attribute.RECORD_ID);
+	}
+
+	public DeleteTask(String registryObjectId, Request request, MyceliumService myceliumService) {
+		this.registryObjectId = registryObjectId;
+		this.request = request;
+		this.myceliumService = myceliumService;
+		this.myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
 	}
 
 	@Override
 	public void run() {
+		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
+
 		try {
-			String registryObjectId = request.getAttribute(Attribute.RECORD_ID);
 			log.debug("Started deleting registryObject[id={}]", registryObjectId);
 
 			RecordState before = myceliumService.getRecordState(registryObjectId);
@@ -44,6 +56,7 @@ public class DeleteTask implements Runnable {
 
 			myceliumService.deleteRecord(registryObjectId);
 			myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();
+			requestLogger.info("Deleted RegistryObject[id={}]", registryObjectId);
 
 			RecordState after = myceliumService.getRecordState(registryObjectId);
 			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", before);
@@ -52,10 +65,13 @@ public class DeleteTask implements Runnable {
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
 			// add the SideEffects to the queue
-			myceliumSideEffectService.queueSideEffects(request, sideEffects);
-
-			request.setMessage("DeleteTask Finished Successfully");
-			request.setStatus(Request.Status.COMPLETED);
+			if (!sideEffects.isEmpty()) {
+				myceliumSideEffectService.queueSideEffects(request, sideEffects);
+				requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObjectId);
+				requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObjectId, sideEffects);
+			} else {
+				requestLogger.info("No sideEffect found for RegistryObject[id={}]", registryObjectId);
+			}
 		}
 		catch (Exception e) {
 			log.error("Error in DeleteTask Request[id={}] Reason: {}", request.getId(), e.getMessage());

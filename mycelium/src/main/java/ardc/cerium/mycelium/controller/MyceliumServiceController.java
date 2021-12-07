@@ -36,31 +36,18 @@ public class MyceliumServiceController {
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
 	 * @param json the JSON payload
-	 * @param sideEffectRequestID the Affected Relationship Request ID
+	 * @param requestId the id of the import request
 	 * @return the {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/import-record")
-	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam(required=false) String sideEffectRequestID) {
-		log.info("Importing Record sideEffectRequestId={}", sideEffectRequestID);
-		log.debug("Received Import Request [sideEffectRequestId={}, payload={}]", sideEffectRequestID, json);
+	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam(required=false) String requestId) {
+		log.info("Importing Record requestId={}", requestId);
 
-		// create new Request, store the json payload
-		RequestDTO dto = new RequestDTO();
-		dto.setType(MyceliumRequestService.IMPORT_REQUEST_TYPE);
-		Request request = myceliumService.createRequest(dto);
-		request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
-
-		// store the json payload
-		myceliumService.saveToPayloadPath(request, json);
-		request.setStatus(Request.Status.ACCEPTED);
-		myceliumService.save(request);
-
-		myceliumService.validateRequest(request);
+		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
 
 		// create the import task and run it immediately
-		myceliumService.runImportTask(request);
+		myceliumService.runImportTask(json, request);
 
-		request = myceliumService.save(request);
 		return ResponseEntity.ok(request);
 	}
 
@@ -89,27 +76,19 @@ public class MyceliumServiceController {
 	/**
 	 * Delete a RegistryObject by ID
 	 * @param registryObjectId the registryObjectId to be deleted from the Graph
-	 * @param sideEffectRequestID the requestId of the side effect Request
+	 * @param requestId the requestId of the side effect Request
 	 * @return a {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/delete-record")
 	public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId,
-			@RequestParam String sideEffectRequestID) {
-		log.info("Deleting RegistryObject[id={}, sideEffectRequestId={}]", registryObjectId, sideEffectRequestID);
+			@RequestParam String requestId) {
+		log.info("Deleting RegistryObject[id={}, requestId={}]", registryObjectId, requestId);
 
-		// create and save the request
-		RequestDTO dto = new RequestDTO();
-		dto.setType(MyceliumRequestService.DELETE_REQUEST_TYPE);
-		Request request = myceliumService.createRequest(dto);
-		request.setStatus(Request.Status.ACCEPTED);
-		request.setAttribute(Attribute.RECORD_ID, registryObjectId);
-		request.setAttribute(MyceliumSideEffectService.REQUEST_ATTRIBUTE_REQUEST_ID, sideEffectRequestID);
-		request = myceliumService.save(request);
+		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
 
 		// run the DeleteTask
-		myceliumService.runDeleteTask(request);
+		myceliumService.runDeleteTask(registryObjectId, request);
 
-		request = myceliumService.save(request);
 		return ResponseEntity.ok(request);
 	}
 
@@ -121,13 +100,12 @@ public class MyceliumServiceController {
 	 * @return the {@link Request} with the current status updated to RUNNING
 	 */
 	@PostMapping("/start-queue-processing")
-	public ResponseEntity<Request> startQueueProcessing(@Parameter(name = "sideEffectRequestId",
-			description = "Request ID of the Side Effect Request") String requestId) {
-		log.info("Start Queue Processing Request[sideEffectRequestId={}]", requestId);
+	public ResponseEntity<Request> startQueueProcessing(@Parameter(name = "requestId",
+			description = "Request ID of the RequestID") String requestId) {
+
+		log.info("Start Queue Processing Request[requestId={}]", requestId);
 
 		Request request = myceliumService.findById(requestId);
-
-		// todo confirm and validate request status
 
 		String queueID = myceliumService.getMyceliumSideEffectService().getQueueID(requestId);
 		log.debug("QueueID obtained: {}", queueID);

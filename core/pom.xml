@@ -25,6 +25,7 @@
         <commons-io.version>2.5</commons-io.version>
         <micrometer.version>1.5.3</micrometer.version>
         <ecs-logging-java.version>0.5.1</ecs-logging-java.version>
+        <log4j2.version>2.15.0</log4j2.version>
     </properties>
 
     <dependencies>

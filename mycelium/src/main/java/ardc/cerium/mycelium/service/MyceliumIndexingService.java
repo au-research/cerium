@@ -312,10 +312,15 @@ public class MyceliumIndexingService {
 					relationTypeText = lookupEntry.getCollectionText();
 				} else if ("activity".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getActivityText();
+
 				} else if ("service".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getServiceText();
 				} else if ("party".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getPartyText();
+				}
+				//if the relationTypeText has not been set for this class then use the default text
+				if(relationTypeText.isEmpty()){
+					relationTypeText = lookupEntry.getDefaultText();
 				}
 			}
 

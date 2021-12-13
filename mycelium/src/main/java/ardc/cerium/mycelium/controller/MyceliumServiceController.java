@@ -115,7 +115,7 @@ public class MyceliumServiceController {
 
 		// workQueue is an Async method that would set Request to COMPLETED after it has
 		// finished
-		myceliumService.getMyceliumSideEffectService().workQueue(queueID, request);
+		myceliumService.getMyceliumSideEffectService().workQueueAsync(queueID, request);
 
 		return ResponseEntity.ok().body(request);
 	}

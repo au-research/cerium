@@ -1,7 +1,11 @@
 package ardc.cerium.mycelium.task;
 
+import ardc.cerium.core.common.dto.RequestDTO;
+import ardc.cerium.core.common.entity.Request;
+import ardc.cerium.mycelium.event.DataSourceUpdatedEvent;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
+import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,11 +47,26 @@ public class ImportDataSourceTask implements Runnable{
         MyceliumSideEffectService myceliumSideEffectService = myceliumService.getMyceliumSideEffectService();
         List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 
-        // todo centralise queueID
-        String queueID = String.format("mycelium.queue.effect.datasource.%s", dataSource.getId());
+        // no need to do anything if there's no sideEffect
+        if (sideEffects.size() == 0) {
+            return;
+        }
+
+        // create a new Request to track progress and store queue
+        RequestDTO dto = new RequestDTO();
+        dto.setType(MyceliumRequestService.AFFECTED_REL_REQUEST_TYPE);
+        Request request = myceliumService.createRequest(dto);
+
+        // queue the sideEffects
+        String queueID = myceliumSideEffectService.getQueueID(request.getId().toString());
         sideEffects.forEach(sideEffect -> myceliumSideEffectService.addToQueue(queueID, sideEffect));
 
-        // work the queue asynchronously
-        myceliumSideEffectService.workQueue(queueID);
+		// send an event notifying RDA that we're starting the queue
+		myceliumService.publishEvent(new DataSourceUpdatedEvent(this, dataSource.getId(),
+				"Affected record processing started. \nRequestID: " + request.getId().toString()));
+
+        // work the queue asynchronously, and send finished message once done
+        myceliumSideEffectService.workQueueAsync(queueID, request, new DataSourceUpdatedEvent(this,
+				dataSource.getId(), "Affected record processing completed. \nRequestID: "+request.getId().toString()));
     }
 }

@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -79,8 +81,10 @@ public class MyceliumSideEffectService {
 		log.info("Finish working RQueue[id={}]", queueID);
 	}
 
-	@Async
 	public void workQueue(String queueID, Request request) {
+
+		request.setStatus(Request.Status.RUNNING);
+		myceliumRequestService.save(request);
 
 		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		RQueue<SideEffect> queue = getQueue(queueID);
@@ -105,6 +109,17 @@ public class MyceliumSideEffectService {
 		myceliumRequestService.save(request);
 
 		// todo callback when the queue finished depends on the request
+	}
+
+	@Async
+	public void workQueueAsync(String queueID, Request request) {
+		this.workQueue(queueID, request);
+	}
+
+	@Async
+	public void workQueueAsync(String queueID, Request request, ApplicationEvent event) {
+		workQueue(queueID, request);
+		myceliumService.publishEvent(event);
 	}
 
 	/**

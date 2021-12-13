@@ -15,9 +15,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -41,6 +44,8 @@ public class MyceliumService {
 	private final MyceliumSideEffectService myceliumSideEffectService;
 
 	private final MyceliumIndexingService myceliumIndexingService;
+
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@PostConstruct
 	public void init() {
@@ -281,6 +286,16 @@ public class MyceliumService {
 		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId,
 				RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
 		graphService.deleteVertex(dataSourceVertex);
+	}
+
+	public void publishEvent(ApplicationEvent event) {
+		log.debug("Publishing Event {}", event);
+		applicationEventPublisher.publishEvent(event);
+	}
+
+	@Async
+	public void publishEventAsync(ApplicationEvent event) {
+		publishEvent(event);
 	}
 
 }

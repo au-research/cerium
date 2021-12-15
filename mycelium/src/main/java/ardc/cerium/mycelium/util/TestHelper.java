@@ -1,4 +1,6 @@
 package ardc.cerium.mycelium.util;
+import ardc.cerium.core.common.dto.RequestDTO;
+import ardc.cerium.mycelium.model.AdditionalRelation;
 import ardc.cerium.mycelium.model.DataSource;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
@@ -24,13 +26,57 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.*;
 
+import static ardc.cerium.mycelium.service.MyceliumRequestService.IMPORT_REQUEST_TYPE;
+
 /**
 creates a List containing Json payload from any set of XML containing registryObject[s]
 
  */
 public class TestHelper {
 
-    static List<String> buildJsonPackages(String xmlSource) {
+    public static List<String> getJSONImportPayload(String rifcses, List<String> titles, ardc.cerium.mycelium.rifcs.model.datasource.DataSource dataSource, List<AdditionalRelation> additionalRelations) {
+        List<String> result = new ArrayList<>();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        // convert DataSource model
+        DataSource ds = new DataSource();
+        ds.setKey(dataSource.getId());
+        ds.setId(Long.valueOf(dataSource.getId()));
+        ds.setTitle(dataSource.getTitle());
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource inputSource = new InputSource(new StringReader(rifcses));
+            Document doc = builder.parse(inputSource);
+            NodeList nList = doc.getElementsByTagName("registryObject");
+
+            for (int i = 0; i < nList.getLength(); i++) {
+                Node nNode = nList.item(i);
+
+                RegistryObject ro = new RegistryObject();
+                ro.setRifcs(new String(Base64.getEncoder().encode(wrapRifcs(getString(nNode)).getBytes())));
+                ro.setKey(getKey(nNode));
+                ro.setClassification(getClass(nNode));
+                ro.setGroup(getGroup(nNode));
+                ro.setType(getType(nNode));
+                ro.setStatus("PUBLISHED");
+                ro.setDataSource(ds);
+                ro.setRegistryObjectId((long) i+1);
+                ro.setTitle(titles.get(i));
+              	ro.setAdditionalRelations(additionalRelations != null
+						? additionalRelations.stream().toArray(AdditionalRelation[]::new) : new AdditionalRelation[0]);
+                result.add(mapper.writeValueAsString(ro));
+            }
+        } catch (ParserConfigurationException | IOException | SAXException | TransformerException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public static List<String> buildJsonPackages(String xmlSource) {
         RegistryObject ro = new RegistryObject();
         List<String> result = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
@@ -126,6 +172,23 @@ public class TestHelper {
             }
         }
         return "";
+    }
+
+    public static String wrapRifcs(String rifcs) {
+        return "<registryObjects xmlns=\"http://ands.org.au/standards/rif-cs/registryObjects\" xmlns:extRif=\"http://ands.org.au/standards/rif-cs/extendedRegistryObjects\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd\">" + rifcs + "</registryObjects>";
+    }
+
+    public static ardc.cerium.mycelium.rifcs.model.datasource.DataSource mockDataSource() {
+        ardc.cerium.mycelium.rifcs.model.datasource.DataSource dataSource = new ardc.cerium.mycelium.rifcs.model.datasource.DataSource();
+        dataSource.setId("1");
+        dataSource.setTitle("Test DataSource");
+        return dataSource;
+    }
+
+    public static RequestDTO mockRequestDTO(String type) {
+        RequestDTO dto = new RequestDTO();
+        dto.setType(type);
+        return dto;
     }
 
 }

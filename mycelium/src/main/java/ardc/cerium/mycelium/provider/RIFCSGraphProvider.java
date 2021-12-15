@@ -111,7 +111,7 @@ public class RIFCSGraphProvider {
 		// find the RegistryObject and have the ID as the originNode
 		String key = registryObject.getKey();
 		String keyFromPayload = rifcs.getKey();
-		log.info("keys should match here {} {}", key, keyFromPayload);
+		log.debug("keys should match here {} {}", key, keyFromPayload);
 
 		if (!key.equals(keyFromPayload)) {
 			log.error("XML Key does not match registryObject key, {} and {}", key, keyFromPayload);

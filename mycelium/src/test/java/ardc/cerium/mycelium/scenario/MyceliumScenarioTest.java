@@ -11,7 +11,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient(timeout = "2000")
+@AutoConfigureWebTestClient(timeout = "10000")
 public abstract class MyceliumScenarioTest extends MyceliumIntegrationTest {
 
 	public static String importRecordAPI = "/api/services/mycelium/import-record";

@@ -1,0 +1,48 @@
+version: '2.4'
+
+services:
+
+  mysql:
+    platform: linux/amd64
+    image: mysql:5.7
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dbs_mycelium
+      MYSQL_USER: webuser
+      MYSQL_PASSWORD: webuser
+
+  zookeeper:
+    image: zookeeper:3.4.10
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+
+  solr:
+    image: solr:8.10.1
+    volumes:
+      - ./docker/solr/conf/:/confs
+      - ./docker/solr/files/jts-core-1.15.0.jar:/opt/solr/server/solr-webapp/webapp/WEB-INF/lib/jts-core-1.15.0.jar
+      - ./docker/solr/bin/create-collections.sh:/bin/create-collections.sh
+    environment:
+      - ZK_HOST=zookeeper:2181
+
+  neo4j:
+    image: neo4j:4.3.5
+    environment:
+      - NEO4J_AUTH=neo4j/ands2010
+      - NEO4JLABS_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+
+  redis:
+    image: redis:3.2
+
+  mycelium:
+   image: maven:3.8.4-amazoncorretto-11
+   volumes:
+     - ${HOME}/.m2:/root/.m2:rw
+     - ./../:/cerium:rw
+     - ./docker/application-integration.properties:/cerium/mycelium/src/test/resources/application-integration.properties

@@ -49,9 +49,11 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 	})
 	@Query("MATCH (origin:Vertex {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
 			+ "relationshipFilter: $filter, minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
-			+ "}) YIELD path WITH nodes(path) as targets\n"
-			+ "MATCH (n:RegistryObject {objectClass: $class})"
-			+ "WHERE n IN targets AND n.identifier <> $identifier RETURN DISTINCT n")
+			+ "}) YIELD path WITH apoc.path.elements(path) AS elements\n" +
+			"UNWIND range(0, size(elements)-2) AS index\n" +
+			"WITH elements, index\n" +
+			"WHERE index %2 = 0 AND elements[index+2].objectClass = $class\n" +
+			"RETURN distinct elements[index+2] as n")
 	Stream<Vertex> streamSpanningTreeFromId(@Param("identifier") String identifier, @Param("filter") String relationshipFilters, @Param("class") String classFilter);
 	// @formatter:on
 

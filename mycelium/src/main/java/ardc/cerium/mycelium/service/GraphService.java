@@ -570,7 +570,7 @@ public class GraphService {
 	 */
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamParentParty(Vertex from) {
-		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isOutputOf>|isFundedBy>",
+		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|isPartOf>|isOutputOf>|isFundedBy>",
 				"party");
 	}
 

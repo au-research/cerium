@@ -1,0 +1,218 @@
+<!-- key = C8_16 has the same id as (key=C6_16) and should inherit grants network relationships 
+key = C6_16 is directly related to the program via relatedObject(not to the grant)
+key = C7_16 is directly related to the grant (A6_ID1_16  Title "(AUTestingRecords3)An investigation swarkie xoop of two non-punitive") via relatedInfo  -->
+<registryObjects>
+  <registryObject group="AUTestingRecords">
+    <key>C6_16</key>
+    <originatingSource>http://researchdata.ands.org.au/registry/orca/register_my_data
+</originatingSource>
+    <collection dateAccessioned="2013-02-19T00:00:00Z" dateModified="2013-02-19T00:00:00Z" type="collection">
+      <name type="primary">
+        <namePart type="">(C6_16 AUTestingRecords) Collection4 Collection to test party of type group ordering in title bar.</namePart>
+      </name>
+      <description type="full">&amp;lt;p&amp;gt; A Visual Representation of Music &amp; Aural Representation of Image:&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; The&amp;nbsp;&amp;lt;em&amp;gt;Intermedia Frottage&amp;nbsp;&amp;lt;/em&amp;gt;collection documents the development of compositional method for using graphic synthesis techniques to create sounds from images, and images from sounds. The products of these processes are then layered and arranged in cohesive, meaningful combinations. Moving back-and-forth between the two mediums in this dynamic interaction, a narrative interplay develops, connecting the materials created. Together with the sound compositions, the canvases and artists&amp;rsquo; scorebooks tell this story.&amp;nbsp;&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; The collection consists of:&amp;lt;/p&amp;gt; &amp;lt;ol&amp;gt; &amp;lt;li&amp;gt; 200pp. exegesis, text with 48 coloured figures,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; 14-track CD sound recording,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; Exhibition collection of 6 artists books and 10 giclee (digital print) canvases,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; DVD of images exhibition canvases and artists books,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; Exhibition copies of 14-track audio CD.&amp;lt;/li&amp;gt; &amp;lt;/ol&amp;gt; &amp;lt;p&amp;gt; The collection represents the complete body of work submitted by Melissa Cary to complete her PhD. The collection was exhibited at the Southern Cross University, NEXT Gallery as an installation of visual artworks accompanied by headphone listening stations with copies of the audio CD.&amp;lt;/p&amp;gt;
+</description>
+      <rights>
+        <rightsStatement>Data associated with this collection remain the property of Melissa Carey. This data is only available for analysis and/or publication with the permission of the owner.
+</rightsStatement>
+        <accessRights>For permission to access this collection please contact Melissa Carey.
+</accessRights>
+      </rights>
+      <identifier type="local">C6_ID1_16</identifier>
+      <location>
+        <address>
+          <electronic type="email">
+            <value>mcarey@scu.edu.au</value>
+          </electronic>
+          <physical type="postalAddress">
+            <addressPart type="text">R Block, Division of Research, Southern Cross University Military Road East Lismore New South Wales Australia 2480</addressPart>
+          </physical>
+        </address>
+      </location>
+      <relatedObject>
+        <key>A2_16</key>
+        <relation type="isOutputOf"/>
+      </relatedObject>
+      <subject type="anzsrc-for">1904</subject>
+      <subject type="anzsrc-for">1905</subject>
+      <coverage>
+        <temporal>
+          <date dateFormat="W3CDTF" type="dateFrom">2003-01-21T00:00:00Z</date>
+          <date dateFormat="W3CDTF" type="dateTo">2007-02-21T00:00:00Z</date>
+        </temporal>
+        <temporal>
+          <date dateFormat="W3CDTF" type="dateFrom">2008-01-11T00:00:00Z</date>
+          <date dateFormat="W3CDTF" type="dateTo">2009-02-11T00:00:00Z</date>
+        </temporal>
+      </coverage>
+      <citationInfo>
+        <fullCitation style="Harvard">Carey, M. 2007 &quot;Intermedia Frottage - An Arual representation of images&quot;.</fullCitation>
+      </citationInfo>
+      <relatedInfo type="publication">
+        <title>Related Info Title</title>
+        <identifier type="doi">PB_ID1_16</identifier>
+        <relation type="isReferencedBy"/>
+      </relatedInfo>
+      <dates type="dc.available">
+        <date dateFormat="W3CDTF" type="dateFrom">2003-04-17T00:00:00Z</date>
+      </dates>
+      <dates type="dc.dateSubmitted">
+        <date dateFormat="W3CDTF" type="dateFrom">2003-05-21T00:00:00Z</date>
+        <date dateFormat="W3CDTF" type="dateTo">2007-02-21T00:00:00Z</date>
+      </dates>
+    </collection>
+  </registryObject>
+  <registryObject group="AUTestingRecords">
+    <key>C7_16</key>
+    <originatingSource>http://researchdata.ands.org.au/registry/orca/register_my_data
+</originatingSource>
+    <collection dateAccessioned="2013-02-19T00:00:00Z" dateModified="2013-02-19T00:00:00Z" type="collection">
+      <name type="primary">
+        <namePart type="">(C7_16 AUTestingRecords) Collection to test party ordering in title bar.</namePart>
+      </name>
+      <description type="full">&amp;lt;p&amp;gt; A Visual Representation of Music &amp; Aural Representation of Image:&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; The&amp;nbsp;&amp;lt;em&amp;gt;Intermedia Frottage&amp;nbsp;&amp;lt;/em&amp;gt;collection documents the development of compositional method for using graphic synthesis techniques to create sounds from images, and images from sounds. The products of these processes are then layered and arranged in cohesive, meaningful combinations. Moving back-and-forth between the two mediums in this dynamic interaction, a narrative interplay develops, connecting the materials created. Together with the sound compositions, the canvases and artists&amp;rsquo; scorebooks tell this story.&amp;nbsp;&amp;lt;/p&amp;gt; &amp;lt;p&amp;gt; The collection consists of:&amp;lt;/p&amp;gt; &amp;lt;ol&amp;gt; &amp;lt;li&amp;gt; 200pp. exegesis, text with 48 coloured figures,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; 14-track CD sound recording,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; Exhibition collection of 6 artists books and 10 giclee (digital print) canvases,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; DVD of images exhibition canvases and artists books,&amp;lt;/li&amp;gt; &amp;lt;li&amp;gt; Exhibition copies of 14-track audio CD.&amp;lt;/li&amp;gt; &amp;lt;/ol&amp;gt; &amp;lt;p&amp;gt; The collection represents the complete body of work submitted by Melissa Cary to complete her PhD. The collection was exhibited at the Southern Cross University, NEXT Gallery as an installation of visual artworks accompanied by headphone listening stations with copies of the audio CD.&amp;lt;/p&amp;gt;
+</description>
+      <rights>
+        <rightsStatement>Data associated with this collection remain the property of Melissa Carey. This data is only available for analysis and/or publication with the permission of the owner.
+</rightsStatement>
+        <accessRights>For permission to access this collection please contact Melissa Carey.
+</accessRights>
+      </rights>
+      <identifier type="local">C7_ID1_16</identifier>
+      <location>
+        <address>
+          <electronic type="email">
+            <value>mcarey@scu.edu.au</value>
+          </electronic>
+          <physical type="postalAddress">
+            <addressPart type="text">R Block, Division of Research, Southern Cross University Military Road East Lismore New South Wales Australia 2480
+</addressPart>
+          </physical>
+        </address>
+      </location>
+      <subject type="anzsrc-for">1904</subject>
+      <subject type="anzsrc-for">1905</subject>
+      <coverage>
+        <temporal>
+          <date dateFormat="W3CDTF" type="dateFrom">2003-01-21T00:00:00Z</date>
+          <date dateFormat="W3CDTF" type="dateTo">2007-02-21T00:00:00Z</date>
+        </temporal>
+        <temporal>
+          <date dateFormat="W3CDTF" type="dateFrom">2008-01-11T00:00:00Z</date>
+          <date dateFormat="W3CDTF" type="dateTo">2009-02-11T00:00:00Z</date>
+        </temporal>
+      </coverage>
+      <citationInfo>
+        <fullCitation style="Harvard">Carey, M. 2007 &quot;Intermedia Frottage - An Arual representation of images&quot;.
+</fullCitation>
+      </citationInfo>
+      <relatedInfo type="activity">
+        <title>Insert activity name here...</title>
+        <identifier type="purl">A6_ID1_16</identifier>
+        <relation type="isOutputOf">
+          <description>A website relationship</description>
+        </relation>
+      </relatedInfo>
+      <relatedInfo type="publication">
+        <title>Related Info Title</title>
+        <identifier type="doi">PB_ID1_16</identifier>
+        <relation type="isReferencedBy"/>
+      </relatedInfo>
+      <dates type="dc.available">
+        <date dateFormat="W3CDTF" type="dateFrom">2003-04-17T00:00:00Z</date>
+      </dates>
+      <dates type="dc.dateSubmitted">
+        <date dateFormat="W3CDTF" type="dateFrom">2003-05-21T00:00:00Z</date>
+        <date dateFormat="W3CDTF" type="dateTo">2007-02-21T00:00:00Z</date>
+      </dates>
+    </collection>
+  </registryObject>
+  <registryObject group="AUTestingRecords">
+    <key>C8_16</key>
+    <originatingSource>Integrated Marine Observing System (IMOS)</originatingSource>
+    <collection type="dataset">
+      <identifier type="local">C6_ID1_16</identifier>
+      <name type="primary">
+        <namePart>(C8_16 AUTestingRecords) Collection with citationMetadata with DOI in full resolvable URL format  and single contributor as string(not all elements). Duplicate of C6_16 and should inherit grants network relationships.
+</namePart>
+      </name>
+      <dates type="created">
+        <date dateFormat="W3CDTF" type="dateFrom">2010-04-12T17:41:00</date>
+      </dates>
+      <location>
+        <address>
+          <electronic type="url">
+            <value>http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=78748469-2dcf-4104-8f6d-64b3155e5b35
+</value>
+          </electronic>
+        </address>
+      </location>
+      <subject type="local">oceans</subject>
+      <subject type="local">Oceans | Salinity/density | Conductivity</subject>
+      <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+      <subject type="local">Oceans | Bathymetry | Water Depth</subject>
+      <subject type="local">Oceans | Ocean Optics | Fluorescence</subject>
+      <subject type="local">Oceans | Ocean Chemistry | Oxygen</subject>
+      <subject type="local">Oceans | Ocean Optics | Turbidity</subject>
+      <subject type="local">Oceans | Ocean Chemistry | Nutrients</subject>
+      <subject type="local">Oceans | Ocean Chemistry | Carbon Dioxide</subject>
+      <subject type="local">Oceans | Ocean Chemistry | Chlorophyll</subject>
+      <subject type="local">Oceans | Bathymetry | Seafloor Topography</subject>
+      <subject type="local">Oceans | Ocean Chemistry | Organic Matter</subject>
+      <subject type="local">CTD (Conductivity-Temperature-Depth Profilers)</subject>
+      <subject type="local">Data Loggers</subject>
+      <subject type="local">Seabed Vehicles</subject>
+      <subject type="local">Cameras | Still Cameras - underwater</subject>
+      <subject type="local">Current Meters/Profilers | Acoustic Doppler Current Profiler (ADCP)
+</subject>
+      <subject type="local">Digital Imaging (acquisition and/or analysis)</subject>
+      <subject type="local">Field Surveys | Underwater Surveys</subject>
+      <subject type="local">Fluorometers</subject>
+      <subject type="local">SONAR</subject>
+      <subject type="local">Turbulence Sensors</subject>
+      <subject type="local">IMOS Facility | AUV | Autonomous Underwater Vehicle
+</subject>
+      <description type="full">AUV SIRIUS (IMOS Platform code: SIRIUS) effectued a series of dives during the Tasmania201106 campaign. Dive Abstract: Surveying at Flinders Island and St Helens. The AUV group launched an AUV robot at latitude:-40.52004, longitude: 148.4089 from 2011-06-16T03:58:03+10:00 to 2011-06-16T06:53:35+10:00. The robot,capable of undertaking high resolution survey work, took 10532, stereo pairs images (only the right ones are available for download) over 3523.07459 meters. Engineering data (roll, pitch, heading) as well as scientific data such as sea water temperature, sea water salinity, chlorophyll concentration, backscattering ratio, colored dissolved organic matter ; have been recorded in both CSV and netCDF files. The dive name r20110616_035459_flinders_south_cape_barren_island_16 follows the following convention name rYYYYMMDD_HHMMSS_SITE_NumberDive_... A Dive report in PDF is available for download : http://data.aodn.org.au/IMOS/public/AUV/Tasmania201106/all_reports/r20110616_035459_flinders_south_cape_barren_island_16_report.pdf The different data, as explained underneath, are stored by eMII and are accessible and downloadable at https://df.arcs.org.au/ARCS/projects/IMOS/public/AUV/Tasmania201106/r20110616_035459_flinders_south_cape_barren_island_16 More informations about the AUV facility can be available on the IMOS website: http://imos.org.au/auv.html -------------------------------------------------------------------- The files in this folder form part of the data 'product' from the IMOS AUV Facility Sirius AUV operated by the University of Sydney's Australian Centre for Field Robotics. The directory contains a number of different file types. These are listed below. The 'product' from each dive is contained in it's own named folder. *../all_reports folder:- This folder contains the PDF short dive report files, one for each of the dives. These contain some summary graphs and sample images. *per_dive folder:- -&gt; i*_gtif (contains geotif versions of all images). -&gt; i*_subsampN (subsampled geotif images (one in N, and a csv of locations). -&gt; hydro_netcdf (*.nc files, netcdf files containing CT and ecopuck data). -&gt; track_files (dive track in csv, kml and arcgis shape file format). -&gt; mesh (3D reconstuction of the dive, needs OSG viewer software). -&gt; multibeam (a number of different versions of the multibeam product). *.gsf: Navigated and automatically cleaned swath bathymetry with raw intensity data.Format specification 121 (SAIC Generic Sensor Format) in mbsystem. *.grd: Gridded bathymetry. NetCDF format as used with GMT. Use grdinfo to determine resolution and projection. *.grd.pdf: Plotted gridded bathymetry (local northings and eastings) acrobat PDF format.
+</description>
+      <coverage>
+        <spatial type="iso19139dcmiBox">northlimit=-40.51547; southlimit=-40.52004; westlimit=148.4089; eastLimit=148.4145
+</spatial>
+        <spatial type="text">northlimit=-40.51547; southlimit=-40.52004; westlimit=148.4089; eastLimit=148.4145
+</spatial>
+      </coverage>
+      <coverage>
+        <temporal>
+          <date dateFormat="W3CDTF" type="dateFrom">2011-06-15T17:58:03Z</date>
+          <date dateFormat="W3CDTF" type="dateTo">2011-06-15T20:53:35Z</date>
+        </temporal>
+      </coverage>
+      <rights>
+        <licence rightsUri="http://creativecommons.org/licenses/by/2.5/au/" type="CC-BY">Creative Commons Attribution</licence>
+      </rights>
+      <rights>
+        <rightsStatement>The citation in a list of references is: &quot;IMOS [year-of-data-download], [Title], [data-access-URL], accessed [date-of-access].&quot;
+</rightsStatement>
+      </rights>
+      <rights>
+        <rightsStatement>Any users of IMOS data are required to clearly acknowledge the source of the material in the format: &quot;Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy and the Super Science Initiative.&quot; If relevant, also credit other organisations involved in collection of this particular datastream (as listed in 'credit' in the metadata record).
+</rightsStatement>
+      </rights>
+      <rights>
+        <rightsStatement>Data, products and services from IMOS are provided &quot;as is&quot; without any warranty as to fitness for a particular purpose.
+</rightsStatement>
+      </rights>
+      <citationInfo>
+        <citationMetadata>
+          <identifier type="doi">http://dx.doi.org/10.1234d</identifier>
+          <title>IMOS AUV Campaign Tasmania201106, Dive number 16, flinders south cape barren island, 15 Jun 2011
+</title>
+          <date type="publicationDate">2001</date>
+          <contributor>
+            <namePart>Example contributor single string</namePart>
+          </contributor>
+          <publisher>Integrated Marine Observing System (IMOS)</publisher>
+        </citationMetadata>
+      </citationInfo>
+    </collection>
+  </registryObject>
+</registryObjects>

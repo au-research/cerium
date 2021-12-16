@@ -3,11 +3,13 @@ import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.mycelium.model.AdditionalRelation;
 import ardc.cerium.mycelium.model.DataSource;
 import ardc.cerium.mycelium.model.RegistryObject;
+import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.BaseRegistryObjectClass;
 import ardc.cerium.mycelium.rifcs.model.RegistryObjects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.solr.core.query.result.Cursor;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -34,12 +36,15 @@ creates a List containing Json payload from any set of XML containing registryOb
  */
 public class TestHelper {
 
-    public static List<String> getJSONImportPayload(String rifcses, List<String> titles, ardc.cerium.mycelium.rifcs.model.datasource.DataSource dataSource, List<AdditionalRelation> additionalRelations) {
+    public static List<String> getJSONImportPayload(String rifcses, List<String> titles, ardc.cerium.mycelium.rifcs.model.datasource.DataSource dataSource, List<AdditionalRelation> additionalRelations, int startingIDIncrement) {
         List<String> result = new ArrayList<>();
 
         ObjectMapper mapper = new ObjectMapper();
 
         // convert DataSource model
+        if (dataSource == null) {
+            dataSource = TestHelper.mockDataSource();
+        }
         DataSource ds = new DataSource();
         ds.setKey(dataSource.getId());
         ds.setId(Long.valueOf(dataSource.getId()));
@@ -58,13 +63,19 @@ public class TestHelper {
                 RegistryObject ro = new RegistryObject();
                 ro.setRifcs(new String(Base64.getEncoder().encode(wrapRifcs(getString(nNode)).getBytes())));
                 ro.setKey(getKey(nNode));
-                ro.setClassification(getClass(nNode));
+                String objectClass = getClass(nNode);
+                ro.setClassification(objectClass);
                 ro.setGroup(getGroup(nNode));
-                ro.setType(getType(nNode));
+                String objectType = getType(nNode);
+                ro.setType(objectType);
                 ro.setStatus("PUBLISHED");
                 ro.setDataSource(ds);
-                ro.setRegistryObjectId((long) i+1);
-                ro.setTitle(titles.get(i));
+                ro.setRegistryObjectId((long) i+1 + startingIDIncrement);
+                ro.setTitle(
+                        titles == null || i >= titles.size()
+                                ? String.format("%s %s autogen title #%s", objectClass, objectType, i)
+                                : titles.get(i)
+                );
               	ro.setAdditionalRelations(additionalRelations != null
 						? additionalRelations.stream().toArray(AdditionalRelation[]::new) : new AdditionalRelation[0]);
                 result.add(mapper.writeValueAsString(ro));
@@ -189,6 +200,14 @@ public class TestHelper {
         RequestDTO dto = new RequestDTO();
         dto.setType(type);
         return dto;
+    }
+
+    public static List<RelationshipDocument> cursorToList(Cursor<RelationshipDocument> cursor) {
+        List<RelationshipDocument> result = new ArrayList<>();
+        while (cursor.hasNext()) {
+            result.add(cursor.next());
+        }
+        return result;
     }
 
 }

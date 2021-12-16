@@ -1,0 +1,363 @@
+<!--  key = C3_16 is related to grant (key = A7_16   Title="(AUTestingRecords3)A combinatorial approach")  via relatedObject
+key = AUTestingRecords2ala.org.au/dr968 is part of parent collection (key =C3_16) and should inherit grants network relationships.
+key = C5_16 has child collection (key = C3_16) and should NOT inherit grants network relationships
+-->
+
+
+<registryObjects>
+    <registryObject group="AUTestingRecords2">
+        <key>C3_16</key>
+        <originatingSource>
+            Atlantic Oceanographic and Meteorological Laboratory (AOML)
+        </originatingSource>
+        <collection type="dataset">
+            <identifier type="uri">C3_ID1_16</identifier>
+            <name type="primary">
+                <namePart>(C3_16 AUTestingRecords2)(LVL 1)
+                    Collection3 AOML - Argo float, WMO 1900812
+                </namePart>
+            </name>
+            <dates type="created">
+                <date type="dateFrom" dateFormat="W3CDTF">2014-09-09T06:06:15</date>
+            </dates>
+            <relatedObject>
+                <key>A7_16</key>
+                <relation type="isOutputOf"/>
+            </relatedObject>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>
+                            http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=03bcf232-4b45-31bb-abeb-8fed01492914
+                        </value>
+                    </electronic>
+                </address>
+            </location>
+            <subject type="local">oceans</subject>
+            <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+            <subject type="local">Oceans | Salinity/density | Salinity</subject>
+            <subject type="local">Oceans | Ocean Pressure | Water Pressure</subject>
+            <subject type="local">Profiling Float | Autonomous Profiling Float</subject>
+            <description type="full">
+                This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 1900812
+                managed by the Atlantic Oceanographic and Meteorological Laboratory (AOML). Argo is a major
+                international collaborative project to observe the world's oceans and help scientists understand ocean
+                processes and the ocean's roles in climate. The data collected also improves our ability to forecast
+                climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float
+                ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to
+                satellites along with the float's position. The float then dives and starts a new cycle. The Argo float,
+                WMO 1900812 was first deployed on the 2008-11-25T14:00:00 at launch location (Latitude :
+                -43.68600082397461 ; Longitude : 70.98100280761719). The variables available for this Argo float are :
+                Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the
+                2014-08-28T14:37:01 at the following location (Latitude : -48.588 ; Longitude : -129.169).
+            </description>
+            <coverage>
+                <spatial type="iso19139dcmiBox">
+                    northlimit=-41.405; southlimit=-58.592; westlimit=70.941; eastLimit=-129.169; projection=WGS84
+                </spatial>
+                <spatial type="text">
+                    northlimit=-41.405; southlimit=-58.592; westlimit=70.941; eastLimit=-129.169; projection=WGS84
+                </spatial>
+            </coverage>
+            <coverage>
+                <temporal>
+                    <date type="dateFrom" dateFormat="W3CDTF">2008-11-01T00:00:00</date>
+                    <date type="dateTo" dateFormat="W3CDTF">2014-08-28T14:37:01</date>
+                </temporal>
+            </coverage>
+             <rights>
+                <rightsStatement>
+                    Argo Data (Temperature and Salinity profiles) are freely available without any restriction, via the
+                    internet Global Data Centres (GDACs) and the GTS of WMO. Please support Argo by acknowledging your
+                    use of Argo data with the following words: "These data where collected and made freely available by
+                    the International Argo project and the national initiatives that contribute to it.
+                    (http://www.argo.net). Argo is a pilot programme of the Global Ocean Observing System."
+                </rightsStatement>
+            </rights>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="uri">C3_ID1_16</identifier>
+                    <title>AOML - Argo float, WMO 1900812</title>
+                    <date type="created">2014</date>
+                    <contributor>
+                        <namePart>(AUTestingRecords2)
+                            Atlantic Oceanographic and Meteorological Laboratory (AOML)
+                        </namePart>
+                    </contributor>
+                    <publisher>Integrated Marine Observing System (IMOS)</publisher>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingRecords2">
+        <key>C4_16</key>
+        <originatingSource>
+            Atlantic Oceanographic and Meteorological Laboratory (AOML)
+        </originatingSource>
+        <collection type="dataset">
+            <identifier type="uri">C3_ID1_16</identifier>
+            <identifier type="uri">C4_ID1_16</identifier>
+            <name type="primary">
+                <namePart>(C4_16 AUTestingRecords2)(LVL 1) Collection3Duplicate (relatedObjects should inherit from C3_16 AOML - Argo float, WMO 1900812</namePart>
+            </name>
+            <dates type="created">
+                <date type="dateFrom" dateFormat="W3CDTF">2014-09-09T06:06:15</date>
+            </dates>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>
+                            http://imosmest.aodn.org.au:80/geonetwork/srv/en/metadata.show?uuid=03bcf232-4b45-31bb-abeb-8fed01492914
+                        </value>
+                    </electronic>
+                </address>
+            </location>
+            <subject type="local">oceans</subject>
+            <subject type="local">Oceans | Ocean Temperature | Water Temperature</subject>
+            <subject type="local">Oceans | Salinity/density | Salinity</subject>
+            <subject type="local">Oceans | Ocean Pressure | Water Pressure</subject>
+            <subject type="local">Profiling Float | Autonomous Profiling Float</subject>
+            <description type="full">
+                This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 1900812
+                managed by the Atlantic Oceanographic and Meteorological Laboratory (AOML). Argo is a major
+                international collaborative project to observe the world's oceans and help scientists understand ocean
+                processes and the ocean's roles in climate. The data collected also improves our ability to forecast
+                climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float
+                ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to
+                satellites along with the float's position. The float then dives and starts a new cycle. The Argo float,
+                WMO 1900812 was first deployed on the 2008-11-25T14:00:00 at launch location (Latitude :
+                -43.68600082397461 ; Longitude : 70.98100280761719). The variables available for this Argo float are :
+                Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the
+                2014-08-28T14:37:01 at the following location (Latitude : -48.588 ; Longitude : -129.169).
+            </description>
+            <coverage>
+                <spatial type="iso19139dcmiBox">
+                    northlimit=-41.405; southlimit=-58.592; westlimit=70.941; eastLimit=-129.169; projection=WGS84
+                </spatial>
+                <spatial type="text">
+                    northlimit=-41.405; southlimit=-58.592; westlimit=70.941; eastLimit=-129.169; projection=WGS84
+                </spatial>
+            </coverage>
+            <coverage>
+                <temporal>
+                    <date type="dateFrom" dateFormat="W3CDTF">2008-11-01T00:00:00</date>
+                    <date type="dateTo" dateFormat="W3CDTF">2014-08-28T14:37:01</date>
+                </temporal>
+            </coverage>
+            <rights>
+                <rightsStatement>
+                    Argo Data (Temperature and Salinity profiles) are freely available without any restriction, via the
+                    internet Global Data Centres (GDACs) and the GTS of WMO. Please support Argo by acknowledging your
+                    use of Argo data with the following words: "These data where collected and made freely available by
+                    the International Argo project and the national initiatives that contribute to it.
+                    (http://www.argo.net). Argo is a pilot programme of the Global Ocean Observing System."
+                </rightsStatement>
+            </rights>
+            <citationInfo>
+                <citationMetadata>
+                    <identifier type="uri">C3_ID1_16</identifier>
+                    <title>AOML - Argo float, WMO 1900812</title>
+                    <date type="created">2014</date>
+                    <contributor>
+                        <namePart>(AUTestingRecords2)
+                            Atlantic Oceanographic and Meteorological Laboratory (AOML)
+                        </namePart>
+                    </contributor>
+                    <publisher>Integrated Marine Observing System (IMOS)</publisher>
+                </citationMetadata>
+            </citationInfo>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingRecords2">
+        <key>C3.1_16</key>
+        <originatingSource>Atlas of Living Australia</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">C3.1_ID1_16</identifier>
+            <name type="primary">
+                <namePart type="full">(C3.1_16 AUTestingRecords2) Collection 3.1 Collection which is the child of a collection which is linked to grants network.</namePart>
+            </name>
+            <description type="full">
+                This dataset contains temperature, salinity and pressure data for all profiles of the Argo float 1900812
+                managed by the Atlantic Oceanographic and Meteorological Laboratory (AOML). Argo is a major
+                international collaborative project to observe the world's oceans and help scientists understand ocean
+                processes and the ocean's roles in climate. The data collected also improves our ability to forecast
+                climate and ocean conditions. The float drift at depth of between 1 and 2 km. Every ten days each float
+                ascends to the surface, measuring temperature and salinity as it rises. This data is transmitted to
+                satellites along with the float's position. The float then dives and starts a new cycle. The Argo float,
+                WMO 1900812 was first deployed on the 2008-11-25T14:00:00 at launch location (Latitude :
+                -43.68600082397461 ; Longitude : 70.98100280761719). The variables available for this Argo float are :
+                Temperature, Practical Salinity and Pressure. The last location of the Argo float was transmitted on the
+                2014-08-28T14:37:01 at the following location (Latitude : -48.588 ; Longitude : -129.169).
+            </description>
+            <location>
+                <address>
+                    <electronic>
+                        <value>http://collections.ala.org.au/public/show/dr968</value>
+                    </electronic>
+                </address>
+            </location>
+            <relatedInfo type="website">
+                <identifier type="uri">w_ID3_16</identifier>
+            </relatedInfo>
+            <relatedObject>
+                <key>C3_16</key>
+                <relation type="isPartOf"/>
+            </relatedObject>
+            <rights>
+                <licence type="other"/>
+            </rights>
+            <description type="brief"/>
+            <coverage>
+                <spatial type="iso19139dcmiBox">northlimit=-35.2758; southlimit=-35.276; westlimit=149.0897;
+                    eastLimit=149.1114; projection=WGS84
+                </spatial>
+            </coverage>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingRecords2">
+        <key>C5_16</key>
+        <originatingSource>NatureMap</originatingSource>
+        <collection type="dataset">
+            <identifier type="local">C5_ID1_16</identifier>
+            <name type="primary">
+                <namePart type="full">( C5_16 AUTestingRecords2)CollectionNotLinkedToGrantsNetwork Collection which has child collection which is linked to grants network.</namePart>
+            </name>
+            <location>
+                <address>
+                    <electronic>
+                        <value>http://collections.ala.org.au/public/show/dr931</value>
+                    </electronic>
+                </address>
+            </location>
+            <relatedObject>
+                <key>C3_16</key>
+                <relation type="hasPart"/>
+            </relatedObject>
+            <rights>
+                <licence type="other"/>
+                <rightsStatement>Conditions of Access
+                    All users need to acknowledge and agree to the following conditions before using NatureMap content:
+                    Data within NatureMap is provided with the participation and good will of data custodians and I will
+                    endeavour, where possible, to seek a collaborative approach with custodians in any research or
+                    papers published using NatureMap data.
+                    Re-sale of raw data or the commercial use of images or descriptive text (other than generated maps,
+                    species lists and reports) on this site is unauthorised unless written permission is obtained from
+                    the Department of Environment and Conservation (DEC).
+                    Appropriate and full acknowledgement of DEC and species data custodians (see Data Directory) must
+                    always be given in any publication that includes data sourced here.
+                    Data provided through NatureMap represents positive records of flora and fauna occurrence. The
+                    absence of a record should not be taken to mean flora or fauna is necessarily absent from an area.
+                    (To minimise the effect of data gaps, a buffer area should be applied that is reflective of the
+                    likelihood of surveys or collections having been undertaken in the target area.)
+                    My username and password will not be passed on to any other person or organisation.
+                    DEC and data custodians reserve the right to revoke registration if the above conditions of access
+                    are not complied with.
+                    I will notify DEC if any relevant conditions change that might affect my NatureMap authorisation
+                    level.
+                    Also note:
+                    Custodians have kindly granted permission to allow relatively large subsets of data to be downloaded
+                    for a wide range of uses, including within a commercial context. Note, however, it is not NatureMap
+                    policy to allow the downloading of entire datasets
+                    It is current custodian policy to only grant Advanced Access (see the Registration page) for bona
+                    fide research or conservation planning purposes. This does not extend to use within a commercial
+                    context. While this may appear restrictive, in fact basic registration provides a great deal of
+                    information on both conservation and non-conservation taxa, and all users are encouraged to explore
+                    NatureMap&amp;#39;s sophisticated querying and mapping capabilities. DEC&amp;#39;s Species and
+                    Communities Branch continues to provide information on detailed localities of conservation taxa to
+                    consultants and other commercial users on a fee-for-service basis.
+                    Fair Use Guidlines
+                    As stated above, we want as many people as possible to make use of the data available within
+                    NatureMap, so long as that use is &amp;quot;fair&amp;quot;. It is considered fair for anyone to use
+                    information from NatureMap for conservation or planning purposes, including incorporating that
+                    information into reports or papers, or summarising and value-adding to data.
+                    It is not considered fair use to download raw data and on-sell it. That would contravene copyright.
+                    It is also bad business, because anyone could obtain the same data directly from NatureMap.
+                    Of particular note:
+                    Maps, species lists, reports and raw data may be freely used by anyone, including commercial
+                    consultants, for research, planning, generating reports and compilations, or for personal use, so
+                    long as the above conditions of access are complied with.
+                    Raw data, i.e. bulk detail records of individual locations that have been downloaded from NatureMap
+                    and not summarised, compiled or modified in any substantial way, may not be on-sold or rebadged
+                    without written permission from the Department of Environment and Conservation (DEC). This is
+                    consistent with Australian Copyright law.
+                    Other descriptive text and images, such as Thematic content on wetlands or ecological attributes,
+                    remain the property of NatureMap and copyright holders and may not be used without written
+                    permission from DEC.
+                    For full terms of use see Copyright page at
+                    http://naturemap.dec.wa.gov.au/default.aspx
+                </rightsStatement>
+            </rights>
+            <description type="brief">This was sourced from a regional flora and vegetation surveys surveys of eight
+                calcrete areas in the mid west carried out by DEC staff in 2010;. For more information on this dataset
+                visit the BIF theme page by clicking on Themes | Yilgarn Surveys in the NatureMap main menu.
+            </description>
+            <description type="notes">Includes: point occurrence data</description>
+            <citationInfo>
+                <fullCitation>Calcrete Survey. NatureMap: Mapping Western Australia&amp;#39;s Biodiversity. Department
+                    of Environment and Conservation. URL: http://naturemap.dec.wa.gov.au/
+                </fullCitation>
+            </citationInfo>
+            <coverage>
+                <spatial type="iso19139dcmiBox">northlimit=-26.34152778; southlimit=-27.82194444; westlimit=118.4163333;
+                    eastLimit=121.6550278; projection=WGS84
+                </spatial>
+            </coverage>
+        </collection>
+    </registryObject>
+
+    <registryObject group="AUTestingRecords2">
+        <key>P2_16</key>
+        <originatingSource type="">nla.gov.au</originatingSource>
+        <party type="group">
+            <name type="primary">
+                <namePart>(P2_16 AUTestingRecords2) University of AUTestingRecords2</namePart>
+            </name>
+            <identifier type="AU-ANL:PEAU">P2_ID1_16</identifier>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>http://www.unsw.edu.au/</value>
+                    </electronic>
+                </address>
+            </location>
+        </party>
+    </registryObject>
+    <registryObject group="AUTestingRecords2">
+        <key>P3_16</key>
+        <originatingSource>nla.gov.au</originatingSource>
+        <party type="group">
+            <identifier type="AU-ANL:PEAU">P2_ID1_16</identifier>
+            <name type="primary">
+                <namePart>(P3_16 AUTestingRecords2) University of AUTestingRecords2 DUPLICATE ONE</namePart>
+            </name>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>http://www.unsw.edu.au/</value>
+                    </electronic>
+                </address>
+            </location>
+        </party>
+    </registryObject>
+    <registryObject group="AUTestingRecords2">
+        <key>P4_16</key>
+        <originatingSource>nla.gov.au</originatingSource>
+        <party type="group">
+            <identifier type="AU-ANL:PEAU">P2_ID1_16</identifier>
+            <identifier type="orcid">orcid-123932993kd</identifier>
+            <name type="primary">
+                <namePart>(P4_16 AUTestingRecords2) University of AUTestingRecords2 DUPLICATE TWO</namePart>
+            </name>
+            <location>
+                <address>
+                    <electronic type="url">
+                        <value>http://www.unsw.edu.au/</value>
+                    </electronic>
+                </address>
+            </location>
+        </party>
+    </registryObject>
+</registryObjects>

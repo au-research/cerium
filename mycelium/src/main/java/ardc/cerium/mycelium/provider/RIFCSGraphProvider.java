@@ -120,6 +120,7 @@ public class RIFCSGraphProvider {
 		}
 
 		log.debug("RegistryObjectId: {}", registryObject.getRegistryObjectId());
+		log.info("Ingesting RegistryObject[id={}, key={}]", registryObject.getRegistryObjectId(), key);
 
 		// add the originNode, which is the ID node
 		Vertex originNode = new Vertex(registryObject.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);

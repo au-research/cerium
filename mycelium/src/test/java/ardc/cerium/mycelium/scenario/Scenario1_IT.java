@@ -50,7 +50,7 @@ public class Scenario1_IT extends MyceliumScenarioTest {
 		titles.add("(AUTestingRecords) Example related party 2");
 		List<String> importPayloads = TestHelper.getJSONImportPayload(
 				Helpers.readFile("src/test/resources/scenarios/1_RelationshipScenario/1_RelationshipScenario.xml"),
-				titles, dataSource, null);
+				titles, dataSource, null, 1);
 
 		// import all the payloads
 		importPayloads.forEach(payload -> {

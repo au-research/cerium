@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +51,18 @@ public class GraphService {
 		this.neo4jClient = neo4jClient;
 		this.vertexMapper = vertexMapper;
 		this.edgeDTOMapper = edgeDTOMapper;
+	}
+
+	@PostConstruct
+	public void boot() {
+		insertIndices();
+	}
+
+	public void insertIndices() {
+		neo4jClient.query("CREATE INDEX vertex_id IF NOT EXISTS FOR (n:Vertex) ON (n.identifier);").run();
+		neo4jClient.query("CREATE INDEX ro_id IF NOT EXISTS FOR (n:RegistryObject) ON (n.identifier);").run();
+		neo4jClient.query("CREATE INDEX vertex_type IF NOT EXISTS FOR (n:Vertex) ON (n.identifierType);").run();
+		neo4jClient.query("CREATE INDEX ro_class IF NOT EXISTS FOR (n:RegistryObject) ON (n.objectClass);").run();
 	}
 
 	/**

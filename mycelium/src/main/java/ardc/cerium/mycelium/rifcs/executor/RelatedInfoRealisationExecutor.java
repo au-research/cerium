@@ -98,7 +98,10 @@ public class RelatedInfoRealisationExecutor extends Executor {
 			// reprocess the relationship source vertex to include the new realised
 			// RelatedObject relationship
 			Vertex vertex = getMyceliumService().getVertexFromRegistryObjectId(fromId);
-			indexingService.indexDirectRelationships(vertex);
+			// it should not happen but will result in nullPointException if it ever occurs
+			if(vertex != null){
+				indexingService.indexDirectRelationships(vertex);
+			}
 		}
 	}
 

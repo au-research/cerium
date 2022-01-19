@@ -523,11 +523,16 @@ public class MyceliumIndexingService {
 	 */
 	public void indexGrantsNetworkRelation(Vertex from, Vertex to, String relation) {
 
-		// index the implicit edge but only to actual registry Objects
+		// index the implicit edge but only between (to and from) registry Objects
 		// RDA-624
 		if(!to.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE))
 		{
-			log.debug("Indexes for Grants Network should have only Registry Objects not {}:{}}", to.getIdentifierType(), to.getIdentifier());
+			log.debug("Indexes for Grants Network should have only To Registry Objects not {}:{}}", to.getIdentifierType(), to.getIdentifier());
+			return;
+		}
+		if(!from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE))
+		{
+			log.debug("Indexes for Grants Network should have only From Registry Objects not {}:{}}", from.getIdentifierType(),from.getIdentifier());
 			return;
 		}
 		EdgeDTO edge = new EdgeDTO();

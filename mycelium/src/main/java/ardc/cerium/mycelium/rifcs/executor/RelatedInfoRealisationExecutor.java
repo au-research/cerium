@@ -9,6 +9,7 @@ import ardc.cerium.mycelium.rifcs.effect.RelatedInfoRealisationSideEffect;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.result.Cursor;
 
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class RelatedInfoRealisationExecutor extends Executor {
 
 	private final RelatedInfoRealisationSideEffect sideEffect;
@@ -65,8 +67,9 @@ public class RelatedInfoRealisationExecutor extends Executor {
 
 		// if the record wasn't created but was updated, then get the differences
 		if (before != null) {
+			List<String> beforeIdentifierValues = before.getIdentical().stream().map(vertex -> vertex.getIdentifier()).collect(Collectors.toList());
 			addedIdentifiers = after.getIdentical().stream()
-					.filter(vertex -> !before.getIdentical().contains(vertex))
+					.filter(vertex -> !beforeIdentifierValues.contains(vertex.getIdentifier()))
 					.collect(Collectors.toList());
 		}
 

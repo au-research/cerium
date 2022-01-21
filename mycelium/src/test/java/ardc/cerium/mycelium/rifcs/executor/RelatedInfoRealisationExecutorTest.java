@@ -49,4 +49,25 @@ class RelatedInfoRealisationExecutorTest {
 		assertThat(RelatedInfoRealisationExecutor.detect(before, after, myceliumService)).isTrue();
 	}
 
+	@Test
+	void detect_noChange() {
+		Collection<Vertex> identicalBefore = new HashSet<>();
+		identicalBefore.add(new Vertex("1", "ro:id"));
+		RecordState before = new RecordState();
+		before.setIdentical(identicalBefore);
+
+		Collection<Vertex> identicalAfter = new HashSet<>();
+		identicalAfter.add(new Vertex("1", "ro:id"));
+		RecordState after = new RecordState();
+		after.setIdentical(identicalAfter);
+
+		when(myceliumService.getGraphService()).thenReturn(graphService);
+		Collection<Relationship> mockedResponse = new HashSet<>();
+		mockedResponse.add(new Relationship());
+		when(graphService.getDirectOutboundRelationships("1", "ro:id")).thenReturn(mockedResponse);
+
+		assertThat(RelatedInfoRealisationExecutor.detect(before, after, myceliumService)).isFalse();
+		assertThat(RelatedInfoRealisationExecutor.detect(after, before, myceliumService)).isFalse();
+	}
+
 }

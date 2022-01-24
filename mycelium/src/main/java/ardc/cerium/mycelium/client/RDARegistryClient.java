@@ -60,7 +60,7 @@ public class RDARegistryClient {
 
 	/**
 	 * Sending a webhook event request
-	 * @param event
+	 * @param event the {@link RDAEventDTO} that needs to be published
 	 */
 	public void sendWebHookRequest(RDAEventDTO event) {
 		String endpoint = this.url + "/api/registry/webhook";

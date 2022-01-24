@@ -562,7 +562,7 @@ public class MyceliumIndexingService {
 	/**
 	 * Determine if the relation is a top down relation in a Grants Network
 	 *
-	 * The flow party->activity->collection is considered top-down
+	 * The flow party to activity to collection is considered top-down
 	 * @param fromClass the String value of the origin vertex objectClass
 	 * @param toClass the String value of the target vertex objectClass
 	 * @param relationType the String value of the relationType

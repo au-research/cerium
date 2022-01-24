@@ -3,6 +3,7 @@ package ardc.cerium.mycelium.scenario;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.solr.EdgeDocument;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
@@ -89,25 +90,45 @@ public class Scenario16_IT extends MyceliumScenarioTest {
 		this.webTestClient.post().uri(uriBuilder -> uriBuilder.path(indexRecordAPI)
 				.queryParam("registryObjectId", c3.getIdentifier()).build()).exchange().expectStatus().isOk();
 
-		// C3 isFundedBy P1 in SOLR
+
 		List<RelationshipDocument> fromC3Rels = TestHelper.cursorToList(
 				myceliumService.getMyceliumIndexingService().cursorFor(new Criteria("from_id").is(c3.getIdentifier())));
-		boolean c3isFundedByP1GrantsNetwork = fromC3Rels.stream().anyMatch(doc -> {
-			return doc.getToIdentifier().equals(p1.getIdentifier()) && doc.getRelations().stream().anyMatch(rel -> {
-				return rel.getRelationType().equals("isFundedBy");
-			});
-		});
-		assertThat(c3isFundedByP1GrantsNetwork).isTrue();
+		RelationshipDocument c3ToP1 = fromC3Rels.stream().filter(doc -> {
+			return doc.getToIdentifier().equals(p1.getIdentifier());
+		}).findFirst().orElse(null);
+
+		// C3 has a relation to P1
+		assertThat(c3ToP1).isNotNull();
+
+		EdgeDocument c3isFundedByP1 = c3ToP1.getRelations().stream().filter(edgeDocument -> {
+			return edgeDocument.getRelationType().equals("isFundedBy");
+		}).findFirst().orElse(null);
+
+		// C3 isFundedBy P1 in SOLR
+		assertThat(c3isFundedByP1).isNotNull();
+
+		// C3 isFundedBy P1 is a reversed relation (because GrantsNetwork top-down)
+		assertThat(c3isFundedByP1.isRelationReverse()).isTrue();
 
 		// P1 isFunderOf C3 in SOLR
 		List<RelationshipDocument> fromP1Rels = TestHelper.cursorToList(
 				myceliumService.getMyceliumIndexingService().cursorFor(new Criteria("from_id").is(p1.getIdentifier())));
-		boolean p1isFunderOfC3 = fromP1Rels.stream().anyMatch(doc -> {
-			return doc.getToIdentifier().equals(c3.getIdentifier()) && doc.getRelations().stream().anyMatch(rel -> {
-				return rel.getRelationType().equals("isFunderOf");
-			});
-		});
-		assertThat(p1isFunderOfC3).isTrue();
+
+		RelationshipDocument p1ToC3 = fromP1Rels.stream().filter(doc -> {
+			return doc.getToIdentifier().equals(c3.getIdentifier());
+		}).findFirst().orElse(null);
+
+		// P1 has relation to C3
+		assertThat(p1ToC3).isNotNull();
+
+		EdgeDocument p1IsFunderOfC3 = p1ToC3.getRelations().stream().filter(edgeDocument -> edgeDocument.getRelationType().equals("isFunderOf"))
+				.findFirst().orElse(null);
+
+		// P1 isFunderOf C3
+		assertThat(p1IsFunderOfC3).isNotNull();
+
+		// the relation is a top-down direct relationship
+		assertThat(p1IsFunderOfC3.isRelationReverse()).isFalse();
 	}
 
 }

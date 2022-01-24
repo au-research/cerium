@@ -75,15 +75,15 @@ public class MyceliumIndexingService {
 	 */
 	public void indexGrantsNetworkRelationships(Vertex from) {
 		switch (from.getObjectClass()) {
-			case "collection":
-				indexImplicitLinksForCollection(from);
-				break;
-			case "party":
-				indexImplicitLinksForParty(from);
-				break;
-			case "activity":
-				indexImplicitLinksForActivity(from);
-				break;
+		case "collection":
+			indexImplicitLinksForCollection(from);
+			break;
+		case "party":
+			indexImplicitLinksForParty(from);
+			break;
+		case "activity":
+			indexImplicitLinksForActivity(from);
+			break;
 		}
 	}
 
@@ -106,8 +106,7 @@ public class MyceliumIndexingService {
 					.filter(relation -> relation.getRelationOrigin() != null)
 					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK))
 					.filter(relation -> relation.getFromId() != null)
-					.filter(relation -> relation.getFromId().equals(from.getIdentifier()))
-					.collect(Collectors.toList());
+					.filter(relation -> relation.getFromId().equals(from.getIdentifier())).collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
 				relationshipDocumentRepository.save(doc);
@@ -157,8 +156,7 @@ public class MyceliumIndexingService {
 					.filter(relation -> relation.getRelationOrigin() != null)
 					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK))
 					.filter(relation -> relation.getFromId() != null)
-					.filter(relation -> relation.getFromId().equals(registryObjectId))
-					.collect(Collectors.toList());
+					.filter(relation -> relation.getFromId().equals(registryObjectId)).collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
 				relationshipDocumentRepository.save(doc);
@@ -209,7 +207,8 @@ public class MyceliumIndexingService {
 			query.addFilterQuery(new SimpleFilterQuery(criteria));
 		}
 		query.addProjectionOnField(new SimpleField("*"));
-		query.addProjectionOnField(new SimpleField("[child parentFilter=type:relationship childFilter=type:edge limit=100]"));
+		query.addProjectionOnField(
+				new SimpleField("[child parentFilter=type:relationship childFilter=type:edge limit=100]"));
 
 		return solrTemplate.queryForCursor("relationships", query, RelationshipDocument.class);
 	}
@@ -248,11 +247,12 @@ public class MyceliumIndexingService {
 					indexRelation(from, toRelatedObject, relationship.getRelations());
 
 					List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
-							.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO)).collect(Collectors.toList());
+							.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
+							.collect(Collectors.toList());
 					indexRelation(toRelatedObject, from, reversedRelations);
 				});
 			}
-			else if (! to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
+			else if (!to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
 				// does not resolve to registryObject it's a relatedInfo relation
 				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
 				indexRelation(from, to, relationship.getRelations());
@@ -273,8 +273,8 @@ public class MyceliumIndexingService {
 		List<String> relationTypes = relations.stream().map(EdgeDTO::getType).collect(Collectors.toList());
 		List<Boolean> directions = relations.stream().map(EdgeDTO::isReverse).collect(Collectors.toList());
 		// RDA-554 checking for issues with reverse direction
-		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}][{}]", from.getIdentifier(), to.getIdentifier(),
-				relationTypes, directions);
+		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}][{}]", from.getIdentifier(),
+				to.getIdentifier(), relationTypes, directions);
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
@@ -310,16 +310,20 @@ public class MyceliumIndexingService {
 			if (lookupEntry != null) {
 				if ("collection".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getCollectionText();
-				} else if ("activity".equals(from.getObjectClass())) {
+				}
+				else if ("activity".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getActivityText();
 
-				} else if ("service".equals(from.getObjectClass())) {
+				}
+				else if ("service".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getServiceText();
-				} else if ("party".equals(from.getObjectClass())) {
+				}
+				else if ("party".equals(from.getObjectClass())) {
 					relationTypeText = lookupEntry.getPartyText();
 				}
-				//if the relationTypeText has not been set for this class then use the default text
-				if(relationTypeText.isEmpty()){
+				// if the relationTypeText has not been set for this class then use the
+				// default text
+				if (relationTypeText.isEmpty()) {
 					relationTypeText = lookupEntry.getDefaultText();
 				}
 			}
@@ -332,7 +336,6 @@ public class MyceliumIndexingService {
 			edge.setRelationReverse(relation.isReverse());
 			edge.setRelationDescription(relation.getDescription());
 			edge.setRelationUrl(relation.getUrl());
-
 
 			edges.add(edge);
 		});
@@ -525,19 +528,21 @@ public class MyceliumIndexingService {
 
 		// index the implicit edge but only between (to and from) registry Objects
 		// RDA-624
-		if(!to.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE))
-		{
-			log.debug("Indexes for Grants Network should have only To Registry Objects not {}:{}}", to.getIdentifierType(), to.getIdentifier());
+		if (!to.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE)) {
+			log.warn("Indexes for Grants Network should have only To Registry Objects not {}:{}}",
+					to.getIdentifierType(), to.getIdentifier());
 			return;
 		}
-		if(!from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE))
-		{
-			log.debug("Indexes for Grants Network should have only From Registry Objects not {}:{}}", from.getIdentifierType(),from.getIdentifier());
+		if (!from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE)) {
+			log.warn("Indexes for Grants Network should have only From Registry Objects not {}:{}}",
+					from.getIdentifierType(), from.getIdentifier());
 			return;
 		}
+
 		EdgeDTO edge = new EdgeDTO();
 		edge.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
 		edge.setType(relation);
+		edge.setReverse(!grantsNetworkIsTopDown(from.getObjectClass(), to.getObjectClass(), relation));
 		indexRelation(from, to, new ArrayList<>(List.of(edge)));
 		log.debug("Indexed GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
 				to.getIdentifier(), edge.getType());
@@ -545,12 +550,54 @@ public class MyceliumIndexingService {
 		// index the reversed edge
 		EdgeDTO reversed = new EdgeDTO();
 		reversed.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
-		reversed.setType(RelationLookupService.getReverse(relation, RELATION_RELATED_TO));
-		reversed.setReverse(true);
+		String reversedRelationType = RelationLookupService.getReverse(relation, RELATION_RELATED_TO);
+		reversed.setType(reversedRelationType);
+		reversed.setReverse(! grantsNetworkIsTopDown(to.getObjectClass(), from.getObjectClass(), reversedRelationType));
 		log.debug("Indexed (reversed) GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
 				to.getIdentifier(), reversed.getType());
 
 		indexRelation(to, from, new ArrayList<>(List.of(reversed)));
+	}
+
+	/**
+	 * Determine if the relation is a top down relation in a Grants Network
+	 *
+	 * The flow party->activity->collection is considered top-down
+	 * @param fromClass the String value of the origin vertex objectClass
+	 * @param toClass the String value of the target vertex objectClass
+	 * @param relationType the String value of the relationType
+	 * @return true if the relation is top-down
+	 */
+	public boolean grantsNetworkIsTopDown(String fromClass, String toClass, String relationType) {
+		if (fromClass.equals("party")) {
+			return true;
+		}
+		else if (fromClass.equals("activity")) {
+			if (toClass.equals("collection")) {
+				return true;
+			}
+			else if (toClass.equals("party")) {
+				return false;
+			}
+			else if (toClass.equals("activity")) {
+				if (relationType.equals("isPartOf")) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			}
+		}
+		else if (fromClass.equals("collection")) {
+			if (toClass.equals("collection") && relationType.equals("hasPart")) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	public void deleteRelationship(String registryObjectId) {

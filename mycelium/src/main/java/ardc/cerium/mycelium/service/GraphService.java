@@ -671,17 +671,72 @@ public class GraphService {
 	}
 
 	/**
-	 * Obtain a graph detailing the relationship path going upwards with GrantsNetwork
-	 * pathing
-	 * @param origin the {@link Vertex} to start the path from
-	 * @return the {@link} Graph containing the GrantsNetwork nodes upward, collapsed
+	 * obtaining a set of graph and limit the target nodes to a set of IDs
+	 * @param from the {@link Vertex} origin of the graph
+	 * @param validTargetIdentifiers a list of identifiers
+	 * @return the resulting {@link Graph}
 	 */
-	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
-		String cypherQuery = "MATCH (origin:RegistryObject {identifier: $identifier}) CALL apoc.path.spanningTree(origin, {\n"
-				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
-				+ "}) YIELD path RETURN path LIMIT 500;";
+	public Graph getRegistryObjectGraphWithTargetNodes(Vertex from, List<String> validTargetIdentifiers) {
+		// add origin node
+		Graph graph = new Graph();
+		graph.addVertex(from);
 
-		Collection<Graph> graphs = neo4jClient.query(cypherQuery).bind(origin.getIdentifier()).to("identifier")
+		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"WITH collect(origin) + collect(duplicates) as identical\n" +
+				"UNWIND identical as from\n" +
+				"WITH distinct from\n" +
+				"MATCH (from)-[r]->(to)\n", from.getIdentifier(), from.getIdentifierType());
+		if (validTargetIdentifiers.size() > 0) {
+			cypherQuery += "WHERE to.identifier IN [" + validTargetIdentifiers.stream()
+					.map(s -> "\"" + s + "\"")
+					.collect(Collectors.joining(", ")) +"]\n";
+		}
+		cypherQuery += "RETURN from, to, collect(r) as relations;";
+		log.debug("getRegistryObjectGraphWithTargetNodes cypher: {}", cypherQuery);
+
+		Collection<Relationship> relationships = getRelationships(cypherQuery.toString());
+
+		relationships.forEach(relationship -> {
+
+			Vertex to = relationship.getTo();
+
+			// obtain target-duplicates, this will bring resolved Vertices of ro:key
+			// relationships as well as duplicated relationships
+			Collection<Vertex> sameAsNodeCluster = getSameAs(to.getIdentifier(), to.getIdentifierType());
+			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
+					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+
+			if (toRelatedObjects.size() > 0) {
+				// is a relatedObject relation
+				toRelatedObjects.forEach(toRelatedObject -> {
+					graph.addVertex(toRelatedObject);
+					relationship.getRelations().forEach(relation -> graph
+							.addEdge(new Edge(from, toRelatedObject, relation.getType(), relation.getId())));
+				});
+			}
+			else if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)
+					&& ! relationship.getRelations().stream()
+					.anyMatch(relation -> relation.getType().equals(RIFCSGraphProvider.RELATION_SAME_AS))) {
+				// does not resolve to registryObject it's a relatedInfo relation
+				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
+				graph.addVertex(to);
+				relationship.getRelations()
+						.forEach(relation -> graph.addEdge(new Edge(from, to, relation.getType(), relation.getId())));
+			}
+		});
+
+		return removeDanglingVertices(graph);
+
+	}
+
+	/**
+	 * Obtain a {@link Graph} for a set of paths from a cypher query
+	 * @param cypherQuery the String cypherQuery to search on
+	 * @return the resulting {@link Graph}
+	 */
+	public Graph getGraphsFromPaths(String cypherQuery) {
+		Collection<Graph> graphs = neo4jClient.query(cypherQuery)
 				.fetchAs(Graph.class).mappedBy((typeSystem, record) -> {
 					Graph graph = new Graph();
 					Path path = record.get("path").asPath();
@@ -731,6 +786,35 @@ public class GraphService {
 		removeDanglingVertices(mergedGraph);
 
 		return mergedGraph;
+	}
+
+	/**
+	 * Obtain a graph detailing the relationship path downwards with GrantsNetwork pathing
+	 * @param origin the {@link Vertex} to start the path from
+	 * @return the {@link} Graph containing the GrantsNetwork nodes downwards, collapsed
+	 */
+	public Graph getGrantsNetworkDownwards(Vertex origin) {
+		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
+				+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ "}) YIELD path RETURN path LIMIT 100;";
+		log.debug("getGrantsNetworkDownwards cypher: {}", cypherQuery);
+
+		return getGraphsFromPaths(cypherQuery);
+	}
+
+	/**
+	 * Obtain a graph detailing the relationship path going upwards with GrantsNetwork
+	 * pathing
+	 * @param origin the {@link Vertex} to start the path from
+	 * @return the {@link} Graph containing the GrantsNetwork nodes upward, collapsed
+	 */
+	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
+		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
+				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ "}) YIELD path RETURN path LIMIT 100;";
+		log.debug("getGrantsNetworkGraphUpwards cypher: {}", cypherQuery);
+
+		return getGraphsFromPaths(cypherQuery);
 	}
 
 	/**
@@ -876,13 +960,20 @@ public class GraphService {
 		List<String> ids = vertices.stream().map(Vertex::getIdentifier).collect(Collectors.toList());
 		Graph graph = new Graph();
 		vertices.forEach(vertex -> {
-			Graph subGraph = getRegistryObjectGraph(vertex, new ArrayList<>());
+			log.debug("obtaining subGraph for Vertex[identifier={}]", vertex.getIdentifier());
+
+			// limit the subgraph to the set of current ids
+			Graph subGraph = getRegistryObjectGraphWithTargetNodes(vertex, ids);
+
+			// sanity check and cleaning
 			subGraph.setVertices(subGraph.getVertices().stream().filter(v -> ids.contains(v.getIdentifier()))
 					.collect(Collectors.toList()));
 			subGraph.setEdges(subGraph.getEdges().stream().filter(
 					edge -> ids.contains(edge.getFrom().getIdentifier()) && ids.contains(edge.getTo().getIdentifier()))
 					.collect(Collectors.toList()));
 			graph.mergeGraph(subGraph);
+
+			log.debug("graphMerged for Vertex[identifier={}]", vertex.getIdentifier());
 		});
 		return graph;
 	}

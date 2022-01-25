@@ -185,15 +185,21 @@ public class MyceliumServiceController {
 			});
 			overLimitRelationType = overLimitGroups.stream().map(RelationTypeGroup::getRelation)
 					.collect(Collectors.toList());
+			log.debug("OverlimitRelationType: {}", overLimitRelationType);
 		}
 
 		// add the immediate relationships (include Duplicate), excludes the
 		// overLimitRelationTypes
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex, overLimitRelationType));
+		log.debug("Added registryObjectGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
 
 		// add the GrantsNetworkPath
 		if (includeGrantsNetwork) {
 			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
+			log.debug("Added grantsNetworkgraphUpwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+
+			graph.mergeGraph(graphService.getGrantsNetworkDownwards(vertex));
+			log.debug("Added grantsNetworkgraphDownwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
 		}
 
 		// manually add the Duplicates into the Graph
@@ -203,17 +209,21 @@ public class MyceliumServiceController {
 				graph.addVertex(duplicate);
 				graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
 			});
+			log.debug("Added duplicateGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
 		}
 
 		// interlinking between current graph vertices
 		if (includeInterLinking) {
 			List<Vertex> otherDirectlyRelatedVertices = graph.getVertices().stream()
 					.filter(v -> !v.getIdentifier().equals(vertex.getIdentifier())).collect(Collectors.toList());
+			log.debug("OtherDirectlyRelatedVertices count:{}", otherDirectlyRelatedVertices.size());
 			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
+			log.debug("Added interlinkingGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
 		}
 
 		// clean up the data
 		graphService.removeDanglingVertices(graph);
+		log.debug("Removed dangling vertices. Prepare to render graph");
 
 		return ResponseEntity.ok(graph);
 	}

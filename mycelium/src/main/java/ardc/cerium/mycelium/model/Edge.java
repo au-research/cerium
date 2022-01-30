@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -37,6 +39,10 @@ public class Edge {
 	private boolean isPublic = true;
 
 	private boolean isInternal = true;
+
+	private Date createdAt;
+
+	private Date updatedAt;
 
 	public Edge(Vertex from, Vertex to, String type) {
 		this.from = from;

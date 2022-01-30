@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Id;
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -28,5 +29,9 @@ public class RelationDocument {
     private String url;
 
     private String description;
+
+    private Date createdAt;
+
+    private Date updatedAt;
 
 }

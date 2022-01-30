@@ -5,6 +5,7 @@ import org.springframework.data.solr.core.mapping.Indexed;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
 import javax.persistence.Id;
+import java.util.Date;
 import java.util.UUID;
 
 @SolrDocument(collection = "relationships")
@@ -44,6 +45,13 @@ public class EdgeDocument{
 
     @Indexed(name = "relation_url", type="string")
     private String relationUrl;
+
+    @Indexed(name="created_at")
+    private Date createdAt;
+
+    @Indexed(name="updated_at")
+    private Date updatedAt;
+
 
     public EdgeDocument(String relationType) {
         this.id = UUID.randomUUID().toString();

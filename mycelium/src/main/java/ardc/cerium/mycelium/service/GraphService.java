@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -105,10 +107,13 @@ public class GraphService {
 		Vertex existing = getVertexByIdentifier(vertex.getIdentifier(), vertex.getIdentifierType());
 		if (existing == null) {
 			// create
+			vertex.setUpdatedAt(new Date());
+			vertex.setCreatedAt(new Date());
 			vertexRepository.save(vertex);
 		} else {
 			// update existing
 			existing.setTitle(vertex.getTitle());
+			existing.setUpdatedAt(new Date());
 			existing.setObjectClass(vertex.getObjectClass());
 			existing.setObjectType(vertex.getObjectType());
 			existing.setUrl(vertex.getUrl());
@@ -242,7 +247,8 @@ public class GraphService {
 		org.neo4j.cypherdsl.core.Node to = Cypher.node("Vertex").named("to");
 
 		org.neo4j.cypherdsl.core.Relationship relation = from.relationshipTo(to, edge.getType()).named("r");
-
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String updateAt = formatter.format(new Date());
 		Statement statement = Cypher.match(from).match(to)
 				.where(from.property("identifier").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifier())))
 				.and(from.property("identifierType").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifierType())))
@@ -255,6 +261,7 @@ public class GraphService {
 						relation.property("url").to(Cypher.literalOf(edge.getUrl())),
 						relation.property("internal").to(Cypher.literalOf(edge.isInternal())),
 						relation.property("public").to(Cypher.literalOf(edge.isPublic())),
+						relation.property("updatedAt").to(Cypher.literalOf(updateAt)),
 						relation.property("duplicate").to(Cypher.literalOf(edge.isDuplicate())))
 				.returning("r").build();
 

@@ -9,6 +9,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Property;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -51,6 +52,12 @@ public class Vertex {
 
 	@Property("notes")
 	private String notes;
+
+	@Property("createdAt")
+	private Date createdAt;
+
+	@Property("updatedAt")
+	private Date updatedAt;
 
 	@Id
 	@GeneratedValue

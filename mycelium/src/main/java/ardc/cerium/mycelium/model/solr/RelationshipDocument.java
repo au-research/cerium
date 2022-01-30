@@ -7,6 +7,7 @@ import org.springframework.data.solr.core.mapping.Indexed;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
 import javax.persistence.Id;
+import java.util.Date;
 import java.util.List;
 
 @SolrDocument(collection = "relationships")
@@ -70,6 +71,12 @@ public class RelationshipDocument {
 
     @Indexed(name="to_notes")
     private String toNotes;
+
+    @Indexed(name="created_at")
+    private Date createdAt;
+
+    @Indexed(name="updated_at")
+    private Date updatedAt;
 
     @ChildDocument
     List<EdgeDocument> relations;

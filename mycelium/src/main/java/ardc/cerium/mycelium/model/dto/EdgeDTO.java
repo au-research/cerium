@@ -3,6 +3,8 @@ package ardc.cerium.mycelium.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Date;
+
 @Getter
 @Setter
 public class EdgeDTO {
@@ -27,4 +29,7 @@ public class EdgeDTO {
 
 	private boolean isInternal = true;
 
+	private Date updatedAt;
+
+	private Date createdAt;
 }

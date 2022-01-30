@@ -18,10 +18,7 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -297,7 +294,7 @@ public class MyceliumIndexingService {
 		doc.setToGroup(to.getGroup());
 		doc.setToNotes(to.getNotes());
 		doc.setToUrl(to.getUrl());
-
+		doc.setUpdatedAt(new Date());
 		List<EdgeDocument> edges = new ArrayList<>();
 		relations.forEach(relation -> {
 			EdgeDocument edge = new EdgeDocument(relation.getType());
@@ -336,6 +333,8 @@ public class MyceliumIndexingService {
 			edge.setRelationReverse(relation.isReverse());
 			edge.setRelationDescription(relation.getDescription());
 			edge.setRelationUrl(relation.getUrl());
+			edge.setCreatedAt(relation.getCreatedAt());
+			edge.setUpdatedAt(relation.getUpdatedAt());
 
 			edges.add(edge);
 		});

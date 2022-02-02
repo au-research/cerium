@@ -996,8 +996,9 @@ public class GraphService {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
 				+ "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
-				+ "WITH distinct from\n" + "MATCH (from)-[r]->(k:Identifier)-[:isSameAs]-(to)\n"
-				+ "WHERE type(r) <> 'isSameAs'\n"
+				+ "WITH distinct from\n"
+				+ "MATCH (from)-[r]->(to)\n"
+				+ "WHERE type(r) <> 'isSameAs' AND NOT to:Terminated\n"
 				+ "RETURN labels(to) as labels, TYPE(r) as relation, to.objectClass as class, to.objectType as type, count(to) as total;";
 		return neo4jClient.query(cypherQuery).bind(from.getIdentifier()).to("identifier").bind(from.getIdentifierType())
 				.to("identifierType").fetchAs(RelationTypeGroup.class).mappedBy((typeSystem, record) -> {

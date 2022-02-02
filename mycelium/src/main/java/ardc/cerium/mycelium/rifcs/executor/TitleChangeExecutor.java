@@ -40,8 +40,10 @@ public class TitleChangeExecutor extends Executor {
 	public void handle() {
 		log.debug("Handling SideEffect {}", sideEffect);
 		myceliumIndexingService.updateTitle(sideEffect.getRegistryObjectId(), sideEffect.getNewTitle());
-
-		// todo update in portal collection
+		if(!sideEffect.getObjectClass().equals("collection")) {
+			myceliumIndexingService.updatePortalIndexForRelatedRecords(sideEffect.getObjectClass(), sideEffect.getObjectType(),
+					sideEffect.getOldTitle(), sideEffect.getNewTitle());
+		}
 	}
 
 }

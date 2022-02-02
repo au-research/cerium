@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -198,7 +197,9 @@ public class MyceliumSideEffectService {
 		// detect if a record title is updated (record is not created)
 		if (before != null && TitleChangeExecutor.detect(before, after, myceliumService)) {
 			sideEffects
-					.add(new TitleChangeSideEffect(before.getRegistryObjectId(), before.getTitle(), after.getTitle()));
+					.add(new TitleChangeSideEffect(before.getRegistryObjectId(),
+							before.getRegistryObjectClass(), before.getRegistryObjectType(),
+							before.getTitle(), after.getTitle()));
 		}
 
 		if (before != null && GrantsNetworkForgoExecutor.detect(before, after, myceliumService)) {

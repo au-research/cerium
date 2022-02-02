@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.service;
 
+import ardc.cerium.mycelium.event.PortalIndexUpdateEvent;
 import ardc.cerium.mycelium.model.RelationLookupEntry;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
@@ -10,6 +11,7 @@ import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.RelationUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -38,13 +40,17 @@ public class MyceliumIndexingService {
 
 	private final VertexRepository vertexRepository;
 
+	private final ApplicationEventPublisher applicationEventPublisher;
+
+
 	public MyceliumIndexingService(SolrTemplate solrTemplate,
 			RelationshipDocumentRepository relationshipDocumentRepository, GraphService graphService,
-			VertexRepository vertexRepository) {
+			VertexRepository vertexRepository, ApplicationEventPublisher applicationEventPublisher) {
 		this.solrTemplate = solrTemplate;
 		this.relationshipDocumentRepository = relationshipDocumentRepository;
 		this.graphService = graphService;
 		this.vertexRepository = vertexRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 		log.debug("Mycelium Indexing Service online");
 	}
 
@@ -671,6 +677,30 @@ public class MyceliumIndexingService {
 
 	public void deleteRelationshipDocument(RelationshipDocument doc) {
 		relationshipDocumentRepository.delete(doc);
+	}
+
+	/** Generates and sets an event to update portal index using the RDA Registry
+	 *
+	 * @param objectClass  the Object's class that has its title changed
+	 * @param objectType the Object's type
+	 * @param oldTitle the previous title of the object
+	 * @param newTitle the new title of the object
+	 */
+	public void updatePortalIndexForRelatedRecords( String objectClass, String objectType, String oldTitle, String newTitle){
+		// send an event notifying RDA that we're starting the queue
+		// logic copied from RDA sync.php line 665
+		//private $party_one_types = array('person','administrativePosition');
+		//private $party_multi_types = array('group');
+		if(objectClass.equals("party"))
+		{
+			if(objectType.equals("group")){
+				objectClass += "_multi";
+			}else{
+				objectClass += "_one";
+			}
+		}
+		String indexedField = String.format("related_%s_title", objectClass);
+		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, null, indexedField, oldTitle, newTitle));
 	}
 
 }

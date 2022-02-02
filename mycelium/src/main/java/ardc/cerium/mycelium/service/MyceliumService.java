@@ -125,6 +125,10 @@ public class MyceliumService {
 		return graphService.getRegistryObjectByKey(key);
 	}
 
+	public Vertex getIdentifierVertex(String identifierValue, String identifierType) {
+		return graphService.getVertexByIdentifier(identifierValue, identifierType);
+	}
+
 	public void deleteRecord(String recordId) throws Exception {
 		Vertex vertex = graphService.getVertexByIdentifier(recordId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		if (vertex == null) {

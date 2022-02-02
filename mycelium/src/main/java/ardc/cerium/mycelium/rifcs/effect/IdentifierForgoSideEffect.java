@@ -12,6 +12,8 @@ public class IdentifierForgoSideEffect extends SideEffect implements Serializabl
     private final String registryObjectId;
     // The Identifier that relationships to be removed from
     private final String deletedIdentifier;
+    // The Identifier Type that relationships to be removed from
+    private final String deletedIdentifierType;
     // the title of the record (need it when removing it from portal index
     private final String searchTitle;
     // record class and type is needed to find where to remove the title from the portal index

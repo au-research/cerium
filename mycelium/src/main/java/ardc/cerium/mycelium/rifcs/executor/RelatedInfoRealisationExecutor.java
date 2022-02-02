@@ -84,7 +84,12 @@ public class RelatedInfoRealisationExecutor extends Executor {
 	@Override
 	public void handle() {
 
-		String identifier = sideEffect.getIdentifierValue();
+		String identifier = sideEffect.getIdentifier();
+		String identifierType = sideEffect.getIdentifierType();
+		String registryObjectId = sideEffect.getRegistryObjectId();
+		String title = sideEffect.getTitle();
+		String objectClass = sideEffect.getRecordClass();
+		String objetType = sideEffect.getRecordType();
 
 		MyceliumIndexingService indexingService = getMyceliumService().getIndexingService();
 
@@ -106,6 +111,28 @@ public class RelatedInfoRealisationExecutor extends Executor {
 				indexingService.indexDirectRelationships(vertex);
 			}
 		}
+		Vertex vertex = getMyceliumService().getIdentifierVertex(identifier, identifierType);
+		Collection<Relationship> relationships = getMyceliumService().getGraphService().getDirectInboundRelationships(identifier, identifierType);
+		relationships.forEach(relationship -> {
+			// find all registry Objects from the Vertex that are related to this Identifier
+			// remove the record's from the portal Index
+			if(relationship.getFrom().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)){
+				// the related_<class>_title is the title of the record we need to remove from the portal Index
+				// related_collection_title
+				// related_party_multi
+				// in portal Index it goes both ways, so we need to delete both to and from
+				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(relationship.getFrom().getIdentifier(),
+						objectClass,
+						objetType ,
+						title);
+				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(registryObjectId,
+						relationship.getFrom().getObjectClass(),
+						relationship.getFrom().getObjectType(),
+						relationship.getFrom().getTitle());
+			}});
+
+
+
 	}
 
 }

@@ -686,7 +686,7 @@ public class MyceliumIndexingService {
 	 * @param oldTitle the previous title of the object
 	 * @param newTitle the new title of the object
 	 */
-	public void updatePortalIndexForRelatedRecords( String objectClass, String objectType, String oldTitle, String newTitle){
+	public void updateRelatedTitlesInPortalIndex( String objectClass, String objectType, String oldTitle, String newTitle){
 		// send an event notifying RDA that we're starting the queue
 		// logic copied from RDA sync.php line 665
 		//private $party_one_types = array('person','administrativePosition');
@@ -702,5 +702,64 @@ public class MyceliumIndexingService {
 		String indexedField = String.format("related_%s_title", objectClass);
 		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, null, indexedField, oldTitle, newTitle));
 	}
+
+	/** Generates and sets an event to update portal index using the RDA Registry
+	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index modified
+	 * @param objectClass  the Object's class that was removed
+	 * @param objectType the Object's type
+	 * @param oldTitle the previous title of the object (that needs to be removed from the portal index
+
+	 */
+	public void deleteRelatedTitleFromPortalIndex( String fromRelatedObjectId, String objectClass, String objectType, String oldTitle){
+		// send an event notifying RDA that we're starting the queue
+		// we don't keep related_collection_titles in portal index
+		log.debug("deleteRelatedTitleFromPortalIndex {} , {}, {}, {}", fromRelatedObjectId,
+				objectClass, objectType, oldTitle);
+		if(objectClass.equals("collection")) {
+			return;
+		}
+		if(objectClass.equals("party"))
+		{
+			if(objectType.equals("group")){
+				objectClass += "_multi";
+			}else{
+				objectClass += "_one";
+			}
+		}
+		String indexedField = String.format("related_%s_title", objectClass);
+		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, fromRelatedObjectId,
+				indexedField, oldTitle, null));
+	}
+
+
+	/** Generates and sets an event to update portal index using the RDA Registry
+	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index modified
+	 * @param objectClass  the Object's class that was added
+	 * @param objectType the Object's type
+	 * @param title the title to be added
+
+	 */
+	public void addRelatedTitleToPortalIndex( String fromRelatedObjectId, String objectClass, String objectType, String title){
+		// send an event notifying RDA that we're starting the queue
+		// we don't keep related_collection_titles in portal index
+		log.debug("Add Title To PortalIndex {} , {}, {}, {}", fromRelatedObjectId,
+				objectClass, objectType, title);
+		if(objectClass.equals("collection")) {
+			return;
+		}
+		if(objectClass.equals("party"))
+		{
+			if(objectType.equals("group")){
+				objectClass += "_multi";
+			}else{
+				objectClass += "_one";
+			}
+		}
+		String indexedField = String.format("related_%s_title", objectClass);
+		// remove the title in case it's already exist in the portal Index
+		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, fromRelatedObjectId,
+				indexedField, title, title));
+	}
+
 
 }

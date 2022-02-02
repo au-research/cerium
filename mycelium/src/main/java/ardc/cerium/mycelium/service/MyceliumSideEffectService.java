@@ -169,7 +169,12 @@ public class MyceliumSideEffectService {
 		if (RelatedInfoRealisationExecutor.detect(before, after, myceliumService)) {
 			List<Vertex> realisedIdentifiers = RelatedInfoRealisationExecutor.getRealisedIdentifiers(before, after, myceliumService);
 			for (Vertex realisedIdentifier : realisedIdentifiers) {
-				sideEffects.add(new RelatedInfoRealisationSideEffect(realisedIdentifier.getIdentifier()));
+				sideEffects.add(new RelatedInfoRealisationSideEffect(after.getRegistryObjectId(),
+						realisedIdentifier.getIdentifier(),
+						realisedIdentifier.getIdentifierType(),
+						after.getTitle(),
+						after.getRegistryObjectClass(),
+						after.getRegistryObjectType()));
 			}
 		}
 
@@ -194,14 +199,6 @@ public class MyceliumSideEffectService {
 			sideEffects.add(new DuplicateInheritanceSideEffect(after.getRegistryObjectId()));
 		}
 
-		// detect if a record title is updated (record is not created)
-		if (before != null && TitleChangeExecutor.detect(before, after, myceliumService)) {
-			sideEffects
-					.add(new TitleChangeSideEffect(before.getRegistryObjectId(),
-							before.getRegistryObjectClass(), before.getRegistryObjectType(),
-							before.getTitle(), after.getTitle()));
-		}
-
 		if (before != null && GrantsNetworkForgoExecutor.detect(before, after, myceliumService)) {
 			sideEffects.add(new GrantsNetworkForgoSideEffect(before.getRegistryObjectId(),
 					before.getRegistryObjectKey(), before.getRegistryObjectClass()));
@@ -217,11 +214,25 @@ public class MyceliumSideEffectService {
 			for (Vertex vIdentifier : before.getIdentifiers()) {
 				if(after == null || after.getIdentifiers().isEmpty() || !after.getIdentifiers().contains(vIdentifier)) {
 					log.debug("missing Identifier found {}", vIdentifier.getIdentifier());
-					sideEffects.add(new IdentifierForgoSideEffect(registryObjectId,vIdentifier.getIdentifier(),
-							before.getTitle(), before.getRegistryObjectClass(), before.getRegistryObjectType()));
+					sideEffects.add(new IdentifierForgoSideEffect(registryObjectId,
+							vIdentifier.getIdentifier(),
+							vIdentifier.getIdentifierType(),
+							before.getTitle(),
+							before.getRegistryObjectClass(),
+							before.getRegistryObjectType()));
 				}
 			}
 		}
+
+		// IMPORTANT to leave the title change side effect as last, and every other side
+		// detect if a record title is updated (record is not created)
+		if (before != null && TitleChangeExecutor.detect(before, after, myceliumService)) {
+			sideEffects
+					.add(new TitleChangeSideEffect(before.getRegistryObjectId(),
+							before.getRegistryObjectClass(), before.getRegistryObjectType(),
+							before.getTitle(), after.getTitle()));
+		}
+
 
 		return sideEffects;
 	}

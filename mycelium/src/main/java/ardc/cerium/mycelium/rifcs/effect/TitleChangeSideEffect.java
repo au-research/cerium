@@ -19,4 +19,6 @@ public class TitleChangeSideEffect extends SideEffect implements Serializable {
 
 	private final String newTitle;
 
+	private final String relationshipType;
+
 }

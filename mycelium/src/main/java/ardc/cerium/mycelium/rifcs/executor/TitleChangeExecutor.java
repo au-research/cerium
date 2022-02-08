@@ -42,7 +42,7 @@ public class TitleChangeExecutor extends Executor {
 		myceliumIndexingService.updateTitle(sideEffect.getRegistryObjectId(), sideEffect.getNewTitle());
 		if(!sideEffect.getObjectClass().equals("collection")) {
 			myceliumIndexingService.updateRelatedTitlesInPortalIndex(sideEffect.getObjectClass(), sideEffect.getObjectType(),
-					sideEffect.getOldTitle(), sideEffect.getNewTitle());
+					sideEffect.getOldTitle(), sideEffect.getNewTitle(), sideEffect.getRelationshipType());
 		}
 	}
 

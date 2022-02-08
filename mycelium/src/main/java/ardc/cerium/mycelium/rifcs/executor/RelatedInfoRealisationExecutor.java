@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.result.Cursor;
 
@@ -117,6 +118,10 @@ public class RelatedInfoRealisationExecutor extends Executor {
 			// find all registry Objects from the Vertex that are related to this Identifier
 			// remove the record's from the portal Index
 			if(relationship.getFrom().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)){
+				ArrayList<String> relationTypes = new ArrayList<>();
+				relationship.getRelations().forEach(relation -> {
+					relationTypes.add(relation.getType());
+				});
 				// the related_<class>_title is the title of the record we need to remove from the portal Index
 				// related_collection_title
 				// related_party_multi
@@ -124,11 +129,11 @@ public class RelatedInfoRealisationExecutor extends Executor {
 				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(relationship.getFrom().getIdentifier(),
 						objectClass,
 						objetType ,
-						title);
+						title, StringUtils.join(relationTypes, ","));
 				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(registryObjectId,
 						relationship.getFrom().getObjectClass(),
 						relationship.getFrom().getObjectType(),
-						relationship.getFrom().getTitle());
+						relationship.getFrom().getTitle(), StringUtils.join(relationTypes, ","));
 			}});
 
 

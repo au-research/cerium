@@ -20,13 +20,16 @@ public class PortalIndexUpdateEvent extends ApplicationEvent {
 
     private String newValue;
 
+    private String relationshipType;
+
     public PortalIndexUpdateEvent(Object source, String registryObjectId, String indexedField,
-                                  String searchValue, String newValue) {
+                                  String searchValue, String newValue, String relationshipType) {
         super(source);
         this.registryObjectId = registryObjectId;
         this.indexedField = indexedField;
         this.searchValue = searchValue;
         this.newValue = newValue;
+        this.relationshipType = relationshipType;
     }
 
     /**
@@ -41,6 +44,7 @@ public class PortalIndexUpdateEvent extends ApplicationEvent {
         data.put("indexed_field", this.indexedField);
         data.put("search_value", this.searchValue);
         data.put("new_value", this.newValue);
+        data.put("relationship_type", this.relationshipType);
         dto.setData(data);
         return dto;
     }

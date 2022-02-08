@@ -230,7 +230,7 @@ public class MyceliumSideEffectService {
 			sideEffects
 					.add(new TitleChangeSideEffect(before.getRegistryObjectId(),
 							before.getRegistryObjectClass(), before.getRegistryObjectType(),
-							before.getTitle(), after.getTitle()));
+							before.getTitle(), after.getTitle(), null));
 		}
 
 

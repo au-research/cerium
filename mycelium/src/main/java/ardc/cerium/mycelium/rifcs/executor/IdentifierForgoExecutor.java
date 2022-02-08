@@ -9,11 +9,13 @@ import ardc.cerium.mycelium.rifcs.effect.IdentifierForgoSideEffect;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.result.Cursor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
@@ -99,6 +101,10 @@ public class IdentifierForgoExecutor extends Executor {
             // find all registry Objects from the Vertex that are related to this Identifier
             // remove the record's from the portal Index
             if(relationship.getFrom().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)){
+                ArrayList<String> relationTypes = new ArrayList<>();
+                    relationship.getRelations().forEach(relation -> {
+                        relationTypes.add(relation.getType());
+                    });
                 // the related_<class>_title is the title of the record we need to remove from the portal Index
                 // related_collection_title
                 // related_party_multi
@@ -106,11 +112,11 @@ public class IdentifierForgoExecutor extends Executor {
                 this.myceliumIndexingService.deleteRelatedTitleFromPortalIndex(relationship.getFrom().getIdentifier(),
                         objectClass,
                         objetType ,
-                        title);
+                        title, StringUtils.join(relationTypes, ","));
                 this.myceliumIndexingService.deleteRelatedTitleFromPortalIndex(registryObjectId,
                         relationship.getFrom().getObjectClass(),
                         relationship.getFrom().getObjectType(),
-                        relationship.getFrom().getTitle());
-            }});
+                        relationship.getFrom().getTitle(), StringUtils.join(relationTypes, ","));
+                }});
     }
 }

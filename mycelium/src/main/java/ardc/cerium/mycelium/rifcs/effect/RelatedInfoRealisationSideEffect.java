@@ -16,9 +16,9 @@ public class RelatedInfoRealisationSideEffect extends SideEffect {
 	private final String title;
 	// record class and type is needed to find where to add the title in the portal index
 	// eg: related_party_multi [title1, title2]
-	// the title of the record
+	// the class of the record
 	private final String recordClass;
-	// the title of the record
+	// the type of the record
 	private final String recordType;
 
 }

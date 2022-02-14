@@ -1,7 +1,9 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
+import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.*;
 import ardc.cerium.mycelium.rifcs.executor.*;
@@ -10,6 +12,7 @@ import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKe
 import ardc.cerium.mycelium.util.DataSourceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
@@ -18,6 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -207,6 +211,41 @@ public class MyceliumSideEffectService {
 		if (GrantsNetworkInheritenceExecutor.detect(before, after, myceliumService)) {
 			sideEffects.add(new GrantsNetworkInheritenceSideEffect(after.getRegistryObjectId(),
 					after.getRegistryObjectClass()));
+		}
+
+
+		if(DirectRelationshipChangedExecutor.detect(before, after , myceliumService)){
+			if(after != null) {
+				Collection<Relationship> relAfter = after.getOutbounds();
+				for (Relationship rel : relAfter) {
+					if ((before == null || !before.getOutbounds().contains(rel)) && rel.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+						String action = "add";
+						ArrayList<String> relationTypes = new ArrayList<>();
+						rel.getRelations().forEach(relation -> {
+							relationTypes.add(relation.getType());
+						});
+						sideEffects.add(new DirectRelationshipChangedSideEffect(
+								after.getRegistryObjectId(), rel.getTo().getIdentifier(), action, rel.getTo().getObjectClass(),
+								rel.getTo().getObjectType(), rel.getTo().getTitle(), StringUtils.join(relationTypes, ",")));
+					}
+				}
+			}
+			if(before != null) {
+				Collection<Relationship> relBefore = before.getOutbounds();
+				for (Relationship rel : relBefore) {
+					if ((after == null || !after.getOutbounds().contains(rel)) && rel.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+						String action = "remove";
+						ArrayList<String> relationTypes = new ArrayList<>();
+						rel.getRelations().forEach(relation -> {
+							relationTypes.add(relation.getType());
+						});
+						sideEffects.add(new DirectRelationshipChangedSideEffect(
+								before.getRegistryObjectId(), rel.getTo().getIdentifier(), action, rel.getTo().getObjectClass(),
+								rel.getTo().getObjectType(), rel.getTo().getTitle(), StringUtils.join(relationTypes, ",")));
+					}
+				}
+			}
+
 		}
 		// find all Identifiers that the RegistryObject doesn't have anymore and create an IdentifierForgoSideEffect
 		if (IdentifierForgoExecutor.detect(before, after)) {

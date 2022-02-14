@@ -18,9 +18,9 @@ public class IdentifierForgoSideEffect extends SideEffect implements Serializabl
     private final String searchTitle;
     // record class and type is needed to find where to remove the title from the portal index
     // eg: related_party_multi [title1, title2]
-    // the title of the record
+    // the class of the record
     private final String recordClass;
-    // the title of the record
+    // the type of the record
     private final String recordType;
 
 }

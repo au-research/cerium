@@ -34,6 +34,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof IdentifierForgoSideEffect) {
 			return new IdentifierForgoExecutor((IdentifierForgoSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof DirectRelationshipChangedSideEffect) {
+			return new DirectRelationshipChangedExecutor((DirectRelationshipChangedSideEffect) sideEffect, myceliumService);
+		}
 		return null;
 	}
 

@@ -5,6 +5,7 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.model.RegistryObject;
+import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -37,6 +38,9 @@ class MyceliumServiceControllerTest {
 
 	@MockBean
 	MyceliumService myceliumService;
+
+	@MockBean
+	TreeNodeDTOMapper treeNodeDTOMapper;
 
 	@Autowired
 	MockMvc mockMvc;

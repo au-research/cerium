@@ -1044,4 +1044,45 @@ public class GraphService {
 		neo4jClient.query(cypherQuery).bind(key).to("key").bind(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK).to("origin").run();
 	}
 
+	public Graph getNestedCollectionParents(Vertex origin) {
+		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
+				+ " relationshipFilter: 'isSameAs|isPartOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ "}) YIELD path RETURN path LIMIT 100;";
+
+		return getGraphsFromPaths(cypherQuery);
+	}
+
+	public Collection<Relationship> getNestedCollectionChildren(Vertex origin, Integer limit, Integer skip, List<String> excludeIDs) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + origin.getIdentifier() + "\", identifierType: \""
+				+ origin.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
+				+ "WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
+
+		if (excludeIDs.size() > 0) {
+			String notIn = excludeIDs.stream().map(id -> {
+				return "\"" + id + "\"";
+			}).collect(Collectors.joining(",", "[", "]"));
+			cypherQuery += "WHERE NOT to.identifier IN "+notIn+"\n";
+		}
+		cypherQuery += "RETURN from, to, collect(r) as relations ORDER BY toLower(to.title) ASC SKIP "+skip+" LIMIT "+limit+";";
+		return getRelationships(cypherQuery);
+	}
+
+	public int getNestedCollectionChildrenCount(String registryObjectId, List<String> excludeIDs) {
+		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"WITH collect(origin) + collect(duplicates) as identical UNWIND identical as from\n" +
+				"WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
+
+		if (excludeIDs.size() > 0) {
+			String notIn = excludeIDs.stream().map(id -> {
+				return "\"" + id + "\"";
+			}).collect(Collectors.joining(",", "[", "]"));
+			cypherQuery += "WHERE NOT to.identifier IN "+notIn+"\n";
+		}
+
+		cypherQuery += "RETURN count(r) as count;";
+		return neo4jClient.query(cypherQuery).bind(registryObjectId).to("identifier").bind("ro:id")
+				.to("identifierType").fetchAs(Integer.class).one().get();
+	}
+
 }

@@ -3,11 +3,11 @@ package ardc.cerium.mycelium.controller;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.core.exception.NotFoundException;
 import ardc.cerium.core.exception.RecordNotFoundException;
-import ardc.cerium.mycelium.model.Edge;
-import ardc.cerium.mycelium.model.Graph;
-import ardc.cerium.mycelium.model.RelationTypeGroup;
-import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.*;
+import ardc.cerium.mycelium.model.dto.TreeNodeDTO;
+import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,6 +34,8 @@ public class MyceliumServiceController {
 
 	private final MyceliumService myceliumService;
 
+	private final TreeNodeDTOMapper treeNodeDTOMapper;
+
 	/**
 	 * Import an XML payload to the {@link MyceliumService}
 	 * @param json the JSON payload
@@ -40,7 +43,8 @@ public class MyceliumServiceController {
 	 * @return the {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/import-record")
-	public ResponseEntity<Request> importRecord(@RequestBody String json, @RequestParam(required=false) String requestId) {
+	public ResponseEntity<Request> importRecord(@RequestBody String json,
+			@RequestParam(required = false) String requestId) {
 		log.info("Importing Record requestId={}", requestId);
 
 		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
@@ -80,8 +84,7 @@ public class MyceliumServiceController {
 	 * @return a {@link ResponseEntity} of a {@link Request}
 	 */
 	@PostMapping("/delete-record")
-	public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId,
-			@RequestParam String requestId) {
+	public ResponseEntity<Request> deleteRecord(@RequestParam String registryObjectId, @RequestParam String requestId) {
 		log.info("Deleting RegistryObject[id={}, requestId={}]", registryObjectId, requestId);
 
 		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
@@ -95,13 +98,14 @@ public class MyceliumServiceController {
 	/**
 	 * Starts the SideEffectQueue processing asynchronously.
 	 *
-	 * The progress can be monitored by polling the RequestID via the {@link MyceliumRequestResourceController}
+	 * The progress can be monitored by polling the RequestID via the
+	 * {@link MyceliumRequestResourceController}
 	 * @param requestId the uuid of the SideEffectRequestID
 	 * @return the {@link Request} with the current status updated to RUNNING
 	 */
 	@PostMapping("/start-queue-processing")
-	public ResponseEntity<Request> startQueueProcessing(@Parameter(name = "requestId",
-			description = "Request ID of the RequestID") String requestId) {
+	public ResponseEntity<Request> startQueueProcessing(
+			@Parameter(name = "requestId", description = "Request ID of the RequestID") String requestId) {
 
 		log.info("Start Queue Processing Request[requestId={}]", requestId);
 
@@ -191,15 +195,18 @@ public class MyceliumServiceController {
 		// add the immediate relationships (include Duplicate), excludes the
 		// overLimitRelationTypes
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex, overLimitRelationType));
-		log.debug("Added registryObjectGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+		log.debug("Added registryObjectGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
+				graph.getEdges().size());
 
 		// add the GrantsNetworkPath
 		if (includeGrantsNetwork) {
 			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
-			log.debug("Added grantsNetworkgraphUpwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+			log.debug("Added grantsNetworkgraphUpwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
+					graph.getEdges().size());
 
 			graph.mergeGraph(graphService.getGrantsNetworkDownwards(vertex));
-			log.debug("Added grantsNetworkgraphDownwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+			log.debug("Added grantsNetworkgraphDownwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
+					graph.getEdges().size());
 		}
 
 		// manually add the Duplicates into the Graph
@@ -209,7 +216,8 @@ public class MyceliumServiceController {
 				graph.addVertex(duplicate);
 				graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
 			});
-			log.debug("Added duplicateGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+			log.debug("Added duplicateGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
+					graph.getEdges().size());
 		}
 
 		// interlinking between current graph vertices
@@ -218,7 +226,8 @@ public class MyceliumServiceController {
 					.filter(v -> !v.getIdentifier().equals(vertex.getIdentifier())).collect(Collectors.toList());
 			log.debug("OtherDirectlyRelatedVertices count:{}", otherDirectlyRelatedVertices.size());
 			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
-			log.debug("Added interlinkingGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(), graph.getEdges().size());
+			log.debug("Added interlinkingGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
+					graph.getEdges().size());
 		}
 
 		// clean up the data
@@ -229,10 +238,12 @@ public class MyceliumServiceController {
 	}
 
 	/**
-	 * Helper API to regenerate a GrantsNetworkRelationships Only for a given RegistryObjectId
+	 * Helper API to regenerate a GrantsNetworkRelationships Only for a given
+	 * RegistryObjectId
 	 *
 	 * Development/Testing API.
-	 * @param registryObjectId the RegistryObject Id to have GrantsNetwork edges regenerated in SOLR
+	 * @param registryObjectId the RegistryObject Id to have GrantsNetwork edges
+	 * regenerated in SOLR
 	 * @param show whether to show the RelationshipsDocument generated (defaults to false)
 	 * @return a string response OK when all is good
 	 */
@@ -264,8 +275,8 @@ public class MyceliumServiceController {
 	}
 
 	/**
-	 * Obtain a Collection of Duplicate RegistryObject Vertices for a given RegistryObject Vertex
-	 *
+	 * Obtain a Collection of Duplicate RegistryObject Vertices for a given RegistryObject
+	 * Vertex
 	 * @param registryObjectId the RegistryObjectId
 	 * @return a list of duplicate RegistryObject (include the origin Vertex)
 	 */
@@ -281,6 +292,183 @@ public class MyceliumServiceController {
 		Collection<Vertex> duplicates = myceliumService.getGraphService().getDuplicateRegistryObject(from);
 		log.debug("getDuplicates completed Vertex[identifier={}]", from.getIdentifier());
 		return ResponseEntity.ok().body(duplicates);
+	}
+
+	@GetMapping("/get-nested-collection-parents")
+	public ResponseEntity<?> getNestedParents(@RequestParam String registryObjectId,
+			@RequestParam(required = false, defaultValue = "100") String limitChildrenCount,
+			@RequestParam(required = false, defaultValue = "100") String limitSiblingCount) {
+
+		Integer childrenSizeLimit = Integer.parseInt(limitChildrenCount);
+		Integer siblingSizeLimit = Integer.parseInt(limitSiblingCount);
+
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		if (from == null) {
+			throw new NotFoundException(String.format("Record ID: {} is not found", registryObjectId));
+		}
+
+		Graph graph = myceliumService.getGraphService().getNestedCollectionParents(from);
+
+		// get a map of all the nodes based on the vertices
+		Map<String, TreeNodeDTO> nodes = graph.getVertices().stream().map(vertex -> {
+			TreeNodeDTO dto = new TreeNodeDTO();
+			dto.setIdentifier(String.valueOf(vertex.getIdentifier()));
+			dto.setIdentifierType(vertex.getIdentifierType());
+			dto.setTitle(vertex.getTitle());
+			dto.setObjectClass(vertex.getObjectClass());
+			dto.setObjectType(vertex.getObjectType());
+			dto.setUrl(vertex.getUrl());
+			return dto;
+		}).collect(Collectors.toMap(TreeNodeDTO::getIdentifier, Function.identity()));
+
+		// get and set children for all the nodes based on the edges
+		graph.getEdges().forEach(edge -> {
+			// edges should be in the form of (from)-[isPartOf]->(to)
+			// that means (from) is a children of (to)
+			nodes.get(edge.getTo().getIdentifier().toString()).getChildren()
+					.add(nodes.get(edge.getFrom().getIdentifier().toString()));
+
+			// and (to) is a parent of (from)
+			nodes.get(edge.getFrom().getIdentifier().toString())
+					.setParentId(String.valueOf(edge.getTo().getIdentifier()));
+		});
+
+		// there is no edge, this is probably the top node
+		if (graph.getEdges().size() == 0) {
+			nodes.put(from.getIdentifier(), treeNodeDTOMapper.getConverter().convert(from));
+		}
+
+		// exclude my duplicates (avoid cycles)
+		Collection<Vertex> duplicateRegistryObject = myceliumService.getGraphService().getSameAs(from.getIdentifier(), from.getIdentifierType());
+		List<String> duplicateIDs = duplicateRegistryObject.stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList());
+
+		// exclude my parents
+		List<String> parentsIDs = graph.getVertices().stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList());
+
+		List<String> excludeIDs = new ArrayList<>();
+		excludeIDs.addAll(parentsIDs);
+		excludeIDs.addAll(duplicateIDs);
+
+		// children of the originNode
+		Collection<Relationship> relationships = myceliumService.getGraphService().getNestedCollectionChildren(from,
+				childrenSizeLimit, 0, excludeIDs);
+		List<TreeNodeDTO> children = relationships.stream().map(relationship -> {
+			TreeNodeDTO dto = new TreeNodeDTO();
+			Vertex target = relationship.getTo();
+			if (target.getIdentifierType().equals("ro:key")) {
+				target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
+			}
+			return treeNodeDTOMapper.getConverter().convert(target);
+		}).map(dto -> {
+			Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(dto.getIdentifier(), new ArrayList<>());
+			dto.setChildrenCount(childrenCount);
+			log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), childrenCount);
+			return dto;
+		}).collect(Collectors.toList());
+		nodes.get(from.getIdentifier().toString()).setChildren(children);
+
+		TreeNodeDTO originNode = nodes.get(from.getIdentifier().toString());
+
+		// direct parent
+		Vertex directParentVertex = myceliumService.getVertexFromRegistryObjectId(originNode.getParentId());
+		if (directParentVertex != null) {
+			Collection<Relationship> siblingRelationship = myceliumService.getGraphService()
+					.getNestedCollectionChildren(directParentVertex, siblingSizeLimit, 0, excludeIDs);
+
+			// siblings
+			List<TreeNodeDTO> siblings = siblingRelationship.stream().map(relationship -> {
+				Vertex target = relationship.getTo();
+				if (target.getIdentifierType().equals("ro:key")) {
+					target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
+				}
+				return treeNodeDTOMapper.getConverter().convert(target);
+			}).filter(dto -> {
+				return !dto.getIdentifier().equals(originNode.getIdentifier());
+			}).map(dto -> {
+				Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(dto.getIdentifier(), new ArrayList<>());
+				dto.setChildrenCount(childrenCount);
+				log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), childrenCount);
+				return dto;
+			}).collect(Collectors.toList());
+
+			nodes.get(originNode.getParentId()).getChildren().addAll(siblings);
+		}
+
+		// set children count for initial nodes
+		nodes.entrySet().stream().forEach(entry -> {
+			String id = entry.getValue().getIdentifier();
+
+			// special case (for parents), if it has exactly 1 children, that's the initial load and that child should be excluded from the count
+			List<String> excludeIdentifiers = new ArrayList<>();
+			if (entry.getValue().getChildren().size() == 1) {
+				excludeIdentifiers = entry.getValue().getChildren().stream().map(dto -> {
+					return dto.getIdentifier().toString();
+				}).collect(Collectors.toList());
+			}
+
+			Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(id, excludeIdentifiers);
+			entry.getValue().setChildrenCount(childrenCount);
+//			log.debug("Children Count of RegistryObjectId[id={}] is {}", entry.getValue().getIdentifier(),
+//					childrenCount);
+		});
+
+		// top node is the node without a parent
+		TreeNodeDTO topNode = nodes.entrySet().stream().map(map -> map.getValue()).filter(node -> {
+			return node.getParentId() == null;
+		}).findFirst().orElse(null);
+
+		return ResponseEntity.ok().body(topNode);
+	}
+
+	@GetMapping("/get-nested-collection-children")
+	public ResponseEntity<?> getNestedChildren(@RequestParam String registryObjectId,
+			@RequestParam(required = false, defaultValue = "100") String limit,
+			@RequestParam(required = false, defaultValue = "0") String offset,
+			@RequestParam(required = false, defaultValue = "") String excludeIdentifiers) {
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+
+		// exclude my parents (avoid cycles)
+		Graph graph = myceliumService.getGraphService().getNestedCollectionParents(from);
+		List<String> parentsIDs = graph.getVertices().stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList());
+
+		// exclude my duplicates (avoid cycles)
+		Collection<Vertex> duplicateRegistryObject = myceliumService.getGraphService().getSameAs(from.getIdentifier(), from.getIdentifierType());
+		List<String> duplicateIDs = duplicateRegistryObject.stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList());
+
+		List<String> excludeIDs = new ArrayList<>();
+		if (excludeIdentifiers != "") {
+			excludeIDs.addAll(Arrays.asList(excludeIdentifiers.split("\\s*,\\s*")));
+		}
+		excludeIDs.addAll(parentsIDs);
+		excludeIDs.addAll(duplicateIDs);
+
+		GraphService graphService = myceliumService.getGraphService();
+		Collection<Relationship> relationships = graphService.getNestedCollectionChildren(from, Integer.parseInt(limit),
+				Integer.parseInt(offset), excludeIDs);
+
+		List<TreeNodeDTO> children = relationships.stream().map(relationship -> {
+			Vertex target = relationship.getTo();
+			if (target.getIdentifierType().equals("ro:key")) {
+				target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
+			}
+			return treeNodeDTOMapper.getConverter().convert(target);
+		}).collect(Collectors.toList());
+
+		// set children count
+		children.forEach(entry -> {
+			String id = entry.getIdentifier();
+			entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
+		});
+
+		return ResponseEntity.ok().body(children);
 	}
 
 }

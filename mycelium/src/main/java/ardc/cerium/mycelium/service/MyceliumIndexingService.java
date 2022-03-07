@@ -240,6 +240,7 @@ public class MyceliumIndexingService {
 
 			// target duplicates
 			Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(to.getIdentifier(), to.getIdentifierType());
+
 			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 			log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());

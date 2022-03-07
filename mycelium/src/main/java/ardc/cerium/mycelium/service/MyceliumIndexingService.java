@@ -282,7 +282,8 @@ public class MyceliumIndexingService {
 
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
-
+		Optional<Vertex> fromKey = graphService.getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
+		fromKey.ifPresent(vertex -> doc.setFromKey(vertex.getIdentifier()));
 		doc.setFromId(from.getIdentifier());
 		doc.setFromClass(from.getObjectClass());
 		doc.setFromType(from.getObjectType());
@@ -293,6 +294,8 @@ public class MyceliumIndexingService {
 		doc.setFromUrl(from.getUrl());
 
 		doc.setToIdentifier(to.getIdentifier());
+		Optional<Vertex> toKey = graphService.getSameAsIdentifierWithType(to, RIFCS_KEY_IDENTIFIER_TYPE);
+		toKey.ifPresent(vertex -> doc.setToKey(vertex.getIdentifier()));
 		doc.setToIdentifierType(to.getIdentifierType());
 		doc.setToClass(to.getObjectClass());
 		doc.setToType(to.getObjectType());

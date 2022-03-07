@@ -333,6 +333,21 @@ public class GraphService {
 				.filter(v -> v.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 	}
 
+
+	/**
+	 * Obtaining the Vertex with the specific type that relates to the specific Vertex with sameAs relationship.
+	 * (specifically used to find the ro:key of a registryObject)
+	 * Utilize {@link #getSameAs(String, String)} with values obtained from the
+	 * {@link Vertex}
+	 * @param vertex the {@link Vertex} to obtain duplicate from
+	 * @param type String the type of the Identifier Vertex to be returned
+	 * @return a {@link Collection} of duplicate {@link Vertex}
+	 */
+	public Optional<Vertex> getSameAsIdentifierWithType(Vertex vertex, String type) {
+		return getSameAs(vertex.getIdentifier(), vertex.getIdentifierType()).stream()
+				.filter(v -> v.getIdentifierType().equals(type)).findFirst();
+	}
+
 	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
 		return neo4jClient
 				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n" + "RETURN n;")

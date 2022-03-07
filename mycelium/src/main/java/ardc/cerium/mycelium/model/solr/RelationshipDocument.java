@@ -24,6 +24,9 @@ public class RelationshipDocument {
     @Indexed(name = "from_id")
     private String fromId;
 
+    @Indexed(name = "from_key")
+    private String fromKey;
+
     @Indexed(name="from_title")
     private String fromTitle;
 
@@ -47,6 +50,9 @@ public class RelationshipDocument {
 
     @Indexed(name = "to_identifier")
     private String toIdentifier;
+
+    @Indexed(name = "to_key")
+    private String toKey;
 
     @Indexed(name = "to_identifier_type")
     private String toIdentifierType;

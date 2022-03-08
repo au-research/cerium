@@ -143,7 +143,7 @@ public class GraphService {
 	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType,
 			Pageable pageable) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + identifier + "\", identifierType: \""
-				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
 				+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n" + "WHERE type(r) <> \"isSameAs\"\n"
 				+ "RETURN from, to, collect(r) as relations\n" + "SKIP " + pageable.getOffset() + " LIMIT "
@@ -153,7 +153,7 @@ public class GraphService {
 
 	public Collection<Relationship> getDuplicateOutboundRelationships(String identifier, String identifierType) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + identifier + "\", identifierType: \""
-				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ identifierType + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
 				+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n" + "WHERE type(r) <> \"isSameAs\"\n"
 				+ "RETURN from, to, collect(r) as relations;";
@@ -665,7 +665,7 @@ public class GraphService {
 
 		StringBuilder cypherQuery = new StringBuilder(
 				"MATCH (origin:Vertex {identifier: \"" + from.getIdentifier() + "\", identifierType: \""
-						+ from.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+						+ from.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 						+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
 						+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n");
 		cypherQuery.append("WHERE type(r) <> \"isSameAs\"\n");
@@ -719,7 +719,7 @@ public class GraphService {
 		graph.addVertex(from);
 
 		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n" +
-				"OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical\n" +
 				"UNWIND identical as from\n" +
 				"WITH distinct from\n" +
@@ -1024,7 +1024,7 @@ public class GraphService {
 	 */
 	public Collection<RelationTypeGroup> getRelationTypeGrouping(Vertex from) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
-				+ "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
 				+ "WITH distinct from\n"
 				+ "MATCH (from)-[r]->(to)\n"
@@ -1069,7 +1069,7 @@ public class GraphService {
 
 	public Collection<Relationship> getNestedCollectionChildren(Vertex origin, Integer limit, Integer skip, List<String> excludeIDs) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + origin.getIdentifier() + "\", identifierType: \""
-				+ origin.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n"
+				+ origin.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
 				+ "WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
 
@@ -1084,7 +1084,7 @@ public class GraphService {
 	}
 
 	public int getNestedCollectionChildrenCount(String registryObjectId, List<String> excludeIDs) {
-		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..]-(duplicates)\n" +
+		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical UNWIND identical as from\n" +
 				"WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
 

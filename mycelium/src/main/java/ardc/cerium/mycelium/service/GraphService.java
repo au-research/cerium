@@ -1071,13 +1071,13 @@ public class GraphService {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + origin.getIdentifier() + "\", identifierType: \""
 				+ origin.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
 				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
-				+ "WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
+				+ "WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"})))\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {
 				return "\"" + id + "\"";
 			}).collect(Collectors.joining(",", "[", "]"));
-			cypherQuery += "WHERE NOT to.identifier IN "+notIn+"\n";
+			cypherQuery += "AND NOT to.identifier IN "+notIn+"\n";
 		}
 		cypherQuery += "RETURN from, to, collect(r) as relations ORDER BY toLower(to.title) ASC SKIP "+skip+" LIMIT "+limit+";";
 		return getRelationships(cypherQuery);
@@ -1086,13 +1086,13 @@ public class GraphService {
 	public int getNestedCollectionChildrenCount(String registryObjectId, List<String> excludeIDs) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical UNWIND identical as from\n" +
-				"WITH distinct from MATCH (from)-[r:hasPart]->(to)\n";
+				"WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"})))\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {
 				return "\"" + id + "\"";
 			}).collect(Collectors.joining(",", "[", "]"));
-			cypherQuery += "WHERE NOT to.identifier IN "+notIn+"\n";
+			cypherQuery += "AND NOT to.identifier IN "+notIn+"\n";
 		}
 
 		cypherQuery += "RETURN count(r) as count;";

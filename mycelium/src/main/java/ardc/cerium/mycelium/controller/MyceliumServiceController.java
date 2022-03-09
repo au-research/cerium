@@ -325,12 +325,14 @@ public class MyceliumServiceController {
 		graph.getEdges().forEach(edge -> {
 			// edges should be in the form of (from)-[isPartOf]->(to)
 			// that means (from) is a children of (to)
-			nodes.get(edge.getTo().getIdentifier().toString()).getChildren()
-					.add(nodes.get(edge.getFrom().getIdentifier().toString()));
+			TreeNodeDTO parent = nodes.get(edge.getTo().getIdentifier().toString());
+			TreeNodeDTO child = nodes.get(edge.getFrom().getIdentifier().toString());
+			if (! parent.getChildren().contains(child)) {
+				parent.getChildren().add(child);
+			}
 
 			// and (to) is a parent of (from)
-			nodes.get(edge.getFrom().getIdentifier().toString())
-					.setParentId(String.valueOf(edge.getTo().getIdentifier()));
+			child.setParentId(parent.getIdentifier());
 		});
 
 		// there is no edge, this is probably the top node
@@ -387,7 +389,8 @@ public class MyceliumServiceController {
 				}
 				return treeNodeDTOMapper.getConverter().convert(target);
 			}).filter(dto -> {
-				return !dto.getIdentifier().equals(originNode.getIdentifier());
+				// filter out siblings that is the same as the original node or non existence
+				return dto != null && !dto.getIdentifier().equals(originNode.getIdentifier());
 			}).map(dto -> {
 				Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(dto.getIdentifier(), new ArrayList<>());
 				dto.setChildrenCount(childrenCount);
@@ -445,7 +448,12 @@ public class MyceliumServiceController {
 
 		List<String> excludeIDs = new ArrayList<>();
 		if (excludeIdentifiers != "") {
-			excludeIDs.addAll(Arrays.asList(excludeIdentifiers.split("\\s*,\\s*")));
+			Arrays.asList(excludeIdentifiers.split("\\s*,\\s*")).forEach(identifer -> {
+					List<String> excludedIdentifiers = myceliumService.getGraphService().getSameAs(identifer, "ro:id").stream().map(v -> {
+						return v.getIdentifier();
+					}).collect(Collectors.toList());
+					excludeIDs.addAll(excludedIdentifiers);
+			});
 		}
 		excludeIDs.addAll(parentsIDs);
 		excludeIDs.addAll(duplicateIDs);

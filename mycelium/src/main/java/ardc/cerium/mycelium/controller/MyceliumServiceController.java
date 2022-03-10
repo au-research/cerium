@@ -311,14 +311,7 @@ public class MyceliumServiceController {
 
 		// get a map of all the nodes based on the vertices
 		Map<String, TreeNodeDTO> nodes = graph.getVertices().stream().map(vertex -> {
-			TreeNodeDTO dto = new TreeNodeDTO();
-			dto.setIdentifier(String.valueOf(vertex.getIdentifier()));
-			dto.setIdentifierType(vertex.getIdentifierType());
-			dto.setTitle(vertex.getTitle());
-			dto.setObjectClass(vertex.getObjectClass());
-			dto.setObjectType(vertex.getObjectType());
-			dto.setUrl(vertex.getUrl());
-			return dto;
+			return treeNodeDTOMapper.getConverter().convert(vertex);
 		}).collect(Collectors.toMap(TreeNodeDTO::getIdentifier, Function.identity()));
 
 		// get and set children for all the nodes based on the edges
@@ -349,13 +342,8 @@ public class MyceliumServiceController {
 			return vertex.getIdentifier();
 		}).collect(Collectors.toList());
 
-		// exclude my parents
-		List<String> parentsIDs = graph.getVertices().stream().map(vertex -> {
-			return vertex.getIdentifier();
-		}).collect(Collectors.toList());
-
+		// exclude duplicateIDs
 		List<String> excludeIDs = new ArrayList<>();
-		excludeIDs.addAll(parentsIDs);
 		excludeIDs.addAll(duplicateIDs);
 
 		// children of the originNode
@@ -435,13 +423,8 @@ public class MyceliumServiceController {
 			@RequestParam(required = false, defaultValue = "100") String limit,
 			@RequestParam(required = false, defaultValue = "0") String offset,
 			@RequestParam(required = false, defaultValue = "") String excludeIdentifiers) {
-		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 
-		// exclude my parents (avoid cycles)
-		Graph graph = myceliumService.getGraphService().getNestedCollectionParents(from);
-		List<String> parentsIDs = graph.getVertices().stream().map(vertex -> {
-			return vertex.getIdentifier();
-		}).collect(Collectors.toList());
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 
 		// exclude my duplicates (avoid cycles)
 		Collection<Vertex> duplicateRegistryObject = myceliumService.getGraphService().getSameAs(from.getIdentifier(), from.getIdentifierType());
@@ -458,7 +441,6 @@ public class MyceliumServiceController {
 					excludeIDs.addAll(excludedIdentifiers);
 			});
 		}
-		excludeIDs.addAll(parentsIDs);
 		excludeIDs.addAll(duplicateIDs);
 
 		GraphService graphService = myceliumService.getGraphService();

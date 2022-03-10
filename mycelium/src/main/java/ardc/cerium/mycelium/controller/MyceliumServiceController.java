@@ -327,6 +327,9 @@ public class MyceliumServiceController {
 			// that means (from) is a children of (to)
 			TreeNodeDTO parent = nodes.get(edge.getTo().getIdentifier().toString());
 			TreeNodeDTO child = nodes.get(edge.getFrom().getIdentifier().toString());
+			if (parent == null || child == null) {
+				return;
+			}
 			if (! parent.getChildren().contains(child)) {
 				parent.getChildren().add(child);
 			}

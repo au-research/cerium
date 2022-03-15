@@ -314,6 +314,9 @@ public class MyceliumServiceController {
 			return treeNodeDTOMapper.getConverter().convert(vertex);
 		}).collect(Collectors.toMap(TreeNodeDTO::getIdentifier, Function.identity()));
 
+		// current node should be put in regardless
+		nodes.put(from.getIdentifier().toString(), treeNodeDTOMapper.getConverter().convert(from));
+
 		// get and set children for all the nodes based on the edges
 		graph.getEdges().forEach(edge -> {
 			// edges should be in the form of (from)-[isPartOf]->(to)
@@ -330,11 +333,6 @@ public class MyceliumServiceController {
 			// and (to) is a parent of (from)
 			child.setParentId(parent.getIdentifier());
 		});
-
-		// there is no edge, this is probably the top node
-		if (graph.getEdges().size() == 0) {
-			nodes.put(from.getIdentifier(), treeNodeDTOMapper.getConverter().convert(from));
-		}
 
 		// exclude my duplicates (avoid cycles)
 		Collection<Vertex> duplicateRegistryObject = myceliumService.getGraphService().getSameAs(from.getIdentifier(), from.getIdentifierType());

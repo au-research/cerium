@@ -1,6 +1,8 @@
 package ardc.cerium.mycelium.repository;
 
 import ardc.cerium.mycelium.model.Vertex;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -15,7 +17,12 @@ import static org.hibernate.jpa.QueryHints.HINT_FETCH_SIZE;
 
 public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 
+	@Query("MATCH (n:Vertex {dataSourceId: $dataSourceId}) CALL { WITH n DETACH DELETE n } IN TRANSACTIONS OF 1000 ROWS;")
+	void deleteByDataSourceId(@Param("dataSourceId")String dataSourceId);
+
 	boolean existsVertexByIdentifierAndIdentifierType(String identifier, String type);
+
+	Page<Vertex> getVertexByDataSourceId(String dataSourceId, Pageable pageable);
 
 	@Query("MATCH (from:Vertex {identifier: $identifier, identifierType: $identifierType})-[:isSameAs*]-(to) RETURN to")
 	Stream<Vertex> streamAllDuplicates(@Param("identifier") String identifier,

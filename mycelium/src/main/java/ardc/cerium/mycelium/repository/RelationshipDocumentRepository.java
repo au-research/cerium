@@ -5,6 +5,7 @@ import org.springframework.data.solr.repository.Query;
 import org.springframework.data.solr.repository.SolrCrudRepository;
 import org.springframework.data.util.Streamable;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 public interface RelationshipDocumentRepository extends SolrCrudRepository<RelationshipDocument, String> {
@@ -12,6 +13,10 @@ public interface RelationshipDocumentRepository extends SolrCrudRepository<Relat
     void deleteAllByFromIdEquals(String fromId);
 
     void deleteAllByToIdentifierEquals(String toIdentifier);
+
+    void deleteAllByFromIdIn(List<String> fromIds);
+
+    void deleteAllByToIdentifierIn(List<String> fromIds);
 
     RelationshipDocument findRelationshipDocumentByFromIdAndToIdentifierAndToIdentifierType(String fromId, String toIdentifier, String toIdentifierType);
 

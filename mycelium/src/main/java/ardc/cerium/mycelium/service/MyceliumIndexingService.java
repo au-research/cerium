@@ -765,5 +765,4 @@ public class MyceliumIndexingService {
 				indexedField, title, title, relationshipType));
 	}
 
-
 }

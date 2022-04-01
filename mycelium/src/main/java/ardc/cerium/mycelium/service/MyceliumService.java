@@ -292,6 +292,14 @@ public class MyceliumService {
 		graphService.deleteVertex(dataSourceVertex);
 	}
 
+	public Page<Vertex> getVerticesByDataSource(DataSource dataSource, Pageable pageable) {
+		return graphService.getVertexRepository().getVertexByDataSourceId(dataSource.getId(), pageable);
+	}
+
+	public void deleteVerticesByDataSource(DataSource dataSource) {
+		graphService.getVertexRepository().deleteByDataSourceId(dataSource.getId());
+	}
+
 	public void publishEvent(ApplicationEvent event) {
 		log.debug("Publishing Event {}", event);
 		applicationEventPublisher.publishEvent(event);

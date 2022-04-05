@@ -48,6 +48,9 @@ public class RelationshipDocument {
     @Indexed(name="from_notes")
     private String fromNotes;
 
+    @Indexed(name="from_data_source_id")
+    private String fromDataSourceId;
+
     @Indexed(name = "to_identifier")
     private String toIdentifier;
 
@@ -77,6 +80,9 @@ public class RelationshipDocument {
 
     @Indexed(name="to_notes")
     private String toNotes;
+
+    @Indexed(name="to_data_source_id")
+    private String toDataSourceId;
 
     @Indexed(name="created_at")
     private Date createdAt;

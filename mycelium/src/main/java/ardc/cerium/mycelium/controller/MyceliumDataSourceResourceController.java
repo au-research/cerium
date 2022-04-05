@@ -9,9 +9,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -76,8 +78,12 @@ public class MyceliumDataSourceResourceController {
 
 	@GetMapping(value = "/{dataSourceId}/vertices")
 	public ResponseEntity<Page<Vertex>> showRecords(@PathVariable String dataSourceId, Pageable pageable) {
-		log.info("Showing DataSource records by Id: {}", dataSourceId);
+		log.info("Showing DataSource Records by Id: {}", dataSourceId);
+
 		DataSource dataSource = myceliumService.getDataSourceById(dataSourceId);
+		if (dataSource == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSource "+dataSourceId+" Not Found");
+		}
 
 		Page<Vertex> result = myceliumService.getVerticesByDataSource(dataSource, pageable);
 
@@ -86,17 +92,19 @@ public class MyceliumDataSourceResourceController {
 
 	@DeleteMapping(value = "/{dataSourceId}/vertices")
 	public ResponseEntity<?> deleteRecords(@PathVariable String dataSourceId) {
+		log.info("Deleting Records from data source by Id: {}", dataSourceId);
 
 		DataSource dataSource = myceliumService.getDataSourceById(dataSourceId);
-
-		// delete from index
-		try (Stream<Vertex> stream = myceliumService.getGraphService().streamRegistryObjectFromDataSource(dataSourceId)) {
-			stream.forEach(from -> {
-				myceliumService.getIndexingService().deleteAllRelationship(from);
-			});
+		if (dataSource == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSource "+dataSourceId+" Not Found");
 		}
 
+		// delete from index
+		log.info("Deleting All RelationshipDocument for DataSource[id={}]", dataSource.getId());
+		myceliumService.getMyceliumIndexingService().deleteAllDataSourceRelationship(dataSource.getId());
+
 		// delete from graph database
+		log.info("Deleting All Vertices for DataSource[id={}]", dataSource.getId());
 		myceliumService.deleteVerticesByDataSource(dataSource);
 
 		myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();

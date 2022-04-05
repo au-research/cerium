@@ -18,6 +18,10 @@ public interface RelationshipDocumentRepository extends SolrCrudRepository<Relat
 
     void deleteAllByToIdentifierIn(List<String> fromIds);
 
+    void deleteAllByFromDataSourceId(String dataSourceId);
+
+    void deleteAllByToDataSourceId(String dataSourceId);
+
     RelationshipDocument findRelationshipDocumentByFromIdAndToIdentifierAndToIdentifierType(String fromId, String toIdentifier, String toIdentifierType);
 
     @Query(fields = { "[child parentFilter=type:relationship]", "*"})

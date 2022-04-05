@@ -95,6 +95,11 @@ public class MyceliumIndexingService {
 		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
 	}
 
+	public void deleteAllDataSourceRelationship(String dataSourceId) {
+		relationshipDocumentRepository.deleteAllByFromDataSourceId(dataSourceId);
+		relationshipDocumentRepository.deleteAllByToDataSourceId(dataSourceId);
+	}
+
 	public void deleteGrantsNetworkEdges(Vertex from) {
 		log.debug("Deleting Grants Network Edges from Vertex[id={}, type={}]", from.getIdentifier(),
 				from.getIdentifierType());
@@ -292,6 +297,7 @@ public class MyceliumIndexingService {
 		doc.setFromGroup(from.getGroup());
 		doc.setFromNotes(from.getNotes());
 		doc.setFromUrl(from.getUrl());
+		doc.setFromDataSourceId(from.getDataSourceId());
 
 		doc.setToIdentifier(to.getIdentifier());
 		Optional<Vertex> toKey = graphService.getSameAsIdentifierWithType(to, RIFCS_KEY_IDENTIFIER_TYPE);
@@ -304,6 +310,8 @@ public class MyceliumIndexingService {
 		doc.setToGroup(to.getGroup());
 		doc.setToNotes(to.getNotes());
 		doc.setToUrl(to.getUrl());
+		doc.setToDataSourceId(from.getDataSourceId());
+
 		doc.setUpdatedAt(new Date());
 		List<EdgeDocument> edges = new ArrayList<>();
 		relations.forEach(relation -> {
@@ -345,6 +353,7 @@ public class MyceliumIndexingService {
 			edge.setRelationUrl(relation.getUrl());
 			edge.setCreatedAt(relation.getCreatedAt());
 			edge.setUpdatedAt(relation.getUpdatedAt());
+			edge.setFromDataSourceId(from.getDataSourceId());
 
 			edges.add(edge);
 		});

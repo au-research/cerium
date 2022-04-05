@@ -46,6 +46,9 @@ public class EdgeDocument{
     @Indexed(name = "relation_url", type="string")
     private String relationUrl;
 
+    @Indexed(name="from_data_source_id", type="string")
+    private String fromDataSourceId;
+
     @Indexed(name="created_at")
     private Date createdAt;
 

@@ -699,7 +699,8 @@ public class MyceliumIndexingService {
 	 * @param oldTitle the previous title of the object
 	 * @param newTitle the new title of the object
 	 */
-	public void updateRelatedTitlesInPortalIndex( String objectClass, String objectType, String oldTitle, String newTitle, String relationshipType){
+	public void updateRelatedTitlesInPortalIndex( String objectClass, String objectType,
+												  String oldTitle, String newTitle, String relationshipType){
 		// send an event notifying RDA that we're starting the queue
 		// logic copied from RDA sync.php line 665
 		//private $party_one_types = array('person','administrativePosition');
@@ -713,7 +714,8 @@ public class MyceliumIndexingService {
 			}
 		}
 		String indexedField = String.format("related_%s_title", objectClass);
-		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, null, indexedField, oldTitle, newTitle, relationshipType));
+		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, null,
+				indexedField, oldTitle, newTitle, relationshipType));
 	}
 
 	/** Generates and sets an event to update portal index using the RDA Registry
@@ -723,7 +725,8 @@ public class MyceliumIndexingService {
 	 * @param oldTitle the previous title of the object (that needs to be removed from the portal index
 
 	 */
-	public void deleteRelatedTitleFromPortalIndex( String fromRelatedObjectId, String objectClass, String objectType, String oldTitle, String relationshipType){
+	public void deleteRelatedTitleFromPortalIndex( String fromRelatedObjectId, String objectClass, String objectType,
+												   String oldTitle, String relationshipType){
 		// send an event notifying RDA that we're starting the queue
 		// we don't keep related_collection_titles in portal index
 		log.debug("deleteRelatedTitleFromPortalIndex {} , {}, {}, {}", fromRelatedObjectId,
@@ -752,7 +755,8 @@ public class MyceliumIndexingService {
 	 * @param title the title to be added
 
 	 */
-	public void addRelatedTitleToPortalIndex( String fromRelatedObjectId, String objectClass, String objectType, String title, String relationshipType){
+	public void addRelatedTitleToPortalIndex( String fromRelatedObjectId, String objectClass, String objectType,
+											  String title, String relationshipType){
 		// send an event notifying RDA that we're starting the queue
 		// we don't keep related_collection_titles in portal index
 		log.debug("Add Title To PortalIndex {} , {}, {}, {}", fromRelatedObjectId,
@@ -771,7 +775,7 @@ public class MyceliumIndexingService {
 		String indexedField = String.format("related_%s_title", objectClass);
 		// remove the title in case it's already exist in the portal Index
 		applicationEventPublisher.publishEvent(new PortalIndexUpdateEvent(this, fromRelatedObjectId,
-				indexedField, title, title, relationshipType));
+				indexedField, "", title, relationshipType));
 	}
 
 }

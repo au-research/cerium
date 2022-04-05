@@ -113,10 +113,6 @@ public class IdentifierForgoExecutor extends Executor {
                         objectClass,
                         objetType ,
                         title, StringUtils.join(relationTypes, ","));
-                this.myceliumIndexingService.deleteRelatedTitleFromPortalIndex(registryObjectId,
-                        relationship.getFrom().getObjectClass(),
-                        relationship.getFrom().getObjectType(),
-                        relationship.getFrom().getTitle(), StringUtils.join(relationTypes, ","));
                 }});
     }
 }

@@ -348,6 +348,22 @@ public class GraphService {
 				.filter(v -> v.getIdentifierType().equals(type)).findFirst();
 	}
 
+	/**
+	 * Obtaining the Vertex with the specific type that relates to the specific Vertex with sameAs relationship.
+	 * (specifically used to find the ro:id of a relatedObject)
+	 * Utilize {@link #getSameAs(String, String)} with values obtained from the
+	 * {@link Vertex}
+	 * @param identifier the value
+	 * @param identifierType the type
+	 * @param type String the type of the Identifier Vertex to be returned
+	 * @return a {@link Collection} of duplicate {@link Vertex}
+	 */
+	public Optional<Vertex> getSameAsIdentifierWithType(String identifier, String identifierType, String type) {
+		return getSameAs(identifier, identifierType).stream()
+				.filter(v -> v.getIdentifierType().equals(type)).findFirst();
+	}
+
+
 	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
 		return neo4jClient
 				.query("MATCH (n:Vertex {identifier: $identifier, identifierType: $identifierType})\n" + "RETURN n;")

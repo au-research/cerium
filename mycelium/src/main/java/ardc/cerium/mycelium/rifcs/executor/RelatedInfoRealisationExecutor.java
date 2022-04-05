@@ -130,10 +130,6 @@ public class RelatedInfoRealisationExecutor extends Executor {
 						objectClass,
 						objetType ,
 						title, StringUtils.join(relationTypes, ","));
-				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(registryObjectId,
-						relationship.getFrom().getObjectClass(),
-						relationship.getFrom().getObjectType(),
-						relationship.getFrom().getTitle(), StringUtils.join(relationTypes, ","));
 			}});
 
 

@@ -1,7 +1,6 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
 import ardc.cerium.mycelium.model.Relationship;
-import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DirectRelationshipChangedSideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -29,6 +28,8 @@ import java.util.List;
          */
         public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
             // the record is deleted and the Before state relationships changed
+
+            log.debug("DirectRelationshipChangedExecutor detecting");
             if (after == null && before != null && !before.getOutbounds().isEmpty()) {
                 return true;
             }
@@ -38,6 +39,7 @@ import java.util.List;
             }
 
             List<Relationship> differences = RelationUtil.getRelationshipsDifferences(after, before);
+            log.debug("DirectRelationshipChangedExecutor detecting result:{}", !differences.isEmpty());
             return !differences.isEmpty();
 
         }
@@ -53,31 +55,17 @@ import java.util.List;
             String recordType = sideEffect.getRecordType();
             String relationshipType = sideEffect.getRelationshipType();
 
-            Vertex vertex = getMyceliumService().getVertexFromRegistryObjectId(originRegistryObjectId);
-
             // Add non existing titles to portal Index
             if(action.equals("add")){
-                log.debug("DirectRelationshipChangedExecutor add to{} ;title {} ", originRegistryObjectId, recordTitle);
+                log.debug("DirectRelationshipChangedExecutor add to{} title {} ", relatedRegistryObjectId, recordTitle);
                 getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(
-                        originRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);
-                // if the origin Node is removed the RDA portal index was also removed
-                if(vertex != null){
-                    log.debug("DirectRelationshipChangedExecutor add reverse to {} ;title {} ", relatedRegistryObjectId, vertex.getTitle());
-                    getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(
-                            relatedRegistryObjectId, vertex.getObjectClass(), vertex.getObjectType(), vertex.getTitle(), relationshipType);
-                }
+                        relatedRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);
             }
             // remove existing title from portal index
             else{
-                log.debug("DirectRelationshipChangedExecutor remove from {} ;title {} ", originRegistryObjectId, recordTitle);
+                log.debug("DirectRelationshipChangedExecutor remove from {} ;title {} ", relatedRegistryObjectId, recordTitle);
                 getMyceliumService().getMyceliumIndexingService().deleteRelatedTitleFromPortalIndex(
-                        originRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);
-                // if the origin Node is removed the RDA portal index was also removed
-                if(vertex != null){
-                    log.debug("DirectRelationshipChangedExecutor remove reverse from {} ;title {} ", relatedRegistryObjectId, vertex.getTitle());
-                    getMyceliumService().getMyceliumIndexingService().deleteRelatedTitleFromPortalIndex(
-                            relatedRegistryObjectId, vertex.getObjectClass(), vertex.getObjectType(), vertex.getTitle(), relationshipType);
-                }
+                        relatedRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);
             }
         }
 

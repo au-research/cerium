@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -36,6 +37,8 @@ public class MyceliumSideEffectService {
 
 	private final RedissonClient redissonClient;
 
+	private GraphService graphService;
+
 	private MyceliumService myceliumService;
 
 	private MyceliumRequestService myceliumRequestService;
@@ -43,6 +46,7 @@ public class MyceliumSideEffectService {
 	public void setMyceliumService(MyceliumService myceliumService) {
 		this.myceliumService = myceliumService;
 		myceliumRequestService = myceliumService.getMyceliumRequestService();
+		graphService = myceliumService.getGraphService();
 	}
 
 	public String getQueueID(String requestId) {
@@ -213,40 +217,54 @@ public class MyceliumSideEffectService {
 					after.getRegistryObjectClass()));
 		}
 
-
+// RDA-492 the related Objects have keys not ids so we must find the ids to modify their portal indexes
 		if(DirectRelationshipChangedExecutor.detect(before, after , myceliumService)){
 			if(after != null) {
 				Collection<Relationship> relAfter = after.getOutbounds();
 				for (Relationship rel : relAfter) {
-					if ((before == null || !before.getOutbounds().contains(rel)) && rel.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+					if ((before == null || !before.getOutbounds().contains(rel))) {
+						Optional<Vertex> ro = graphService.getSameAsIdentifierWithType(rel.getTo().getIdentifier(),
+								rel.getTo().getIdentifierType(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 						String action = "add";
-						ArrayList<String> relationTypes = new ArrayList<>();
-						rel.getRelations().forEach(relation -> {
-							relationTypes.add(relation.getType());
-						});
-						sideEffects.add(new DirectRelationshipChangedSideEffect(
-								after.getRegistryObjectId(), rel.getTo().getIdentifier(), action, rel.getTo().getObjectClass(),
-								rel.getTo().getObjectType(), rel.getTo().getTitle(), StringUtils.join(relationTypes, ",")));
+						final String[] roId = {""};
+						ro.ifPresent(vertex -> roId[0] = vertex.getIdentifier());
+						if (!roId[0].equals("")) {
+							log.debug("MyceliumSideEffectService add direct to:{}", roId[0]);
+							ArrayList<String> relationTypes = new ArrayList<>();
+							rel.getRelations().forEach(relation -> {
+								relationTypes.add(relation.getType());
+							});
+							sideEffects.add(new DirectRelationshipChangedSideEffect(
+									after.getRegistryObjectId(), roId[0], action, after.getRegistryObjectClass(),
+									after.getRegistryObjectType(), after.getTitle(), StringUtils.join(relationTypes, ",")));
+						}
 					}
 				}
 			}
 			if(before != null) {
 				Collection<Relationship> relBefore = before.getOutbounds();
 				for (Relationship rel : relBefore) {
-					if ((after == null || !after.getOutbounds().contains(rel)) && rel.getTo().getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+					if ((after == null || !after.getOutbounds().contains(rel))) {
+						Optional<Vertex> ro = graphService.getSameAsIdentifierWithType(rel.getTo().getIdentifier(),
+								rel.getTo().getIdentifierType(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 						String action = "remove";
-						ArrayList<String> relationTypes = new ArrayList<>();
-						rel.getRelations().forEach(relation -> {
-							relationTypes.add(relation.getType());
-						});
-						sideEffects.add(new DirectRelationshipChangedSideEffect(
-								before.getRegistryObjectId(), rel.getTo().getIdentifier(), action, rel.getTo().getObjectClass(),
-								rel.getTo().getObjectType(), rel.getTo().getTitle(), StringUtils.join(relationTypes, ",")));
+						final String[] roId = {""};
+						ro.ifPresent(vertex -> roId[0] = vertex.getIdentifier());
+						if(!roId[0].equals("")){
+							log.debug("MyceliumSideEffectService remove direct from:{}", roId[0]);
+							ArrayList<String> relationTypes = new ArrayList<>();
+							rel.getRelations().forEach(relation -> {
+								relationTypes.add(relation.getType());
+							});
+							sideEffects.add(new DirectRelationshipChangedSideEffect(
+									before.getRegistryObjectId(), roId[0], action, before.getRegistryObjectClass(),
+									before.getRegistryObjectType(), before.getTitle(), StringUtils.join(relationTypes, ",")));
+						}
 					}
 				}
 			}
-
 		}
+
 		// find all Identifiers that the RegistryObject doesn't have anymore and create an IdentifierForgoSideEffect
 		if (IdentifierForgoExecutor.detect(before, after)) {
 			String registryObjectId = before.getRegistryObjectId();
@@ -271,8 +289,7 @@ public class MyceliumSideEffectService {
 							before.getRegistryObjectClass(), before.getRegistryObjectType(),
 							before.getTitle(), after.getTitle(), null));
 		}
-
-
+		
 		return sideEffects;
 	}
 

@@ -25,16 +25,21 @@ public class RelationUtil {
      */
     public static List<Relationship> getRelationshipsDifferences(RecordState from, RecordState to) {
 
-        if (from == null) {
+        if (from == null && to == null) {
             return new ArrayList<>();
         }
-
-        if (to == null) {
+        else if (to == null) {
             return new ArrayList<>(from.getOutbounds());
+        }else if(from == null){
+            return new ArrayList<>(to.getOutbounds());
+        }else {
+            List<Relationship> lostRelationships = from.getOutbounds().stream().filter(relationship -> !to.getOutbounds().contains(relationship))
+                    .collect(Collectors.toList());
+            List<Relationship> gainedRelationships = to.getOutbounds().stream().filter(relationship -> !from.getOutbounds().contains(relationship))
+                    .collect(Collectors.toList());
+            lostRelationships.addAll(gainedRelationships);
+            return lostRelationships;
         }
-
-        return from.getOutbounds().stream().filter(relationship -> !to.getOutbounds().contains(relationship))
-                .collect(Collectors.toList());
     }
 
     /**

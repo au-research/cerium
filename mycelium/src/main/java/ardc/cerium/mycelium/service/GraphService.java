@@ -71,6 +71,7 @@ public class GraphService {
 	 * Ingest an entire {@link Graph}
 	 * @param graph the {@link Graph} to ingest
 	 */
+	@Transactional
 	public void ingestGraph(Graph graph) {
 		log.debug("Starting graph ingest verticesCount: {}, edgesCount: {}", graph.getVertices().size(),
 				graph.getEdges().size());
@@ -127,6 +128,7 @@ public class GraphService {
 	 * Delete single {@link Vertex} using SDN
 	 * @param vertex the {@link Vertex}
 	 */
+	@Transactional
 	public void deleteVertex(Vertex vertex) {
 		// todo update the vertex
 		// we can't delete null so do a try catch
@@ -1114,6 +1116,69 @@ public class GraphService {
 		cypherQuery += "RETURN count(r) as count;";
 		return neo4jClient.query(cypherQuery).bind(registryObjectId).to("identifier").bind("ro:id")
 				.to("identifierType").fetchAs(Integer.class).one().get();
+	}
+
+	public Graph getLocalGraph(Vertex origin) {
+		String cypherQuery = "PROFILE MATCH path=(n:Vertex)-[r]-(n2) WHERE id(n) = $id RETURN path;";
+//		log.debug("getLocalGraph cypher: {}", cypherQuery);
+
+		Collection<Graph> graphs = neo4jClient.query(cypherQuery)
+				.bind(origin.getId()).to("id")
+				.fetchAs(Graph.class).mappedBy((typeSystem, record) -> {
+					Graph graph = new Graph();
+					Path path = record.get("path").asPath();
+					path.nodes().forEach(node -> graph.addVertex(vertexMapper.getConverter().convert(node)));
+					path.relationships().forEach(relationship -> {
+						long startId = relationship.startNodeId();
+						long endId = relationship.endNodeId();
+						String relationType = relationship.type();
+						Vertex from = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(startId))
+								.findFirst().orElse(null);
+						Vertex to = graph.getVertices().stream().filter(vertex -> vertex.getId().equals(endId))
+								.findFirst().orElse(null);
+
+						// todo refactor to EdgeRelationshipMapper
+						if (from != null && to != null) {
+							Edge edge = new Edge(from, to, relationType, relationship.id());
+							if (!relationship.get("description").isNull()) {
+								edge.setDescription(relationship.get("description").asString());
+							}
+							if (!relationship.get("url").isNull()) {
+								edge.setUrl(relationship.get("url").asString());
+							}
+							if (!relationship.get("origin").isNull()) {
+								edge.setOrigin(relationship.get("origin").asString());
+							}
+							if (!relationship.get("reverse").isNull()) {
+								edge.setReverse(relationship.get("reverse").asBoolean());
+							}
+							if (!relationship.get("duplicate").isNull()) {
+								edge.setDuplicate(relationship.get("duplicate").asBoolean());
+							}
+							if (!relationship.get("public").isNull()) {
+								edge.setPublic(relationship.get("public").asBoolean());
+							}
+							if (!relationship.get("internal").isNull()) {
+								edge.setInternal(relationship.get("internal").asBoolean());
+							}
+							graph.addEdge(edge);
+						}
+					});
+					return graph;
+				}).all();
+
+		// merge all graphs into a single graph
+		Graph mergedGraph = new Graph();
+
+		// origin should be in the graph regardless (even without relationships)
+		mergedGraph.addVertex(origin);
+
+		graphs.forEach(graph -> {
+			graph.getVertices().forEach(mergedGraph::addVertex);
+			graph.getEdges().forEach(mergedGraph::addEdge);
+		});
+
+		return mergedGraph;
 	}
 
 }

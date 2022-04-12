@@ -1,8 +1,6 @@
 package ardc.cerium.mycelium.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -15,13 +13,15 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class Vertex {
 
 	@Property("identifier")
-	private final String identifier;
+	private String identifier;
 
 	@Property("identifierType")
-	private final String identifierType;
+	private String identifierType;
 
 	@DynamicLabels
 	private List<String> labels;

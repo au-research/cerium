@@ -11,6 +11,9 @@ app.contact-email=minh.nguyen@ardc.edu.au
 app.contact-url=https://ardc.edu.au
 app.data-path=/var/data/mycelium
 
+rda.registry.url=http://localhost
+rda.backup.path=/var/data/registry-backups/
+
 # solr
 spring.data.solr.host=${SOLR_URL:http://solr:8983/solr}
 

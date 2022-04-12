@@ -1,8 +1,6 @@
 package ardc.cerium.mycelium.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 
@@ -11,13 +9,15 @@ import java.util.Date;
 @Getter
 @Setter
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class Edge {
 
 	@Id
 	@GeneratedValue
 	private Long id;
 
-	private final String type;
+	private String type;
 
 	Vertex from;
 

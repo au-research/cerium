@@ -284,7 +284,7 @@ public class MyceliumIndexingService {
 		// RDA-554 checking for issues with reverse direction
 		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}][{}]", from.getIdentifier(),
 				to.getIdentifier(), relationTypes, directions);
-
+		log.debug("from [status={}] to [status={}]", from.getStatus(), to.getStatus());
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
 		Optional<Vertex> fromKey = graphService.getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
@@ -298,6 +298,7 @@ public class MyceliumIndexingService {
 		doc.setFromNotes(from.getNotes());
 		doc.setFromUrl(from.getUrl());
 		doc.setFromDataSourceId(from.getDataSourceId());
+		doc.setFromStatus(from.getStatus());
 
 		doc.setToIdentifier(to.getIdentifier());
 		Optional<Vertex> toKey = graphService.getSameAsIdentifierWithType(to, RIFCS_KEY_IDENTIFIER_TYPE);
@@ -310,7 +311,8 @@ public class MyceliumIndexingService {
 		doc.setToGroup(to.getGroup());
 		doc.setToNotes(to.getNotes());
 		doc.setToUrl(to.getUrl());
-		doc.setToDataSourceId(from.getDataSourceId());
+		doc.setToDataSourceId(to.getDataSourceId());
+		doc.setToStatus(to.getStatus());
 
 		doc.setUpdatedAt(new Date());
 		List<EdgeDocument> edges = new ArrayList<>();
@@ -354,7 +356,8 @@ public class MyceliumIndexingService {
 			edge.setCreatedAt(relation.getCreatedAt());
 			edge.setUpdatedAt(relation.getUpdatedAt());
 			edge.setFromDataSourceId(from.getDataSourceId());
-
+			edge.setFromStatus(from.getStatus());
+			edge.setToStatus(to.getStatus());
 			edges.add(edge);
 		});
 		doc.setRelations(edges);
@@ -391,6 +394,7 @@ public class MyceliumIndexingService {
 	public void indexRelationshipDocument(RelationshipDocument doc) {
 
 		// search for existing document in an attempt to update it
+		log.debug(doc.toString());
 		Query query = new SimpleQuery("*:*");
 		query.addFilterQuery(new SimpleFilterQuery(new Criteria("from_id").is(doc.getFromId())));
 		query.addFilterQuery(new SimpleFilterQuery(new Criteria("to_identifier").is(doc.getToIdentifier())));

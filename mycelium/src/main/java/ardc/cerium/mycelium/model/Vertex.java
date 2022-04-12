@@ -59,6 +59,9 @@ public class Vertex {
 	@Property("updatedAt")
 	private Date updatedAt;
 
+	@Property("status")
+	private String status;
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -77,8 +80,21 @@ public class Vertex {
 		return labels.contains(label.toString());
 	}
 
+
+
 	public enum Label {
-		Vertex, RegistryObject, Identifier, DataSource, Cluster
+		Vertex, RegistryObject, Identifier, DataSource, Cluster, DRAFT, PUBLISHED
 	}
 
+	public void setStatus(Status status) {
+		this.status = status.name();
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public enum Status {
+		DRAFT,PUBLISHED
+	}
 }

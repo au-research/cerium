@@ -226,18 +226,19 @@ public class MyceliumSideEffectService {
 						Optional<Vertex> ro = graphService.getSameAsIdentifierWithType(rel.getTo().getIdentifier(),
 								rel.getTo().getIdentifierType(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 						String action = "add";
-						final String[] roId = {""};
-						ro.ifPresent(vertex -> roId[0] = vertex.getIdentifier());
-						if (!roId[0].equals("")) {
-							log.debug("MyceliumSideEffectService add direct to:{}", roId[0]);
-							ArrayList<String> relationTypes = new ArrayList<>();
-							rel.getRelations().forEach(relation -> {
-								relationTypes.add(relation.getType());
-							});
-							sideEffects.add(new DirectRelationshipChangedSideEffect(
-									after.getRegistryObjectId(), roId[0], action, after.getRegistryObjectClass(),
-									after.getRegistryObjectType(), after.getTitle(), StringUtils.join(relationTypes, ",")));
-						}
+						ro.ifPresent(vertex -> {
+							log.debug("MyceliumSideEffectService add direct to:{}, status:{}",
+									vertex.getIdentifier(), vertex.getStatus());
+							if(vertex.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+								ArrayList<String> relationTypes = new ArrayList<>();
+								rel.getRelations().forEach(relation -> {
+									relationTypes.add(relation.getType());
+								});
+								sideEffects.add(new DirectRelationshipChangedSideEffect(
+										after.getRegistryObjectId(), vertex.getIdentifier(), action, after.getRegistryObjectClass(),
+										after.getRegistryObjectType(), after.getTitle(), StringUtils.join(relationTypes, ",")));
+							}
+						});
 					}
 				}
 			}
@@ -248,18 +249,19 @@ public class MyceliumSideEffectService {
 						Optional<Vertex> ro = graphService.getSameAsIdentifierWithType(rel.getTo().getIdentifier(),
 								rel.getTo().getIdentifierType(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 						String action = "remove";
-						final String[] roId = {""};
-						ro.ifPresent(vertex -> roId[0] = vertex.getIdentifier());
-						if(!roId[0].equals("")){
-							log.debug("MyceliumSideEffectService remove direct from:{}", roId[0]);
-							ArrayList<String> relationTypes = new ArrayList<>();
-							rel.getRelations().forEach(relation -> {
-								relationTypes.add(relation.getType());
-							});
-							sideEffects.add(new DirectRelationshipChangedSideEffect(
-									before.getRegistryObjectId(), roId[0], action, before.getRegistryObjectClass(),
-									before.getRegistryObjectType(), before.getTitle(), StringUtils.join(relationTypes, ",")));
-						}
+						ro.ifPresent(vertex -> {
+							log.debug("MyceliumSideEffectService remove direct to:{}, status:{}",
+									vertex.getIdentifier(), vertex.getStatus());
+							if(vertex.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+								ArrayList<String> relationTypes = new ArrayList<>();
+								rel.getRelations().forEach(relation -> {
+									relationTypes.add(relation.getType());
+								});
+								sideEffects.add(new DirectRelationshipChangedSideEffect(
+										before.getRegistryObjectId(), vertex.getIdentifier(), action, before.getRegistryObjectClass(),
+										before.getRegistryObjectType(), before.getTitle(), StringUtils.join(relationTypes, ",")));
+							}
+						});
 					}
 				}
 			}

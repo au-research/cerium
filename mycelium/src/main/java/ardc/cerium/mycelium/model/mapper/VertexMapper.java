@@ -58,6 +58,9 @@ public class VertexMapper {
 				if (!node.get("notes").isNull()) {
 					vertex.setNotes(node.get("notes").asString());
 				}
+				if (!node.get("status").isNull()) {
+					vertex.setStatus(node.get("status").asString());
+				}
 				return vertex;
 			}
 

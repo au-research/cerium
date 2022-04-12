@@ -49,6 +49,12 @@ public class EdgeDocument{
     @Indexed(name="from_data_source_id", type="string")
     private String fromDataSourceId;
 
+    @Indexed(name="from_status", type="string")
+    private String fromStatus;
+
+    @Indexed(name="to_status", type="string")
+    private String toStatus;
+
     @Indexed(name="created_at")
     private Date createdAt;
 

@@ -63,6 +63,11 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 
 		// remove all PrimaryKey edge to the key
 		String key = sideEffect.getKey();
+		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(key);
+		if(roVertex == null){
+			log.debug("Vertex with PrimaryKey:{} Doesn't exist",  key);
+			return;
+		}
 		getMyceliumService().getGraphService().deletePrimaryKeyEdge(key);
 
 		// remove all PrimaryKey edge from/to the roVertex

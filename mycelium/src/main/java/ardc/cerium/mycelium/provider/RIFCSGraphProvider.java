@@ -125,12 +125,20 @@ public class RIFCSGraphProvider {
 		// add the originNode, which is the ID node
 		Vertex originNode = new Vertex(registryObject.getRegistryObjectId().toString(), RIFCS_ID_IDENTIFIER_TYPE);
 		originNode.addLabel(Vertex.Label.RegistryObject);
+		if(registryObject.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			originNode.addLabel(Vertex.Label.PUBLISHED);
+			originNode.setStatus(Vertex.Status.PUBLISHED);
+		}
+		else{
+			originNode.addLabel(Vertex.Label.DRAFT);
+			originNode.setStatus(Vertex.Status.DRAFT);
+		}
 		originNode.setObjectType(registryObject.getType());
 		originNode.setObjectClass(registryObject.getClassification());
 		originNode.setTitle(registryObject.getTitle());
 		originNode.setUrl(registryObject.getPortalUrl());
 		originNode.setDataSourceId(registryObject.getDataSource().getId().toString());
-		originNode.setPublic(registryObject.getStatus().equals("PUBLISHED"));
+		originNode.setPublic(registryObject.getStatus().equals(Vertex.Status.PUBLISHED.name()));
 		originNode.setGroup(registryObject.getGroup());
 		originNode.setListTitle(registryObject.getListTitle());
 		graph.addVertex(originNode);

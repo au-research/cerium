@@ -51,6 +51,9 @@ public class RelationshipDocument {
     @Indexed(name="from_data_source_id")
     private String fromDataSourceId;
 
+    @Indexed(name="from_status")
+    private String fromStatus;
+
     @Indexed(name = "to_identifier")
     private String toIdentifier;
 
@@ -83,6 +86,9 @@ public class RelationshipDocument {
 
     @Indexed(name="to_data_source_id")
     private String toDataSourceId;
+
+    @Indexed(name="to_status")
+    private String toStatus;
 
     @Indexed(name="created_at")
     private Date createdAt;

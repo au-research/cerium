@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
 import ardc.cerium.mycelium.model.Relationship;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DirectRelationshipChangedSideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -30,11 +31,16 @@ import java.util.List;
             // the record is deleted and the Before state relationships changed
 
             log.debug("DirectRelationshipChangedExecutor detecting");
-            if (after == null && before != null && !before.getOutbounds().isEmpty()) {
+            // It's a DRAFT
+            if (after == null || after.getStatus().equals(Vertex.Status.DRAFT.name())) {
+                return false;
+            }
+            // if before had something but after is empty
+            if (before != null && !before.getOutbounds().isEmpty() && after.getOutbounds().isEmpty()) {
                 return true;
             }
-            // the record is newly added
-            if (before == null && after != null && !after.getOutbounds().isEmpty()) {
+            // the record is newly and it has relatedObjects
+            if (before == null && !after.getOutbounds().isEmpty()) {
                 return true;
             }
 

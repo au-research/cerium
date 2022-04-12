@@ -24,6 +24,8 @@ public class RecordState {
 
 	private String group;
 
+	private String status;
+
 	private Vertex origin;
 
 	private String dataSourceId;

@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.effect.TitleChangeSideEffect;
@@ -33,7 +34,11 @@ public class TitleChangeExecutor extends Executor {
 	 * @return boolean
 	 */
 	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
-		return after != null && !before.getTitle().equals(after.getTitle());
+		// if it's a DRAFT
+		if ( after != null && after.getStatus().equals(Vertex.Status.DRAFT.name())) {
+			return false;
+		}
+		return after != null && before != null && !before.getTitle().equals(after.getTitle());
 	}
 
 	@Override

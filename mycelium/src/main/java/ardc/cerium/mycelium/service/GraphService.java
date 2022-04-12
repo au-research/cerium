@@ -558,8 +558,9 @@ public class GraphService {
 		state.setRegistryObjectClass(registryObjectVertex.getObjectClass());
 		state.setRegistryObjectType(registryObjectVertex.getObjectType());
 		state.setDataSourceId(registryObjectVertex.getDataSourceId());
-		// TODO obtain group from vertex (require Vertex to have group property)
-		state.setGroup(null);
+		state.setStatus(registryObjectVertex.getStatus());
+		log.debug("Got the Status {}", registryObjectVertex.getStatus());
+		state.setGroup(registryObjectVertex.getGroup());
 		state.setIdentical(sameAsNodeCluster);
 		Collection<Vertex> vIdentifiers = getSameAs(registryObjectVertex.getIdentifier(),
 				registryObjectVertex.getIdentifierType());

@@ -47,10 +47,11 @@ public class IdentifierForgoExecutor extends Executor {
         if(before == null || before.getIdentifiers().isEmpty()){
             return false;
         }
-        // record is deleted
-        if(after == null || after.getIdentifiers().isEmpty()){
-            return true;
+        // record is deleted or it's a DRAFT
+        if(after == null || after.getStatus().equals(Vertex.Status.DRAFT.name()) || after.getIdentifiers().isEmpty()){
+            return false;
         }
+
         // if all that was is still contained in the after then false
         // yes it can be simplified but it's much easier to read
         if(after.getIdentifiers().containsAll(before.getIdentifiers())){

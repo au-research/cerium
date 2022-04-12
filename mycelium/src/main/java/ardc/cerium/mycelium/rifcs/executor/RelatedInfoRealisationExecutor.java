@@ -40,8 +40,8 @@ public class RelatedInfoRealisationExecutor extends Executor {
 	 */
 	public static boolean detect(RecordState before, RecordState after, MyceliumService myceliumService) {
 
-		// no identifier should be realised if the record is deleted
-		if (after == null) {
+		// no identifier should be realised if the record is deleted or if it's a DRAFT
+		if (after == null || after.getStatus().equals(Vertex.Status.DRAFT.name())) {
 			return false;
 		}
 
@@ -125,7 +125,6 @@ public class RelatedInfoRealisationExecutor extends Executor {
 				// the related_<class>_title is the title of the record we need to remove from the portal Index
 				// related_collection_title
 				// related_party_multi
-				// in portal Index it goes both ways, so we need to delete both to and from
 				getMyceliumService().getMyceliumIndexingService().addRelatedTitleToPortalIndex(relationship.getFrom().getIdentifier(),
 						objectClass,
 						objetType ,

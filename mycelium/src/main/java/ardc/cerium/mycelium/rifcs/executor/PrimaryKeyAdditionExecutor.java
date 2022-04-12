@@ -80,6 +80,10 @@ public class PrimaryKeyAdditionExecutor extends Executor {
 		PrimaryKey pk = sideEffect.getPrimaryKey();
 		String toKey = pk.getKey();
 		Vertex roVertex = getMyceliumService().getRegistryObjectVertexFromKey(toKey);
+		if(roVertex == null){
+			log.debug("Vertex with PrimaryKey:{} Doesn't exist",  toKey);
+			return;
+		}
 		DataSource dataSource = getMyceliumService().getDataSourceById(sideEffect.getDataSourceId());
 
 		// insert the PK edges to neo4j and SOLR

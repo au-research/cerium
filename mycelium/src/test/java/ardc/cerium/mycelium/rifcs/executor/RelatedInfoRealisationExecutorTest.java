@@ -40,7 +40,8 @@ class RelatedInfoRealisationExecutorTest {
 		Collection<Vertex> identical = new HashSet<>();
 		identical.add(new Vertex("102.7/3", "doi"));
 		after.setIdentical(identical);
-
+		before.setStatus("PUBLISHED");
+		after.setStatus("PUBLISHED");
 		when(myceliumService.getGraphService()).thenReturn(graphService);
 		Collection<Relationship> mockedResponse = new HashSet<>();
 		mockedResponse.add(new Relationship());
@@ -60,7 +61,8 @@ class RelatedInfoRealisationExecutorTest {
 		identicalAfter.add(new Vertex("1", "ro:id"));
 		RecordState after = new RecordState();
 		after.setIdentical(identicalAfter);
-
+		before.setStatus("PUBLISHED");
+		after.setStatus("PUBLISHED");
 		when(myceliumService.getGraphService()).thenReturn(graphService);
 		Collection<Relationship> mockedResponse = new HashSet<>();
 		mockedResponse.add(new Relationship());

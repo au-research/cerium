@@ -19,13 +19,17 @@ class IdentifierForgoExecutorTest {
         Collection<Vertex> oldIdentifiers = new ArrayList<>();
         Collection<Vertex> newIdentifiers = new ArrayList<>();
         Vertex v1 = new Vertex("10.222", "doi");
+        v1.setStatus("PUBLISHED");
         Vertex v2 = new Vertex("1378.2/1234", "handle");
+        v2.setStatus("PUBLISHED");
         newIdentifiers.add(v1);
         newIdentifiers.add(v2);
         oldIdentifiers.add(v1);
         oldIdentifiers.add(v2);
         before.setIdentifiers(oldIdentifiers);
+        before.setStatus("PUBLISHED");
         after.setIdentifiers(newIdentifiers);
+        after.setStatus("PUBLISHED");
 
         assertThat(IdentifierForgoExecutor.detect(before, after)).isFalse();
     }
@@ -38,7 +42,8 @@ class IdentifierForgoExecutorTest {
         Collection<Vertex> newIdentifiers = new ArrayList<>();
         Vertex v1 = new Vertex("10.222", "doi");
         Vertex v2 = new Vertex("1378.2/1234", "handle");
-
+        v1.setStatus("PUBLISHED");
+        v2.setStatus("PUBLISHED");
         oldIdentifiers.add(v1);
         oldIdentifiers.add(v2);
         // only add one Vertex to the new state
@@ -46,7 +51,8 @@ class IdentifierForgoExecutorTest {
 
         before.setIdentifiers(oldIdentifiers);
         after.setIdentifiers(newIdentifiers);
-
+        before.setStatus("PUBLISHED");
+        after.setStatus("PUBLISHED");
         assertThat(IdentifierForgoExecutor.detect(before, after)).isTrue();
     }
 

@@ -156,20 +156,24 @@ public class RIFCSGraphProvider {
 		if (identifiers != null && identifiers.size() > 0) {
 			rifcs.getIdentifiers().forEach(identifier -> {
 				try {
-					IdentifierNormalisationService.getNormalisedIdentifier(identifier);
 					Vertex identifierNode = new Vertex(identifier.getValue(), identifier.getType());
 					identifierNode.addLabel(Vertex.Label.Identifier);
 
-					// todo set identifierNode URL (when available)
-
-					// resolve the value of the identifier node
+					// normalise and resolve the Identifier Vertex
+					VertexUtil.normalise(identifierNode);
 					VertexUtil.resolveVertex(identifierNode);
+					identifierNode.setUrl(IdentifierUtil.getUrl(identifierNode.getIdentifier(), identifierNode.getIdentifierType()));
 
+					// add it to the graph
 					graph.addVertex(identifierNode);
+
+					// create and add the edge from (ro:id origin)-[isSameAs]->(identifierNode) to the graph
 					Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
 					edge.setOrigin(ORIGIN_IDENTIFIER);
 					graph.addEdge(edge);
-				}catch(ContentNotSupportedException e){
+
+				}
+				catch (ContentNotSupportedException e) {
 					log.info(e.getMessage());
 				}
 			});
@@ -209,21 +213,22 @@ public class RIFCSGraphProvider {
 						: new ArrayList<>();
 				relatedInfoIdentifiers.forEach(relatedInfoIdentifier -> {
 					try {
-						IdentifierNormalisationService.getNormalisedIdentifier(relatedInfoIdentifier);
+
+						// create the relatedInfo Identifier vertex and sets the relevant values
 						Vertex relatedInfoNode = new Vertex(relatedInfoIdentifier.getValue(),
 								relatedInfoIdentifier.getType());
 						relatedInfoNode.setTitle(relatedInfo.getTitle());
 						relatedInfoNode.addLabel(Vertex.Label.Identifier);
 						relatedInfoNode.setObjectType(relatedInfo.getType());
 						relatedInfoNode.setObjectClass(relatedInfo.getType());
-						relatedInfoNode.setUrl(IdentifierUtil.getUrl(relatedInfoIdentifier.getValue(),relatedInfoIdentifier.getType()));
 						relatedInfoNode.setNotes(relatedInfo.getNotes());
 
-						// todo set relatedInfoNode URL (when available)
-
-						// resolve the identifier to obtain the real title
+						// normalise and resolve the vertex
+						VertexUtil.normalise(relatedInfoNode);
 						VertexUtil.resolveVertex(relatedInfoNode);
+						relatedInfoNode.setUrl(IdentifierUtil.getUrl(relatedInfoIdentifier.getValue(),relatedInfoIdentifier.getType()));
 
+						// add it to the graph
 						graph.addVertex(relatedInfoNode);
 
 						// if there's no relatedInfo/relations, the default relation is

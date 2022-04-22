@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
 import ardc.cerium.mycelium.util.IdentifierUtil;
+import ardc.cerium.mycelium.util.VertexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -161,6 +162,9 @@ public class RIFCSGraphProvider {
 
 					// todo set identifierNode URL (when available)
 
+					// resolve the value of the identifier node
+					VertexUtil.resolveVertex(identifierNode);
+
 					graph.addVertex(identifierNode);
 					Edge edge = new Edge(originNode, identifierNode, RELATION_SAME_AS);
 					edge.setOrigin(ORIGIN_IDENTIFIER);
@@ -216,6 +220,9 @@ public class RIFCSGraphProvider {
 						relatedInfoNode.setNotes(relatedInfo.getNotes());
 
 						// todo set relatedInfoNode URL (when available)
+
+						// resolve the identifier to obtain the real title
+						VertexUtil.resolveVertex(relatedInfoNode);
 
 						graph.addVertex(relatedInfoNode);
 

@@ -178,10 +178,13 @@ class GraphServiceTest {
 		Graph graph = new Graph();
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("PUBLISHED");
 		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		b.addLabel(Vertex.Label.RegistryObject);
+		b.setStatus("PUBLISHED");
 		Vertex c = new Vertex("C", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus("PUBLISHED");
 		Vertex i1 = new Vertex("I1", "local");
 		i1.addLabel(Vertex.Label.Identifier);
 		graph.addVertex(a, b, c, i1);
@@ -213,14 +216,17 @@ class GraphServiceTest {
 		// C isSameAs I2
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("PUBLISHED");
 		Vertex i1 = new Vertex("I1", "local");
 		i1.addLabel(Vertex.Label.Identifier);
 		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		b.addLabel(Vertex.Label.RegistryObject);
+		b.setStatus("PUBLISHED");
 		Vertex i2 = new Vertex("I2", "local");
 		i2.addLabel(Vertex.Label.Identifier);
 		Vertex c = new Vertex("C", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus("PUBLISHED");
 
 		Graph graph = new Graph();
 
@@ -261,6 +267,7 @@ class GraphServiceTest {
 		// given a vertex id & key pair
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("PUBLISHED");
 		a.setTitle("Test Object");
 
 		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
@@ -286,18 +293,22 @@ class GraphServiceTest {
 		// (b)-[hasPart]->(a)
 		Vertex a = new Vertex("A", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("PUBLISHED");
 		a.setTitle("A");
 
 		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		b.addLabel(Vertex.Label.RegistryObject);
+		b.setStatus("PUBLISHED");
 		b.setTitle("B");
 
 		Vertex c = new Vertex("C", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus("PUBLISHED");
 		c.setTitle("C");
 
 		Vertex i1 = new Vertex("I1", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
 		i1.addLabel(Vertex.Label.RegistryObject);
+		i1.setStatus("PUBLISHED");
 		i1.setTitle("I1");
 
 		Graph graph = new Graph();
@@ -330,5 +341,37 @@ class GraphServiceTest {
 
 		assertThat(state).isNotNull();
 	}
+
+	@Test
+	void getDuplicateWithDraftsRegistryObjectTest() {
+		// given A, B, C isSameAs identifier I1
+		Graph graph = new Graph();
+		Vertex a = new Vertex("123", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("PUBLISHED");
+		Vertex b = new Vertex("456", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		b.addLabel(Vertex.Label.RegistryObject);
+		b.setStatus("DRAFT");
+		Vertex i1 = new Vertex("ZZZ", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		i1.addLabel(Vertex.Label.Identifier);
+		graph.addVertex(a, b, i1);
+
+		graph.addEdge(new Edge(a, i1, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(b, i1, RIFCSGraphProvider.RELATION_SAME_AS));
+
+
+		graphService.ingestGraph(graph);
+
+		// when getDuplicate of A
+		Collection<Vertex> duplicates = graphService.getDuplicateRegistryObject(a);
+
+		// there are NO duplicates because b is a DRAFT
+		assertThat(duplicates.size()).isEqualTo(1);
+
+		// all of them should be RegistryObject, no identifier allowed
+		assertThat(duplicates.stream().allMatch(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))).isTrue();
+
+	}
+
 
 }

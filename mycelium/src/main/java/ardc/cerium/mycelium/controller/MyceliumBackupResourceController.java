@@ -33,8 +33,13 @@ public class MyceliumBackupResourceController {
     }
 
     @PostMapping(value="/{backupId}/_restore")
-    public ResponseEntity<?> restoreBackup(@PathVariable String backupId, @RequestParam(required = true) String dataSourceId) {
-        backupService.restoreBackup(backupId, dataSourceId);
+    public ResponseEntity<?> restoreBackup(@PathVariable String backupId, @RequestParam(required = true) String dataSourceId, @RequestParam(required = false) String correctedDataSourceId) {
+
+        if (correctedDataSourceId == null) {
+            correctedDataSourceId = dataSourceId;
+        }
+
+        backupService.restoreBackup(backupId, dataSourceId, correctedDataSourceId);
         return ResponseEntity.ok("Done");
     }
 }

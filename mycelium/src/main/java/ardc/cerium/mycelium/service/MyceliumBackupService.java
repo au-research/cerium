@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,7 @@ public class MyceliumBackupService {
 	 * @param backupId
 	 * @param dataSourceId
 	 */
-    public void restoreBackup(String backupId, String dataSourceId) {
+    public void restoreBackup(String backupId, String dataSourceId, String correctedDataSourceId) {
 
         // backup path, /var/data/registry-backups/{backupId}/datasources/{backupId}/graphs/
         String backupPath = String.format(RDAPackupPath + "/%s/datasources/%s/graphs/", backupId, dataSourceId);
@@ -107,7 +108,7 @@ public class MyceliumBackupService {
         File[] files = backupDirectory.listFiles();
         Arrays.sort(files);
         for (File file : files) {
-            restoreGraphFile(file);
+            restoreGraphFile(file, correctedDataSourceId);
         }
     }
 
@@ -116,19 +117,32 @@ public class MyceliumBackupService {
      *
 	 * @param file
 	 */
-    public void restoreGraphFile(File file) {
+    public void restoreGraphFile(File file, String correctedDataSourceId) {
         log.debug("Restoring File "+file);
         try {
             Graph graph = objectMapper.readValue(file, Graph.class);
 
-            // remove the generatedId from the backups
-            // or else some will not restore properly
             graph.getVertices().forEach(vertex -> {
+
+                // remove the generatedId from the backups
+                // or else some will not restore properly
                 vertex.setId(null);
+
+                // update the correctedDataSourceId
+                if (vertex.getIdentifierType().equals(RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE)) {
+                    // is a data source vertex
+                    vertex.setIdentifier(correctedDataSourceId);
+                } else if(vertex.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+                    // is a normal registryObject vertex
+                    vertex.setDataSourceId(correctedDataSourceId);
+                }
+
             });
-            graph.getEdges().forEach(vertex -> {
-                vertex.setId(null);
+
+            graph.getEdges().forEach(edge -> {
+                edge.setId(null);
             });
+
 
             graphService.ingestGraph(graph);
         } catch (IOException e) {

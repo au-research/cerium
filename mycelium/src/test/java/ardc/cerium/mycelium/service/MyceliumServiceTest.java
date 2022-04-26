@@ -6,7 +6,6 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
@@ -95,6 +94,7 @@ class MyceliumServiceTest {
 	@Test
 	void indexVertex() {
 		Vertex vertex = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		vertex.setStatus(Vertex.Status.PUBLISHED.name());
 		myceliumService.indexVertex(vertex);
 		verify(myceliumIndexingService, times(1)).indexVertex(vertex);
 	}

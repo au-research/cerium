@@ -1,8 +1,6 @@
 package ardc.cerium.mycelium.controller;
 
-import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
-import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.core.exception.NotFoundException;
 import ardc.cerium.core.exception.RecordNotFoundException;
 import ardc.cerium.mycelium.model.*;
@@ -11,9 +9,7 @@ import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
-import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumService;
-import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -224,6 +222,7 @@ public class MyceliumServiceController {
 		if (includeInterLinking) {
 			List<Vertex> otherDirectlyRelatedVertices = graph.getVertices().stream()
 					.filter(v -> !v.getIdentifier().equals(vertex.getIdentifier())).collect(Collectors.toList());
+
 			log.debug("OtherDirectlyRelatedVertices count:{}", otherDirectlyRelatedVertices.size());
 			graph.mergeGraph(graphService.getGraphBetweenVertices(otherDirectlyRelatedVertices));
 			log.debug("Added interlinkingGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
@@ -231,6 +230,17 @@ public class MyceliumServiceController {
 		}
 
 		// clean up the data
+
+
+		if(vertex.getStatus().equals(Vertex.Status.DRAFT.name())){
+			Optional<Vertex> fromKey = graphService.getSameAsIdentifierWithType(vertex, RIFCS_KEY_IDENTIFIER_TYPE);
+			fromKey.ifPresent(k -> {
+				log.debug("Got the Key : {}", k.getIdentifier());
+				Collection<Vertex> publishedVersions = graphService.getAltStatusRecord(k.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				graph.removeAll(publishedVersions);
+			});
+		}
+
 		graphService.removeDanglingVertices(graph);
 		log.debug("Removed dangling vertices. Prepare to render graph");
 

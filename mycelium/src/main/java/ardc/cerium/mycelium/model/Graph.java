@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -24,6 +25,15 @@ public class Graph {
 			this.vertices.add(vertex);
 		}
 	}
+
+	public void removeVertex(Vertex vertex) {
+		this.vertices.remove(vertex);
+	}
+
+	public void removeAll(Collection<Vertex> vertices) {
+		this.vertices.removeAll(vertices);
+	}
+
 
 	public void addVertex(Vertex... vertices) {
 		this.vertices.addAll(Arrays.asList(vertices));

@@ -26,8 +26,11 @@ import javax.annotation.PostConstruct;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
 
 /**
  * Spring Service to ingest/import Graph data
@@ -47,6 +50,7 @@ public class GraphService {
 
 	private final EdgeDTOMapper edgeDTOMapper;
 
+
 	public GraphService(VertexRepository vertexRepository, Neo4jClient neo4jClient, VertexMapper vertexMapper,
 			EdgeDTOMapper edgeDTOMapper) {
 		this.vertexRepository = vertexRepository;
@@ -54,6 +58,7 @@ public class GraphService {
 		this.vertexMapper = vertexMapper;
 		this.edgeDTOMapper = edgeDTOMapper;
 	}
+
 
 	@PostConstruct
 	public void boot() {
@@ -307,6 +312,27 @@ public class GraphService {
 	}
 
 	/**
+	 * Finds all nodes that has the isSameAs variable length matching
+	 * @param ro_key the String format of the ro:key Value
+	 * @param status the alt status of the record to be returned
+	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
+	 */
+	public Collection<Vertex> getAltStatusRecord(String ro_key, String status) {
+		return neo4jClient
+				.query("MATCH (origin:Vertex {identifier: $ro_key, identifierType: 'ro:key'}) \n"
+						+ "OPTIONAL MATCH (origin)-[:isSameAs]-(duplicates{status:$status,identifierType:'ro:id'}) \n"
+						+ "WITH collect(duplicates) as identicals \n"
+						+ "UNWIND identicals as n \n"
+						+ "RETURN distinct n;")
+				.bind(ro_key).to("ro_key").bind(status).to("status").fetchAs(Vertex.class)
+				.mappedBy(((typeSystem, record) -> {
+					Node node = record.get("n").asNode();
+					return vertexMapper.getConverter().convert(node);
+				})).all();
+	}
+
+
+	/**
 	 * Finds a {@link Collection} of {@link Vertex} of RegistryObject that is considered
 	 * identical. Identical Registry object shares the same Identifier (isSameAs to the
 	 * same Identifier). This property is transitive
@@ -315,11 +341,28 @@ public class GraphService {
 	 * {@link Vertex}
 	 */
 	public Collection<Vertex> getDuplicateRegistryObject(Vertex origin) {
-		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(), origin.getIdentifierType());
+		Collection<Vertex> sameAsNodeCluster = getSameAs(origin.getIdentifier(), origin.getIdentifierType()).stream()
+				.filter(v -> v.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 
-		// only return the RegistryObject
-		return sameAsNodeCluster.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject))
-				.collect(Collectors.toList());
+
+		// Remove DRAFT records if origin is PUBLISHED
+		if(origin.getStatus() == null || origin.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+			Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+			Predicate<Vertex> notPublishedStatus = v -> !v.getStatus().equals(Vertex.Status.PUBLISHED.name());
+			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
+
+		}else{
+			Vertex keyVertex = sameAsNodeCluster.stream()
+					.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
+					.orElse(null);
+			if (keyVertex != null) {
+				// remove the PUBLISHED record that the DRAFT is a copy of
+				Collection<Vertex> publishedVersions =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				sameAsNodeCluster.removeAll(publishedVersions);
+			}
+		}
+
+		return 	sameAsNodeCluster;
 	}
 
 	/**
@@ -331,8 +374,27 @@ public class GraphService {
 	 * @return a {@link Collection} of duplicate {@link Vertex}
 	 */
 	public Collection<Vertex> getSameAsRegistryObject(Vertex vertex) {
-		return getSameAs(vertex.getIdentifier(), vertex.getIdentifierType()).stream()
+		Collection<Vertex> sameAsNodeCluster = getSameAs(vertex.getIdentifier(), vertex.getIdentifierType()).stream()
 				.filter(v -> v.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+
+
+		// Remove DRAFT records if origin is PUBLISHED
+		if(vertex.getStatus() == null || vertex.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+			Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+			Predicate<Vertex> notPublishedStatus = v -> !v.getStatus().equals(vertex.getStatus());
+			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
+		}else{
+			Vertex keyVertex = sameAsNodeCluster.stream()
+					.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
+					.orElse(null);
+			if (keyVertex != null) {
+				// remove the PUBLISHED record that the DRAFT is a copy of
+				Collection<Vertex> publishedVersion =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				sameAsNodeCluster.removeAll(publishedVersion);
+			}
+		}
+
+		return 	sameAsNodeCluster;
 	}
 
 
@@ -548,7 +610,16 @@ public class GraphService {
 			return null;
 		}
 
-
+		// Remove DRAFT records if origin is PUBLISHED
+		if(registryObjectVertex.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+			Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+			Predicate<Vertex> notPublishedStatus = v -> !v.getStatus().equals(registryObjectVertex.getStatus());
+			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
+		}else{
+			// remove the PUBLISHED record that the DRAFT is a copy of
+			Collection<Vertex> publishedVersion =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+			sameAsNodeCluster.removeAll(publishedVersion);
+		}
 
 		RecordState state = new RecordState();
 		state.setRegistryObjectId(registryObjectId);
@@ -737,6 +808,19 @@ public class GraphService {
 		Graph graph = new Graph();
 		graph.addVertex(from);
 
+		if(from.getStatus().equals(Vertex.Status.DRAFT.name())){
+			Optional<Vertex> fromKey = getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
+			fromKey.ifPresent(vertex -> {
+				log.debug("Got the Key : {}", vertex.getIdentifier());
+				Collection<Vertex> publishedVersions = getAltStatusRecord(vertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				publishedVersions.forEach(v ->
+				{
+					log.debug("removing published version: {}", v.getIdentifier());
+					validTargetIdentifiers.remove(v.getIdentifier());
+				});
+			});
+		}
+
 		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n" +
 				"OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical\n" +
@@ -850,11 +934,16 @@ public class GraphService {
 	 * @return the {@link} Graph containing the GrantsNetwork nodes downwards, collapsed
 	 */
 	public Graph getGrantsNetworkDownwards(Vertex origin) {
-		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
-				+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
-				+ "}) YIELD path RETURN path LIMIT 100;";
-		log.debug("getGrantsNetworkDownwards cypher: {}", cypherQuery);
-
+		String cypherQuery = "";
+		if(origin.getStatus().equals(Vertex.Status.DRAFT.name())){
+			cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
+					+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ "}) YIELD path RETURN path LIMIT 100;";
+		}else {
+			cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
+					+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ ", labelFilter: '-DRAFT'}) YIELD path RETURN path LIMIT 100;";
+		}
 		return getGraphsFromPaths(cypherQuery);
 	}
 
@@ -865,9 +954,16 @@ public class GraphService {
 	 * @return the {@link} Graph containing the GrantsNetwork nodes upward, collapsed
 	 */
 	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
-		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
-				+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
-				+ "}) YIELD path RETURN path LIMIT 100;";
+		String cypherQuery = "";
+		if(origin.getStatus().equals(Vertex.Status.DRAFT.name())){
+			cypherQuery = "MATCH (origin:RegistryObject {identifier: '" + origin.getIdentifier() + "'}) CALL apoc.path.spanningTree(origin, {\n"
+					+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ "}) YIELD path RETURN path LIMIT 100;";
+		}else {
+			cypherQuery = "MATCH (origin:RegistryObject {identifier: '" + origin.getIdentifier() + "'}) CALL apoc.path.spanningTree(origin, {\n"
+					+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ ", labelFilter: '-DRAFT'}) YIELD path RETURN path LIMIT 100;";
+		}
 		log.debug("getGrantsNetworkGraphUpwards cypher: {}", cypherQuery);
 
 		return getGraphsFromPaths(cypherQuery);
@@ -965,7 +1061,7 @@ public class GraphService {
 	 * @return the {@link Vertex} resolved, or null if not found
 	 */
 	public Vertex getRegistryObjectByKeyVertex(Vertex keyVertex) {
-		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject) RETURN n;";
+		String cypherQuery = "MATCH (k:Identifier {identifier: $identifier, identifierType: 'ro:key'})-[:isSameAs]-(n:RegistryObject{status:'PUBLISHED'}) RETURN n;";
 		return neo4jClient.query(cypherQuery).bind(keyVertex.getIdentifier()).to("identifier").fetchAs(Vertex.class)
 				.mappedBy((typeSystem, record) -> {
 					Node node = record.get("n").asNode();
@@ -979,7 +1075,7 @@ public class GraphService {
 	 * @return the {@link Vertex} resolved, or null if not found
 	 */
 	public Vertex getRegistryObjectByKey(String key) {
-		String cypherQuery = "MATCH (k:Vertex {identifier: $identifier, identifierType: $identifierType})-[:isSameAs]-(n:RegistryObject) RETURN n;";
+		String cypherQuery = "MATCH (k:Vertex {identifier: $identifier, identifierType: $identifierType})-[:isSameAs]-(n:RegistryObject{status:'PUBLISHED'}) RETURN n;";
 		return neo4jClient.query(cypherQuery)
 				.bind(key).to("identifier")
 				.bind(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE).to("identifierType")

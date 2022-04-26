@@ -42,7 +42,6 @@ public class MyceliumIndexingService {
 
 	private final ApplicationEventPublisher applicationEventPublisher;
 
-
 	public MyceliumIndexingService(SolrTemplate solrTemplate,
 			RelationshipDocumentRepository relationshipDocumentRepository, GraphService graphService,
 			VertexRepository vertexRepository, ApplicationEventPublisher applicationEventPublisher) {
@@ -51,8 +50,8 @@ public class MyceliumIndexingService {
 		this.graphService = graphService;
 		this.vertexRepository = vertexRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
-		log.debug("Mycelium Indexing Service online");
 	}
+
 
 	/**
 	 * Index a {@link Vertex} by taking the data available in the Graph Service and index
@@ -201,6 +200,9 @@ public class MyceliumIndexingService {
 	}
 
 	public void regenGrantsNetworkRelationships(Vertex from) {
+		if(from.getStatus() == null || from.getStatus().equals(Vertex.Status.DRAFT.name())){
+			return;
+		}
 		log.debug("Regenerating GrantsNetwork Relationship for Vertex[id={}, type={}]", from.getIdentifier(),
 				from.getIdentifierType());
 		deleteGrantsNetworkEdges(from);
@@ -242,23 +244,21 @@ public class MyceliumIndexingService {
 		relationships.forEach(relationship -> {
 			Vertex to = relationship.getTo();
 			log.trace("RelatedEntity[id={}, type={}]", to.getIdentifier(), to.getIdentifierType());
-
 			// target duplicates
-			Collection<Vertex> sameAsNodeCluster = graphService.getSameAs(to.getIdentifier(), to.getIdentifierType());
-
-			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
-					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+			Collection<Vertex> toRelatedObjects = graphService.getDuplicateRegistryObject(from);
 			log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());
 
 			if (toRelatedObjects.size() > 0) {
 				log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
 				toRelatedObjects.forEach(toRelatedObject -> {
 					indexRelation(from, toRelatedObject, relationship.getRelations());
-
-					List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
-							.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
-							.collect(Collectors.toList());
-					indexRelation(toRelatedObject, from, reversedRelations);
+					// index reverse only if the source is a PUBLISHED RECORD
+					if(from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+						List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
+								.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
+								.collect(Collectors.toList());
+						indexRelation(toRelatedObject, from, reversedRelations);
+					}
 				});
 			}
 			else if (!to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
@@ -279,12 +279,21 @@ public class MyceliumIndexingService {
 	 * @param relations the {@link List} of {@link EdgeDTO} that contains the relations
 	 */
 	public void indexRelation(Vertex from, Vertex to, List<EdgeDTO> relations) {
+		// only allow DRAFT to relate to PUBLISHED not reverse
+		if(to.getStatus() != null && to.getStatus().equals(Vertex.Status.DRAFT.name()) &&
+				from.getStatus() != null && from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			return;
+		}
 		List<String> relationTypes = relations.stream().map(EdgeDTO::getType).collect(Collectors.toList());
 		List<Boolean> directions = relations.stream().map(EdgeDTO::isReverse).collect(Collectors.toList());
 		// RDA-554 checking for issues with reverse direction
+
+
+
+		log.debug("indexRelation from [status={}] to [status={}]", from.getStatus(), to.getStatus());
 		log.debug("Indexing relation from [id={}] to [id={}] with edges[{}][{}]", from.getIdentifier(),
 				to.getIdentifier(), relationTypes, directions);
-		log.debug("from [status={}] to [status={}]", from.getStatus(), to.getStatus());
+
 		// build RelationshipDocument based on from, to and relations Edges
 		RelationshipDocument doc = new RelationshipDocument();
 		Optional<Vertex> fromKey = graphService.getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
@@ -508,6 +517,7 @@ public class MyceliumIndexingService {
 
 		// obtain all the duplicate registryObjectId so that they can be post-filtered out
 		// since a record shouldn't implicitly relate to itself
+		// this should include the removal of DRAFT records
 		Collection<String> myDuplicateIDs = graphService.getSameAs(from.getIdentifier(), from.getIdentifierType())
 				.stream().filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).map(Vertex::getIdentifier)
 				.collect(Collectors.toList());
@@ -570,15 +580,18 @@ public class MyceliumIndexingService {
 				to.getIdentifier(), edge.getType());
 
 		// index the reversed edge
-		EdgeDTO reversed = new EdgeDTO();
-		reversed.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
-		String reversedRelationType = RelationLookupService.getReverse(relation, RELATION_RELATED_TO);
-		reversed.setType(reversedRelationType);
-		reversed.setReverse(! grantsNetworkIsTopDown(to.getObjectClass(), from.getObjectClass(), reversedRelationType));
-		log.debug("Indexed (reversed) GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
-				to.getIdentifier(), reversed.getType());
+		// BUT only if the direct is relationship is from a PUBLISHED record
+		if(from.getStatus() == null || from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+			EdgeDTO reversed = new EdgeDTO();
+			reversed.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
+			String reversedRelationType = RelationLookupService.getReverse(relation, RELATION_RELATED_TO);
+			reversed.setType(reversedRelationType);
+			reversed.setReverse(!grantsNetworkIsTopDown(to.getObjectClass(), from.getObjectClass(), reversedRelationType));
+			log.debug("Indexed (reversed) GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
+					to.getIdentifier(), reversed.getType());
 
-		indexRelation(to, from, new ArrayList<>(List.of(reversed)));
+			indexRelation(to, from, new ArrayList<>(List.of(reversed)));
+		}
 	}
 
 	/**

@@ -25,6 +25,8 @@ public class VertexUtil {
 
 		String value = vertex.getIdentifier();
 		String type = vertex.getIdentifierType();
+		vertex.setMetaAttribute("rawIdentifierValue", value);
+		vertex.setMetaAttribute("rawIdentifierType", type);
 
 		// normalise the type first and use that to normalise the value
 		String normalisedType = getNormalisedIdentifierType(value, type);
@@ -181,6 +183,9 @@ public class VertexUtil {
 				ContentNegotiationClient client = new ContentNegotiationClient();
 				CiteProcJson citeProcJson = client.resolveCiteProcJson(identifierValue);
 				String title = citeProcJson.getTitle();
+				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
+					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
 				vertex.setTitle(title);
 			}
 			catch (Exception e) {
@@ -195,6 +200,9 @@ public class VertexUtil {
 				PublicOrcidClient client = new PublicOrcidClient();
 				OrcidRecord orcidRecord = client.resolve(identifierValue);
 				String title = orcidRecord.getPerson().getName().getFullName();
+				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
+					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
 				vertex.setTitle(title);
 			}
 			catch (Exception e) {

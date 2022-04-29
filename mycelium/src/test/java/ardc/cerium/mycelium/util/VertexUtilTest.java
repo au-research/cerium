@@ -41,13 +41,16 @@ class VertexUtilTest {
 	void testResolveORCIDVertex() {
         // given an orcid vertex with an empty title
         Vertex vertex = new Vertex("0000-0002-1825-0097", "orcid");
-        assertThat(vertex.getTitle()).isNull();
+        vertex.setTitle("Unknown");
 
         // upon resolving
         VertexUtil.resolveVertex(vertex);
 
         // the title is updated to the right value fetched from ORCID server
         assertThat(vertex.getTitle()).isEqualTo("Josiah Carberry");
+
+        // the rawTitle is saved in the meta
+        assertThat(vertex.getMetaAttribute("rawTitle")).isEqualTo("Unknown");
 	}
 
     @Test
@@ -138,6 +141,8 @@ class VertexUtilTest {
         VertexUtil.normalise(vertex);
         assertThat(vertex.getIdentifier()).isEqualTo(expectedValue);
         assertThat(vertex.getIdentifierType()).isEqualTo(expectedType);
+        assertThat(vertex.getMetaAttribute("rawIdentifierValue")).isEqualTo(preValue);
+        assertThat(vertex.getMetaAttribute("rawIdentifierType")).isEqualTo(preType);
     }
 
     @ParameterizedTest

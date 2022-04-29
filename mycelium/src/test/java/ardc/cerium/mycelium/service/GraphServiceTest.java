@@ -373,5 +373,15 @@ class GraphServiceTest {
 
 	}
 
+	@Test
+	void testVertexCompositeMetaProperty() {
+		Vertex vertex = new Vertex("123", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		vertex.setMetaAttribute("listTitle", "Random List Title");
+		graphService.ingestVertex(vertex);
 
+		// it exists in neo4j and contains the right meta value
+		Vertex actual = graphService.getVertexByIdentifier("123", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		assertThat(actual).isNotNull();
+		assertThat(vertex.getMetaAttribute("listTitle")).isEqualTo("Random List Title");
+	}
 }

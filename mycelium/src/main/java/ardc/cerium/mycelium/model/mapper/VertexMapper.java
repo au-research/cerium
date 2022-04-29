@@ -61,6 +61,9 @@ public class VertexMapper {
 				if (!node.get("status").isNull()) {
 					vertex.setStatus(node.get("status").asString());
 				}
+				if (!node.get("meta").isNull()) {
+					vertex.setMeta(node.get("meta").asString());
+				}
 				return vertex;
 			}
 

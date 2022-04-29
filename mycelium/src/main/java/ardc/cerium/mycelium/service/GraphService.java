@@ -125,6 +125,7 @@ public class GraphService {
 			existing.setUrl(vertex.getUrl());
 			existing.setNotes(vertex.getNotes());
 			existing.setGroup(vertex.getGroup());
+			existing.setMeta(vertex.getMeta());
 			vertexRepository.save(existing);
 		}
 	}

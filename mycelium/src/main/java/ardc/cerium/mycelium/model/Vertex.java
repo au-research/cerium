@@ -1,14 +1,12 @@
 package ardc.cerium.mycelium.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
-import org.springframework.data.neo4j.core.schema.DynamicLabels;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -62,6 +60,9 @@ public class Vertex {
 	@Property("status")
 	private String status;
 
+	@Property("meta")
+	private String meta = "{}";
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -80,7 +81,32 @@ public class Vertex {
 		return labels.contains(label.toString());
 	}
 
+	public void setMetaAttribute(String key, String value) {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> map = objectMapper.readValue(meta, Map.class);
+			map.put(key, value);
+			meta = objectMapper.writeValueAsString(map);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public Object getMetaAttribute(String key) {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			Map<String, Object> map = objectMapper.readValue(meta, Map.class);
+			return map.get(key);
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
 
 	public enum Label {
 		Vertex, RegistryObject, Identifier, DataSource, Cluster, DRAFT, PUBLISHED

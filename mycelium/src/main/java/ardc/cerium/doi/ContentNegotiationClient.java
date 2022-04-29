@@ -9,8 +9,22 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class ContentNegotiationClient {
+
+	private OkHttpClient client;
+
+	public ContentNegotiationClient() {
+		this.client = new OkHttpClient.Builder()
+				.connectTimeout(10, TimeUnit.SECONDS)
+				.readTimeout(15, TimeUnit.SECONDS)
+				.build();
+	}
+
+	public ContentNegotiationClient(OkHttpClient client) {
+		this.client = client;
+	}
 
 	public CiteProcJson resolveCiteProcJson(String doi) {
 		try {
@@ -38,7 +52,6 @@ public class ContentNegotiationClient {
 
 	public String resolveString(String doi, MetadataContentType contentType) throws Exception {
 		ObjectMapper objectMapper = new ObjectMapper();
-		OkHttpClient client = new OkHttpClient();
 		String url = String.format("https://doi.org/%s", doi);
 		Request request = new Request.Builder().url(url).addHeader("Accept", contentType.getContentType()).build();
 		Response response = client.newCall(request).execute();

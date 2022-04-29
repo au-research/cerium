@@ -6,6 +6,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.util.concurrent.TimeUnit;
+
 public class PublicOrcidClient {
 
     public static String PUBLIC_ORCID_API_V20 = "https://pub.orcid.org/v3.0";
@@ -14,9 +16,21 @@ public class PublicOrcidClient {
 
     private String baseUrl;
 
+    private OkHttpClient client;
+
     public PublicOrcidClient() {
         // v2.1 is the default
         this.baseUrl = PUBLIC_ORCID_API_V21;
+
+        this.client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build();
+    }
+
+    public PublicOrcidClient(OkHttpClient client) {
+        this.baseUrl = PUBLIC_ORCID_API_V21;
+        this.client = client;
     }
 
     public OrcidRecord resolve(String orcid) {
@@ -32,7 +46,6 @@ public class PublicOrcidClient {
 
     public String resolveString(String orcid, MetadataContentType contentType) throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
-        OkHttpClient client = new OkHttpClient();
         String url = String.format("%s/%s", this.baseUrl, orcid);
         Request request = new Request.Builder()
                 .url(url)

@@ -245,7 +245,7 @@ public class MyceliumIndexingService {
 			Vertex to = relationship.getTo();
 			log.trace("RelatedEntity[id={}, type={}]", to.getIdentifier(), to.getIdentifierType());
 			// target duplicates
-			Collection<Vertex> toRelatedObjects = graphService.getDuplicateRegistryObject(from);
+			Collection<Vertex> toRelatedObjects = graphService.getDuplicateRegistryObject(to);
 			log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());
 
 			if (toRelatedObjects.size() > 0) {

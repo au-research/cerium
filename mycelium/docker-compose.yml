@@ -29,7 +29,7 @@ services:
       - ZK_HOST=zookeeper:2181
 
   neo4j:
-    image: neo4j:4.3.5
+    image: neo4j:4.4.3
     environment:
       - NEO4J_AUTH=neo4j/ands2010
       - NEO4JLABS_PLUGINS=["apoc"]

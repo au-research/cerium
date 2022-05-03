@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE;
 import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
 
 /**
@@ -809,7 +810,7 @@ public class GraphService {
 		Graph graph = new Graph();
 		graph.addVertex(from);
 
-		if(from.getStatus().equals(Vertex.Status.DRAFT.name())){
+		if(from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE) && from.getStatus().equals(Vertex.Status.DRAFT.name())){
 			Optional<Vertex> fromKey = getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
 			fromKey.ifPresent(vertex -> {
 				log.debug("Got the Key : {}", vertex.getIdentifier());

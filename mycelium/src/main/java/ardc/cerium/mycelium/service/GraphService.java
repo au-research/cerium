@@ -1170,6 +1170,11 @@ public class GraphService {
 		return vertexRepository.streamRegistryObjectByDataSourceAndClass(dataSourceId, objectClass);
 	}
 
+	@Transactional(readOnly = true)
+	public Stream<Vertex> streamVertexByIdentifierType(String identifierType) {
+		return vertexRepository.streamVertexByIdentifierType(identifierType);
+	}
+
 	public void deletePrimaryKeyEdge(String key) {
 		log.debug("Deleting PrimaryLink edges Vertex[key={}]", key);
 		String cypherQuery = "MATCH (n:Vertex {identifier: $key, identifierType: 'ro:key'})-[r]-() WHERE r.origin = $origin DELETE r;";

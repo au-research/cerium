@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Locale;
 
 @Slf4j
@@ -192,6 +194,8 @@ public class VertexUtil {
 				log.warn("Failed to resolve identifier for Vertex[identifier={}, type={}] Reason: {}", identifierValue,
 						identifierType, e.getMessage());
 				return;
+			} finally{
+				vertex.setMetaAttribute("lastResolved", Instant.now().toString());
 			}
 		}
 		else if (identifierType.equals("orcid")) {
@@ -209,6 +213,8 @@ public class VertexUtil {
 				log.warn("Failed to resolve identifier for Vertex[identifier={}, type={}] Reason: {}", identifierValue,
 						identifierType, e.getMessage());
 				return;
+			} finally{
+				vertex.setMetaAttribute("lastResolved", Instant.now().toString());
 			}
 		}
 	}

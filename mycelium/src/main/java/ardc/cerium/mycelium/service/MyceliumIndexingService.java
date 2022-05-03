@@ -253,7 +253,7 @@ public class MyceliumIndexingService {
 				toRelatedObjects.forEach(toRelatedObject -> {
 					indexRelation(from, toRelatedObject, relationship.getRelations());
 					// index reverse only if the source is a PUBLISHED RECORD
-					if(from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+					if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
 						List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
 								.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
 								.collect(Collectors.toList());

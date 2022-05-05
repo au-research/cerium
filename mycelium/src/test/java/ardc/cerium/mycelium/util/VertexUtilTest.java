@@ -1,14 +1,13 @@
 package ardc.cerium.mycelium.util;
 
+import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.Vertex;
-import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
-import ardc.cerium.mycelium.rifcs.model.Identifier;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class VertexUtilTest {
 
@@ -151,5 +150,22 @@ class VertexUtilTest {
     })
     void testgetNormalisedIdentifierType(String value, String type, String expectedType){
         assertThat(VertexUtil.getNormalisedIdentifierType(value, type)).isEqualTo(expectedType);
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({
+            ", uri, AU-ANL:PEAU"
+    })
+    void testEmptyValues(String value, String type, String expectedType){
+        Assert.assertThrows(ContentNotSupportedException.class, () -> VertexUtil.getNormalisedIdentifierType(value, type));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "1111,, AU-ANL:PEAU"
+    })
+    void testEmptyType(String value, String type, String expectedType){
+        Assert.assertThrows(ContentNotSupportedException.class, () -> VertexUtil.getNormalisedIdentifierType(value, type));
     }
 }

@@ -3,7 +3,6 @@ package ardc.cerium.mycelium.provider;
 import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.*;
-import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
@@ -110,8 +109,9 @@ public class RIFCSGraphProvider {
 		ardc.cerium.mycelium.rifcs.model.RegistryObject rifcs = registryObjects.getRegistryObjects().get(0);
 
 		// find the RegistryObject and have the ID as the originNode
-		String key = registryObject.getKey();
-		String keyFromPayload = rifcs.getKey();
+		// keys and Identifiers shouldn't have leading and tailing white spaces
+		String key = registryObject.getKey().trim();
+		String keyFromPayload = rifcs.getKey().trim();
 		log.debug("keys should match here {} {}", key, keyFromPayload);
 
 		if (!key.equals(keyFromPayload)) {

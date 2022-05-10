@@ -184,20 +184,24 @@ public class RIFCSGraphProvider {
 		List<RelatedObject> relatedObjects = rifcs.getRelatedObjects();
 		if (relatedObjects != null && relatedObjects.size() > 0) {
 			relatedObjects.forEach(relatedObject -> {
-				Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
-				relatedObjectNode.addLabel(Vertex.Label.Identifier);
-				graph.addVertex(relatedObjectNode);
-				relatedObject.getRelation().forEach(relation -> {
-					Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
-					edge.setOrigin(ORIGIN_RELATED_OBJECT);
-					edge.setUrl(relation.getUrl());
-					edge.setDescription(relation.getDescription());
-					graph.addEdge(edge);
+				// RDA-772 the Registry's add_new creates empty placeholders (relatedObjects included)
+				if(relatedObject.getKey() != null && !relatedObject.getKey().equals("")) {
+					Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
+					relatedObjectNode.addLabel(Vertex.Label.Identifier);
+					graph.addVertex(relatedObjectNode);
+					relatedObject.getRelation().forEach(relation -> {
+						Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
+						edge.setOrigin(ORIGIN_RELATED_OBJECT);
+						edge.setUrl(relation.getUrl());
+						edge.setDescription(relation.getDescription());
+						graph.addEdge(edge);
 
-					// reversed edge for relatedObject relationships
-					graph.addEdge(getReversedEdge(edge));
-				});
+						// reversed edge for relatedObject relationships
+						graph.addEdge(getReversedEdge(edge));
+					});
+				}
 			});
+
 		}
 
 		// every relatedInfo is a vertex & edge

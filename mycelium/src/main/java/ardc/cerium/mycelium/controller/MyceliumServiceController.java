@@ -198,11 +198,11 @@ public class MyceliumServiceController {
 
 		// add the GrantsNetworkPath
 		if (includeGrantsNetwork) {
-			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex));
+			graph.mergeGraph(graphService.getGrantsNetworkGraphUpwards(vertex, overLimitRelationType));
 			log.debug("Added grantsNetworkgraphUpwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
 					graph.getEdges().size());
 
-			graph.mergeGraph(graphService.getGrantsNetworkDownwards(vertex));
+			graph.mergeGraph(graphService.getGrantsNetworkDownwards(vertex, overLimitRelationType));
 			log.debug("Added grantsNetworkgraphDownwards Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
 					graph.getEdges().size());
 		}

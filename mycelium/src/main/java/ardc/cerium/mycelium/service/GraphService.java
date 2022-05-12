@@ -933,17 +933,38 @@ public class GraphService {
 	/**
 	 * Obtain a graph detailing the relationship path downwards with GrantsNetwork pathing
 	 * @param origin the {@link Vertex} to start the path from
+	 * @param excludedTypes the list of exluded relation type
 	 * @return the {@link} Graph containing the GrantsNetwork nodes downwards, collapsed
 	 */
-	public Graph getGrantsNetworkDownwards(Vertex origin) {
+	public Graph getGrantsNetworkDownwards(Vertex origin, List<String> excludedTypes) {
 		String cypherQuery = "";
+
+		List<String> relationTypes = Arrays.asList(new String[]{"hasPart", "hasOutput", "isFunderOf"});
+
+		// filter out the relationTypes that should be excluded
+		relationTypes = relationTypes.stream().filter(relationType -> {
+			return !excludedTypes.contains(relationType);
+		}).collect(Collectors.toList());
+
+		// add > to each relationTypes
+		relationTypes = relationTypes.stream().map(relationType -> {
+			return relationType + ">";
+		}).collect(Collectors.toList());
+
+		// add isSameAs
+		relationTypes.add(0, "isSameAs");
+
+		// join relationTypes
+		// expected output would be 'isSameAs|hasPart>|hasOutput>|isFunderOf>'
+		String relationshipFilter = String.join("|", relationTypes);
+
 		if(origin.getStatus() != null && origin.getStatus().equals(Vertex.Status.DRAFT.name())){
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
-					+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ " relationshipFilter: '"+relationshipFilter+"', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ "}) YIELD path RETURN path LIMIT 100;";
 		}else {
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
-					+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ " relationshipFilter: '"+relationshipFilter+"', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ ", labelFilter: '-DRAFT'}) YIELD path RETURN path LIMIT 100;";
 		}
 		return getGraphsFromPaths(cypherQuery);
@@ -953,17 +974,38 @@ public class GraphService {
 	 * Obtain a graph detailing the relationship path going upwards with GrantsNetwork
 	 * pathing
 	 * @param origin the {@link Vertex} to start the path from
+	 * @param excludedTypes the list of exluded relation type
 	 * @return the {@link} Graph containing the GrantsNetwork nodes upward, collapsed
 	 */
-	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
+	public Graph getGrantsNetworkGraphUpwards(Vertex origin, List<String> excludedTypes) {
 		String cypherQuery = "";
+
+		List<String> relationTypes = Arrays.asList(new String[]{"isPartOf", "isOutputOf", "isFundedBy"});
+
+		// filter out the relationTypes that should be excluded
+		relationTypes = relationTypes.stream().filter(relationType -> {
+			return !excludedTypes.contains(relationType);
+		}).collect(Collectors.toList());
+
+		// add > to each relationTypes
+		relationTypes = relationTypes.stream().map(relationType -> {
+			return relationType + ">";
+		}).collect(Collectors.toList());
+
+		// add isSameAs
+		relationTypes.add(0, "isSameAs");
+
+		// join relationTypes
+		// expected output would be 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>'
+		String relationshipFilter = String.join("|", relationTypes);
+
 		if(origin.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE) && origin.getStatus().equals(Vertex.Status.DRAFT.name())){
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '" + origin.getIdentifier() + "'}) CALL apoc.path.spanningTree(origin, {\n"
-					+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ " relationshipFilter: '"+relationshipFilter+"', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ "}) YIELD path RETURN path LIMIT 100;";
 		}else {
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '" + origin.getIdentifier() + "'}) CALL apoc.path.spanningTree(origin, {\n"
-					+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+					+ " relationshipFilter: '"+relationshipFilter+"', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ ", labelFilter: '-DRAFT'}) YIELD path RETURN path LIMIT 100;";
 		}
 		log.debug("getGrantsNetworkGraphUpwards cypher: {}", cypherQuery);

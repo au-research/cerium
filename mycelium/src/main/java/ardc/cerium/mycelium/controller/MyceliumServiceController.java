@@ -170,7 +170,7 @@ public class MyceliumServiceController {
 
 		// relationTypeGrouping (clustering)
 		Collection<RelationTypeGroup> relationTypeGroups = graphService.getRelationTypeGrouping(vertex);
-		List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() > 20)
+		List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() >= 20)
 				.collect(Collectors.toList());
 
 		List<String> overLimitRelationType = new ArrayList<>();

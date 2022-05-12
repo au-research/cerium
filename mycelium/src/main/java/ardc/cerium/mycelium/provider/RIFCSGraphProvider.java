@@ -148,10 +148,13 @@ public class RIFCSGraphProvider {
 		Vertex keyNode = new Vertex(key, RIFCS_KEY_IDENTIFIER_TYPE);
 		keyNode.addLabel(Vertex.Label.Identifier);
 
-		// Set the title for the ro:key node to equal to it's PUBLISHED counter-part
+		// Set the title, type and class for the ro:key node to equal to it's PUBLISHED counter-part
 		// for use with Vertex title sorting in cypher queries
+		// for use with grouping relationships for clustering
 		if (originNode.getStatus().equals("PUBLISHED")) {
 			keyNode.setTitle(originNode.getTitle());
+			keyNode.setObjectType(originNode.getObjectType());
+			keyNode.setObjectClass(originNode.getObjectClass());
 		}
 
 		graph.addVertex(keyNode);

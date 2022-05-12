@@ -147,6 +147,13 @@ public class RIFCSGraphProvider {
 		// add the key origin Node, (id)-[isSameAs]->(key)
 		Vertex keyNode = new Vertex(key, RIFCS_KEY_IDENTIFIER_TYPE);
 		keyNode.addLabel(Vertex.Label.Identifier);
+
+		// Set the title for the ro:key node to equal to it's PUBLISHED counter-part
+		// for use with Vertex title sorting in cypher queries
+		if (originNode.getStatus().equals("PUBLISHED")) {
+			keyNode.setTitle(originNode.getTitle());
+		}
+
 		graph.addVertex(keyNode);
 		graph.addEdge(new Edge(originNode, keyNode, RELATION_SAME_AS));
 

@@ -350,8 +350,8 @@ public class GraphService {
 		// Remove DRAFT records if origin is PUBLISHED
 		if(origin.getStatus() == null || origin.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
 			Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-			Predicate<Vertex> notPublishedStatus = v -> !v.getStatus().equals(Vertex.Status.PUBLISHED.name());
-			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
+			Predicate<Vertex> isDraft = v -> v.getStatus().equals(Vertex.Status.DRAFT.name());
+			sameAsNodeCluster.removeIf(isRecord.and(isDraft));
 
 		}else{
 			Vertex keyVertex = sameAsNodeCluster.stream()
@@ -383,8 +383,8 @@ public class GraphService {
 		// Remove DRAFT records if origin is PUBLISHED
 		if(vertex.getStatus() == null || vertex.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
 			Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-			Predicate<Vertex> notPublishedStatus = v -> !v.getStatus().equals(vertex.getStatus());
-			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
+			Predicate<Vertex> isDraft = v -> v.getStatus().equals(Vertex.Status.DRAFT.name());
+			sameAsNodeCluster.removeIf(isRecord.and(isDraft));
 		}else{
 			Vertex keyVertex = sameAsNodeCluster.stream()
 					.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
@@ -810,7 +810,7 @@ public class GraphService {
 		Graph graph = new Graph();
 		graph.addVertex(from);
 
-		if(from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE) && from.getStatus().equals(Vertex.Status.DRAFT.name())){
+		if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.DRAFT.name())){
 			Optional<Vertex> fromKey = getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
 			fromKey.ifPresent(vertex -> {
 				log.debug("Got the Key : {}", vertex.getIdentifier());
@@ -937,7 +937,7 @@ public class GraphService {
 	 */
 	public Graph getGrantsNetworkDownwards(Vertex origin) {
 		String cypherQuery = "";
-		if(origin.getStatus().equals(Vertex.Status.DRAFT.name())){
+		if(origin.getStatus() != null && origin.getStatus().equals(Vertex.Status.DRAFT.name())){
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
 					+ " relationshipFilter: 'isSameAs|hasPart>|hasOutput>|isFunderOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ "}) YIELD path RETURN path LIMIT 100;";
@@ -957,7 +957,7 @@ public class GraphService {
 	 */
 	public Graph getGrantsNetworkGraphUpwards(Vertex origin) {
 		String cypherQuery = "";
-		if(origin.getStatus().equals(Vertex.Status.DRAFT.name())){
+		if(origin.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE) && origin.getStatus().equals(Vertex.Status.DRAFT.name())){
 			cypherQuery = "MATCH (origin:RegistryObject {identifier: '" + origin.getIdentifier() + "'}) CALL apoc.path.spanningTree(origin, {\n"
 					+ " relationshipFilter: 'isSameAs|isPartOf>|isOutputOf>|isFundedBy>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 					+ "}) YIELD path RETURN path LIMIT 100;";

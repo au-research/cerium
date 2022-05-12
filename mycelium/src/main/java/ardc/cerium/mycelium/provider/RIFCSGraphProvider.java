@@ -3,7 +3,6 @@ package ardc.cerium.mycelium.provider;
 import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.*;
-import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.RIFCSParser;
 import ardc.cerium.mycelium.rifcs.model.*;
 import ardc.cerium.mycelium.service.RelationLookupService;
@@ -110,8 +109,9 @@ public class RIFCSGraphProvider {
 		ardc.cerium.mycelium.rifcs.model.RegistryObject rifcs = registryObjects.getRegistryObjects().get(0);
 
 		// find the RegistryObject and have the ID as the originNode
-		String key = registryObject.getKey();
-		String keyFromPayload = rifcs.getKey();
+		// keys and Identifiers shouldn't have leading and tailing white spaces
+		String key = registryObject.getKey().trim();
+		String keyFromPayload = rifcs.getKey().trim();
 		log.debug("keys should match here {} {}", key, keyFromPayload);
 
 		if (!key.equals(keyFromPayload)) {
@@ -191,20 +191,24 @@ public class RIFCSGraphProvider {
 		List<RelatedObject> relatedObjects = rifcs.getRelatedObjects();
 		if (relatedObjects != null && relatedObjects.size() > 0) {
 			relatedObjects.forEach(relatedObject -> {
-				Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
-				relatedObjectNode.addLabel(Vertex.Label.Identifier);
-				graph.addVertex(relatedObjectNode);
-				relatedObject.getRelation().forEach(relation -> {
-					Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
-					edge.setOrigin(ORIGIN_RELATED_OBJECT);
-					edge.setUrl(relation.getUrl());
-					edge.setDescription(relation.getDescription());
-					graph.addEdge(edge);
+				// RDA-772 the Registry's add_new creates empty placeholders (relatedObjects included)
+				if(relatedObject.getKey() != null && !relatedObject.getKey().equals("")) {
+					Vertex relatedObjectNode = new Vertex(relatedObject.getKey(), RIFCS_KEY_IDENTIFIER_TYPE);
+					relatedObjectNode.addLabel(Vertex.Label.Identifier);
+					graph.addVertex(relatedObjectNode);
+					relatedObject.getRelation().forEach(relation -> {
+						Edge edge = new Edge(originNode, relatedObjectNode, relation.getType());
+						edge.setOrigin(ORIGIN_RELATED_OBJECT);
+						edge.setUrl(relation.getUrl());
+						edge.setDescription(relation.getDescription());
+						graph.addEdge(edge);
 
-					// reversed edge for relatedObject relationships
-					graph.addEdge(getReversedEdge(edge));
-				});
+						// reversed edge for relatedObject relationships
+						graph.addEdge(getReversedEdge(edge));
+					});
+				}
 			});
+
 		}
 
 		// every relatedInfo is a vertex & edge

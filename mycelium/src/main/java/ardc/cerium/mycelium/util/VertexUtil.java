@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Locale;
 
 @Slf4j
@@ -126,11 +125,17 @@ public class VertexUtil {
 	public static String getNormalisedIdentifierType(String identifierValue, String identifierType) {
 
 		// uppercase the value for easy sub-string comparison
-		String value = identifierValue.toUpperCase(Locale.ROOT);
+
 
 		if (identifierType == null || identifierType.isEmpty()) {
+			throw new ContentNotSupportedException("Identifier Type must have a value");
+		}
+
+		if (identifierValue == null || identifierValue.isEmpty()) {
 			throw new ContentNotSupportedException("Identifier must have a value");
 		}
+
+		String value = identifierValue.toUpperCase(Locale.ROOT);
 
 		if (identifierType.toLowerCase(Locale.ROOT).equals("nla.party")) {
 			return "AU-ANL:PEAU";

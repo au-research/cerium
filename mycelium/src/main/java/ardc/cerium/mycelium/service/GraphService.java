@@ -314,19 +314,19 @@ public class GraphService {
 	}
 
 	/**
-	 * Finds all nodes that has the isSameAs variable length matching
-	 * @param ro_key the String format of the ro:key Value
+	 * Finds all nodes that have the isSameAs variable length matching
+	 * @param v {@link Vertex} the String format of the ro:key Value
 	 * @param status the alt status of the record to be returned
 	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
 	 */
-	public Collection<Vertex> getAltStatusRecord(String ro_key, String status) {
+	public Collection<Vertex> getAltStatusRecord(Vertex v, String status) {
 		return neo4jClient
-				.query("MATCH (origin:Vertex {identifier: $ro_key, identifierType: 'ro:key'}) \n"
-						+ "OPTIONAL MATCH (origin)-[:isSameAs]-(duplicates{status:$status,identifierType:'ro:id'}) \n"
+				.query("MATCH (origin:Vertex {identifier: $id, identifierType: 'ro:id'}) \n"
+						+ "OPTIONAL MATCH (origin)-[:isSameAs*1..2]-(duplicates{status:$status,identifierType:'ro:id'}) \n"
 						+ "WITH collect(duplicates) as identicals \n"
 						+ "UNWIND identicals as n \n"
 						+ "RETURN distinct n;")
-				.bind(ro_key).to("ro_key").bind(status).to("status").fetchAs(Vertex.class)
+				.bind(v.getIdentifier()).to("id").bind(status).to("status").fetchAs(Vertex.class)
 				.mappedBy(((typeSystem, record) -> {
 					Node node = record.get("n").asNode();
 					return vertexMapper.getConverter().convert(node);
@@ -354,14 +354,9 @@ public class GraphService {
 			sameAsNodeCluster.removeIf(isRecord.and(isDraft));
 
 		}else{
-			Vertex keyVertex = sameAsNodeCluster.stream()
-					.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
-					.orElse(null);
-			if (keyVertex != null) {
 				// remove the PUBLISHED record that the DRAFT is a copy of
-				Collection<Vertex> publishedVersions =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				Collection<Vertex> publishedVersions =  getAltStatusRecord(origin, Vertex.Status.PUBLISHED.name());
 				sameAsNodeCluster.removeAll(publishedVersions);
-			}
 		}
 
 		return 	sameAsNodeCluster;
@@ -386,14 +381,9 @@ public class GraphService {
 			Predicate<Vertex> isDraft = v -> v.getStatus().equals(Vertex.Status.DRAFT.name());
 			sameAsNodeCluster.removeIf(isRecord.and(isDraft));
 		}else{
-			Vertex keyVertex = sameAsNodeCluster.stream()
-					.filter(v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE)).findFirst()
-					.orElse(null);
-			if (keyVertex != null) {
-				// remove the PUBLISHED record that the DRAFT is a copy of
-				Collection<Vertex> publishedVersion =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
-				sameAsNodeCluster.removeAll(publishedVersion);
-			}
+			// remove the PUBLISHED record that the DRAFT is a copy of
+			Collection<Vertex> publishedVersion =  getAltStatusRecord(vertex, Vertex.Status.PUBLISHED.name());
+			sameAsNodeCluster.removeAll(publishedVersion);
 		}
 
 		return 	sameAsNodeCluster;
@@ -619,7 +609,7 @@ public class GraphService {
 			sameAsNodeCluster.removeIf(isRecord.and(notPublishedStatus));
 		}else{
 			// remove the PUBLISHED record that the DRAFT is a copy of
-			Collection<Vertex> publishedVersion =  getAltStatusRecord(keyVertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+			Collection<Vertex> publishedVersion =  getAltStatusRecord(registryObjectVertex, Vertex.Status.PUBLISHED.name());
 			sameAsNodeCluster.removeAll(publishedVersion);
 		}
 
@@ -752,14 +742,20 @@ public class GraphService {
 		// add origin node
 		Graph graph = new Graph();
 		graph.addVertex(from);
-
+		String removeDraftSegment = "";
 		// add direct relationships
+
+		if(from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			removeDraftSegment = 	"WHERE duplicates.status <> 'DRAFT'\n";
+		}
 
 		StringBuilder cypherQuery = new StringBuilder(
 				"MATCH (origin:Vertex {identifier: \"" + from.getIdentifier() + "\", identifierType: \""
 						+ from.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
+						+ removeDraftSegment
 						+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
-						+ "WITH distinct from\n" + "MATCH (from)-[r]->(to)\n");
+						+ "WITH distinct from\n"
+						+ "MATCH (from)-[r]->(to)\n");
 		cypherQuery.append("WHERE type(r) <> \"isSameAs\"\n");
 		for (String relationType : excludeRelationTypes) {
 			cypherQuery.append("AND type(r) <> \"").append(relationType).append("\"\n");
@@ -809,26 +805,29 @@ public class GraphService {
 		// add origin node
 		Graph graph = new Graph();
 		graph.addVertex(from);
+		String removeDraftSegment = "";
 
 		if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.DRAFT.name())){
 			Optional<Vertex> fromKey = getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
 			fromKey.ifPresent(vertex -> {
 				log.debug("Got the Key : {}", vertex.getIdentifier());
-				Collection<Vertex> publishedVersions = getAltStatusRecord(vertex.getIdentifier(), Vertex.Status.PUBLISHED.name());
+				Collection<Vertex> publishedVersions = getAltStatusRecord(from, Vertex.Status.PUBLISHED.name());
 				publishedVersions.forEach(v ->
 				{
 					log.debug("removing published version: {}", v.getIdentifier());
 					validTargetIdentifiers.remove(v.getIdentifier());
 				});
 			});
+		}else{
+			removeDraftSegment = "WHERE duplicates.status <> 'DRAFT'";
 		}
 
 		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n" +
-				"OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
+				"OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates) %s\n" +
 				"WITH collect(origin) + collect(duplicates) as identical\n" +
 				"UNWIND identical as from\n" +
 				"WITH distinct from\n" +
-				"MATCH (from)-[r]->(to)\n", from.getIdentifier(), from.getIdentifierType());
+				"MATCH (from)-[r]->(to)\n", from.getIdentifier(), from.getIdentifierType(), removeDraftSegment);
 		if (validTargetIdentifiers.size() > 0) {
 			cypherQuery += "WHERE to.identifier IN [" + validTargetIdentifiers.stream()
 					.map(s -> "\"" + s + "\"")

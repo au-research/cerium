@@ -22,8 +22,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
-
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
 @Slf4j
@@ -233,12 +231,8 @@ public class MyceliumServiceController {
 
 
 		if(vertex.getStatus().equals(Vertex.Status.DRAFT.name())){
-			Optional<Vertex> fromKey = graphService.getSameAsIdentifierWithType(vertex, RIFCS_KEY_IDENTIFIER_TYPE);
-			fromKey.ifPresent(k -> {
-				log.debug("Got the Key : {}", k.getIdentifier());
-				Collection<Vertex> publishedVersions = graphService.getAltStatusRecord(k.getIdentifier(), Vertex.Status.PUBLISHED.name());
-				graph.removeAll(publishedVersions);
-			});
+			Collection<Vertex> publishedVersions = graphService.getAltStatusRecord(vertex, Vertex.Status.PUBLISHED.name());
+			graph.removeAll(publishedVersions);
 		}
 
 		graphService.removeDanglingVertices(graph);

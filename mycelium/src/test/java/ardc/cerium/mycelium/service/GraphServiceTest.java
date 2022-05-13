@@ -210,6 +210,40 @@ class GraphServiceTest {
 	}
 
 	@Test
+	void getDuplicateofDraftRegistryObjectTest() {
+		// given A, B, C isSameAs identifier I1
+		Graph graph = new Graph();
+		Vertex a = new Vertex("1", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus("DRAFT");
+		Vertex b = new Vertex("B", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		b.addLabel(Vertex.Label.Identifier);
+		Vertex c = new Vertex("2", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus("PUBLISHED");
+		graph.addVertex(a, b, c);
+		graph.addEdge(new Edge(a, b, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(c, b, RIFCSGraphProvider.RELATION_SAME_AS));
+
+		graphService.ingestGraph(graph);
+
+		// when getDuplicate of A
+		Collection<Vertex> duplicates = graphService.getDuplicateRegistryObject(a);
+
+		// there should be no duplicates only the source
+		assertThat(duplicates.size()).isEqualTo(1);
+
+		// when getDuplicate of C
+
+		duplicates = graphService.getDuplicateRegistryObject(c);
+
+		// there should be no duplicates
+		assertThat(duplicates.size()).isEqualTo(1);
+
+	}
+
+
+	@Test
 	void getDuplicateMultipleStep() {
 		// given A isSameAs I1
 		// B isSameAs I1 and isSameAs I2

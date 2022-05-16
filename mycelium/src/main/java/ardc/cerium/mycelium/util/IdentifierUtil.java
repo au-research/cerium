@@ -1,12 +1,14 @@
 package ardc.cerium.mycelium.util;
 
 public class IdentifierUtil {
-    /**
-     * For normalised Identifier values
-     * @param identifierValue
-     * @param identifierType
-     * @return
-     */
+
+	/**
+	 * For normalised Identifier values
+     *
+	 * @param identifierValue the value of the identifier
+	 * @param identifierType the type of the identifier
+	 * @return a url representation for the identifier
+	 */
     public static String getUrl(String identifierValue, String identifierType){
         switch (identifierType) {
 

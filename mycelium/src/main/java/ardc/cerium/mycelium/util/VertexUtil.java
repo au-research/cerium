@@ -20,7 +20,7 @@ public class VertexUtil {
 	/**
 	 * Normalise the Vertex Identifier value and type
 	 *
-	 * @param vertex
+	 * @param vertex the {@link Vertex} to normalise
 	 */
 	public static void normalise(Vertex vertex) {
 
@@ -41,9 +41,9 @@ public class VertexUtil {
 	/**
 	 * Obtain the normalised value of an identifier given the original value and the (normalised) type
 	 *
-	 * @param value
-	 * @param type
-	 * @return
+	 * @param value the value of the identifier
+	 * @param type the type of the identifier
+	 * @return the normalised identifier value
 	 */
 	private static String getNormalisedIdentifierValue(String value, String type) {
 		switch (type) {
@@ -118,9 +118,9 @@ public class VertexUtil {
 	 * Obtain the normalised type given the original value and the type
 	 *
 	 * Business rule applied to recognised supported identifiers
-	 * @param identifierValue
-	 * @param identifierType
-	 * @return
+	 * @param identifierValue the value of the identifier
+	 * @param identifierType the type of the identifier
+	 * @return the normalised type of the identifier
 	 */
 	public static String getNormalisedIdentifierType(String identifierValue, String identifierType) {
 
@@ -177,7 +177,7 @@ public class VertexUtil {
 	 *
 	 * Should be done after the vertex is normalised via {@link #normalise(Vertex)}. Sets
 	 * the Vertex title based on the resolved value
-	 * @param vertex
+	 * @param vertex the {@link Vertex} to perform resolution on
 	 */
 	public static void resolveVertex(Vertex vertex) {
 

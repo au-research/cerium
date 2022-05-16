@@ -36,12 +36,12 @@ public class MyceliumRegistryObjectResourceController {
 	/**
 	 * Get the registryObject Vertex
 	 * todo Accept: application/json+ardc-ro
-	 * @param registryObjectId
+	 * @param registryObjectId id of the registry object
 	 * @return the {@link Vertex} representation of the RegistryObject
 	 */
 	@GetMapping(path = "/{registryObjectId}")
-	public ResponseEntity<Vertex> getRegistryObjectVertex(@PathVariable("registryObjectId") String roID) {
-		return ResponseEntity.ok().body(myceliumService.getVertexFromRegistryObjectId(roID));
+	public ResponseEntity<Vertex> getRegistryObjectVertex(@PathVariable("registryObjectId") String registryObjectId) {
+		return ResponseEntity.ok().body(myceliumService.getVertexFromRegistryObjectId(registryObjectId));
 	}
 
 	// todo implement DELETE /{id}
@@ -54,14 +54,14 @@ public class MyceliumRegistryObjectResourceController {
 	 * Get All Identifiers for a given RegistryObject
 	 * todo Accept: application/json+ardc-identifier
 	 * Includes all duplicates identifiers
-	 * @param roID
-	 * @return
+	 * @param registryObjectId id of the registry object
+	 * @return a list of identifiers belonging to the registry object
 	 */
 	@GetMapping(path = "/{registryObjectId}/identifiers")
-	public ResponseEntity<?> getIdentifiers(@PathVariable("registryObjectId") String roID) {
+	public ResponseEntity<?> getIdentifiers(@PathVariable("registryObjectId") String registryObjectId) {
 
 		// obtaining all Vertex that the registryObject "isSameAs"
-		Collection<Vertex> identifiers = myceliumService.getGraphService().getSameAs(roID, "ro:id");
+		Collection<Vertex> identifiers = myceliumService.getGraphService().getSameAs(registryObjectId, "ro:id");
 
 		// remove all vertices that is a RegistryObject or is a Key Vertex
 		Predicate<Vertex> isRecord = v -> v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
@@ -73,25 +73,25 @@ public class MyceliumRegistryObjectResourceController {
 
 	// todo implement GET /{id}/duplicates
 	@GetMapping(path = "/{registryObjectId}/duplicates")
-	public ResponseEntity<?> getRegistryObjectDuplicates(@PathVariable("registryObjectId") String roID) {
+	public ResponseEntity<?> getRegistryObjectDuplicates(@PathVariable("registryObjectId") String registryObjectId) {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	// todo implement GET /{id}/local-graph
 	@GetMapping(path = "/{registryObjectId}/local-graph")
-	public ResponseEntity<?> getRegistryObjectLocalGraph(@PathVariable("registryObjectId") String roID) {
+	public ResponseEntity<?> getRegistryObjectLocalGraph(@PathVariable("registryObjectId") String registryObjectId) {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	// todo implement GET /{id}/nested-collection-tree
 	@GetMapping(path = "/{registryObjectId}/nested-collection-tree")
-	public ResponseEntity<?> getNestedCollectionTree(@PathVariable("registryObjectId") String roID) {
+	public ResponseEntity<?> getNestedCollectionTree(@PathVariable("registryObjectId") String registryObjectId) {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	// todo implement GET /{id}/nested-collection-graph
 	@GetMapping(path = "/{registryObjectId}/nested-collection-children")
-	public ResponseEntity<?> getNestedCollectionChildren(@PathVariable("registryObjectId") String roID) {
+	public ResponseEntity<?> getNestedCollectionChildren(@PathVariable("registryObjectId") String registryObjectId) {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 

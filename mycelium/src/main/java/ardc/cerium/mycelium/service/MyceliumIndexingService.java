@@ -711,10 +711,11 @@ public class MyceliumIndexingService {
 
 	/** Generates and sets an event to update portal index using the RDA Registry
 	 *
-	 * @param objectClass  the Object's class that has its title changed
-	 * @param objectType the Object's type
-	 * @param oldTitle the previous title of the object
-	 * @param newTitle the new title of the object
+	 * @param objectClass  		the Object's class that has its title changed
+	 * @param objectType		the Object's type
+	 * @param oldTitle			the previous title of the object
+	 * @param newTitle 			the new title of the object
+	 * @param relationshipType 	the relationType to update
 	 */
 	public void updateRelatedTitlesInPortalIndex( String objectClass, String objectType,
 												  String oldTitle, String newTitle, String relationshipType){
@@ -735,12 +736,15 @@ public class MyceliumIndexingService {
 				indexedField, oldTitle, newTitle, relationshipType));
 	}
 
-	/** Generates and sets an event to update portal index using the RDA Registry
-	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index modified
-	 * @param objectClass  the Object's class that was removed
+	/**
+	 * Generates and sets an event to update portal index using the RDA Registry
+	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index
+	 * modified
+	 * @param objectClass the Object's class that was removed
 	 * @param objectType the Object's type
-	 * @param oldTitle the previous title of the object (that needs to be removed from the portal index
-
+	 * @param oldTitle the previous title of the object (that needs to be removed from the
+	 * portal index
+	 * @param relationshipType the relationType to delete
 	 */
 	public void deleteRelatedTitleFromPortalIndex( String fromRelatedObjectId, String objectClass, String objectType,
 												   String oldTitle, String relationshipType){
@@ -765,12 +769,14 @@ public class MyceliumIndexingService {
 	}
 
 
-	/** Generates and sets an event to update portal index using the RDA Registry
-	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index modified
-	 * @param objectClass  the Object's class that was added
+	/**
+	 * Generates and sets an event to update portal index using the RDA Registry
+	 * @param fromRelatedObjectId the registryObjectID that needs its portal Index
+	 * modified
+	 * @param objectClass the Object's class that was added
 	 * @param objectType the Object's type
 	 * @param title the title to be added
-
+	 * @param relationshipType the relation type to add
 	 */
 	public void addRelatedTitleToPortalIndex( String fromRelatedObjectId, String objectClass, String objectType,
 											  String title, String relationshipType){

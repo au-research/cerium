@@ -91,8 +91,9 @@ public class MyceliumBackupService {
      * Restore a specific data source by backup Id
      *
      *
-	 * @param backupId
-	 * @param dataSourceId
+	 * @param backupId the id of the backup
+	 * @param dataSourceId the id of the data source
+     * @param correctedDataSourceId the id to replace the data source with
 	 */
     public void restoreBackup(String backupId, String dataSourceId, String correctedDataSourceId) {
 
@@ -115,7 +116,8 @@ public class MyceliumBackupService {
 	/**
      * Restore a graph file
      *
-	 * @param file
+	 * @param file the {@link File} to restore from
+     * @param correctedDataSourceId the id to replace the data source with
 	 */
     public void restoreGraphFile(File file, String correctedDataSourceId) {
         log.debug("Restoring File "+file);

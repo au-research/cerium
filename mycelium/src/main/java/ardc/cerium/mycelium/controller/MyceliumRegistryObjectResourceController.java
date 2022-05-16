@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.controller;
 
+import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -27,10 +28,18 @@ public class MyceliumRegistryObjectResourceController {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
-	// todo implement POST /
+
 	@PostMapping(path = "")
-	public ResponseEntity<?> importRegistryObject() {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+	public ResponseEntity<?> importRegistryObject(@RequestBody String json,
+			@RequestParam(required = false) String requestId) {
+		log.info("Importing Record requestId={}", requestId);
+
+		Request request = requestId != null ? myceliumService.getMyceliumRequestService().findById(requestId) : null;
+
+		// create the import task and run it immediately
+		myceliumService.runImportTask(json, request);
+
+		return ResponseEntity.ok(request);
 	}
 
 	/**

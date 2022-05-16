@@ -54,7 +54,7 @@ public class RelationUtil {
 
         String fromClass = relationship.getFrom().getObjectClass();
         String toClass = relationship.getTo().getObjectClass();
-        log.debug("Checking Grants Network [from={}, to={}, types={}]", fromClass, toClass, relationTypes);
+        log.trace("Checking Grants Network [from={}, to={}, types={}]", fromClass, toClass, relationTypes);
 
         // only check RegistryObject -> RegistryObject relations
         if (fromClass == null || toClass == null) {

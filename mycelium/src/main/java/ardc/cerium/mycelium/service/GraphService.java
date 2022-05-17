@@ -302,17 +302,37 @@ public class GraphService {
 	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
 	 */
 	public Collection<Vertex> getSameAs(String identifier, String identifierType) {
+		Vertex v = getVertexByIdentifier(identifier, identifierType);
+		return getSameAs(v);
+	}
+
+
+	/**
+	 * Finds all nodes that has the isSameAs variable length matching
+	 * @param v {@link Vertex} the Vertex whose duplicates we are looking for
+	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
+	 */
+	public Collection<Vertex> getSameAs(Vertex v) {
+		String labelFilter = "";
+		if(v.getStatus()!= null && v.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			labelFilter = "labelFilter: '-DRAFT', \n";
+		}
 		return neo4jClient
-				.query("MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType})\n"
-						+ "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates) \n"
-						+ "WITH collect(origin) + collect(duplicates) as identicals\n" + "UNWIND identicals as n\n"
-						+ "RETURN distinct n;")
-				.bind(identifier).to("identifier").bind(identifierType).to("identifierType").fetchAs(Vertex.class)
+				.query("MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) \n"
+						+ "CALL apoc.path.subgraphNodes(origin, { \n"
+						+ "relationshipFilter: 'isSameAs', \n"
+						+ labelFilter
+						+ "minLevel: 0, \n"
+						+ "maxLevel: 10 \n}) \n"
+						+ "YIELD node \n"
+						+ "RETURN node;")
+				.bind(v.getIdentifier()).to("identifier").bind(v.getIdentifierType()).to("identifierType").fetchAs(Vertex.class)
 				.mappedBy(((typeSystem, record) -> {
-					Node node = record.get("n").asNode();
+					Node node = record.get("node").asNode();
 					return vertexMapper.getConverter().convert(node);
 				})).all();
 	}
+
 
 	/**
 	 * Finds all nodes that have the isSameAs variable length matching
@@ -323,13 +343,11 @@ public class GraphService {
 	public Collection<Vertex> getAltStatusRecord(Vertex v, String status) {
 		return neo4jClient
 				.query("MATCH (origin:Vertex {identifier: $id, identifierType: 'ro:id'}) \n"
-						+ "OPTIONAL MATCH (origin)-[:isSameAs*1..2]-(duplicates{status:$status,identifierType:'ro:id'}) \n"
-						+ "WITH collect(duplicates) as identicals \n"
-						+ "UNWIND identicals as n \n"
-						+ "RETURN distinct n;")
+						+ "OPTIONAL MATCH (origin)-[:isSameAs]-(k{identifierType:'ro:key'})-[:isSameAs]-(duplicate{status:$status,identifierType:'ro:id'}) \n"
+						+ "RETURN distinct duplicate;")
 				.bind(v.getIdentifier()).to("id").bind(status).to("status").fetchAs(Vertex.class)
 				.mappedBy(((typeSystem, record) -> {
-					Node node = record.get("n").asNode();
+					Node node = record.get("duplicate").asNode();
 					return vertexMapper.getConverter().convert(node);
 				})).all();
 	}

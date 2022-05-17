@@ -309,6 +309,7 @@ public class GraphService {
 
 	/**
 	 * Finds all nodes that has the isSameAs variable length matching
+	 * Remove any path that contains a vertex with DRAFT status if the origin Vertex v is PUBLISHED
 	 * @param v {@link Vertex} the Vertex whose duplicates we are looking for
 	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
 	 */
@@ -335,10 +336,14 @@ public class GraphService {
 
 
 	/**
-	 * Finds all nodes that have the isSameAs variable length matching
-	 * @param v {@link Vertex} the String format of the ro:key Value
-	 * @param status the alt status of the record to be returned
-	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
+	 * Finds all (should be only 1) nodes that is related to the given Vertex's ro:key Identifier
+	 * that has the required status
+	 * Currently we support RegistryObject Vertices with
+	 * DRAFT or PUBLISHED status that are related with 'isSameAs' to an 'ro:key' IdentifierType Vertex
+	 * This function is used to identify and remove "false" duplicates from a result tree/graph
+	 * @param v {@link Vertex} the Vertex that has a DRAFT or PUBLISHED version
+	 * @param status the status of the record to be returned (DRAFT or PUBLISHED)
+	 * @return the unique {@link Collection} of {@link Vertex} that the given Vertex v is an alternative status of
 	 */
 	public Collection<Vertex> getAltStatusRecord(Vertex v, String status) {
 		return neo4jClient

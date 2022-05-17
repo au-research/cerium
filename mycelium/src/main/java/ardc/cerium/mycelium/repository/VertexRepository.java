@@ -74,4 +74,6 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 	Stream<Vertex> streamSpanningTreeFromId(@Param("identifier") String identifier, @Param("filter") String relationshipFilters, @Param("class") String classFilter);
 	// @formatter:on
 
+	Page<Vertex> getVertexByIdentifierTypeAndStatus(String identifierType, String status, Pageable pageable);
+
 }

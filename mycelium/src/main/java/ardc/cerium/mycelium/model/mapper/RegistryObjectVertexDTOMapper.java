@@ -2,9 +2,9 @@ package ardc.cerium.mycelium.model.mapper;
 
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.RegistryObjectVertexDTO;
-import clover.com.google.common.base.Converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Converter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -14,20 +14,22 @@ import java.util.Map;
 
 @Service
 @Slf4j
-@Getter
 public class RegistryObjectVertexDTOMapper {
 
     final ModelMapper modelMapper;
 
     final ObjectMapper objectMapper;
 
-    protected Converter<Vertex, RegistryObjectVertexDTO> converter;
-
+    public Converter<Vertex, RegistryObjectVertexDTO> converter;
 
     public RegistryObjectVertexDTOMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
         this.converter = buildConverter();
         this.objectMapper = new ObjectMapper();
+    }
+
+    public Converter<Vertex, RegistryObjectVertexDTO> getConverter() {
+        return converter;
     }
 
     private Converter<Vertex, RegistryObjectVertexDTO> buildConverter()

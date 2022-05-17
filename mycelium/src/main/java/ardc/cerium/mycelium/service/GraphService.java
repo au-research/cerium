@@ -16,6 +16,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -1324,6 +1325,11 @@ public class GraphService {
 		});
 
 		return mergedGraph;
+	}
+
+	public Page<Vertex> getAllRegistryObjects(Pageable pageable) {
+		Page<Vertex> results = vertexRepository.getVertexByIdentifierTypeAndStatus(RIFCS_ID_IDENTIFIER_TYPE, "PUBLISHED", pageable);
+		return results;
 	}
 
 }

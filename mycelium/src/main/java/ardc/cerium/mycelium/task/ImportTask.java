@@ -89,16 +89,16 @@ public class ImportTask implements Runnable {
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
 			// add the SideEffects to the queue
-			if (!sideEffects.isEmpty() && request != null) {
-				myceliumSideEffectService.queueSideEffects(request, sideEffects);
-				requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObject.getRegistryObjectId());
-				requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObject.getRegistryObjectId(), sideEffects);
-			} else {
-				requestLogger.debug("No sideEffect queued for RegistryObject[id={}], Found:{}", registryObject.getRegistryObjectId(), sideEffects.size());
-			}
-
-			// finish the task & request
 			if (request != null) {
+				if (!sideEffects.isEmpty() && request != null) {
+					myceliumSideEffectService.queueSideEffects(request, sideEffects);
+					requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObject.getRegistryObjectId());
+					requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObject.getRegistryObjectId(), sideEffects);
+				} else {
+					requestLogger.debug("No sideEffect queued for RegistryObject[id={}], Found:{}", registryObject.getRegistryObjectId(), sideEffects.size());
+				}
+
+				// finish the task & request
 				request.setMessage("ImportTask successfully completed");
 				request.setStatus(Request.Status.COMPLETED);
 			}

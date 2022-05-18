@@ -9,7 +9,8 @@ import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -46,7 +47,10 @@ public class DeleteTask implements Runnable {
 
 	@Override
 	public void run() {
-		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
+		Logger requestLogger = LogManager.getLogger(this.getClass().getName());
+		if (request != null) {
+			requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
+		}
 
 		try {
 			log.debug("Started deleting registryObject[id={}]", registryObjectId);
@@ -64,13 +68,15 @@ public class DeleteTask implements Runnable {
 			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
-			// add the SideEffects to the queue
-			if (!sideEffects.isEmpty()) {
-				myceliumSideEffectService.queueSideEffects(request, sideEffects);
-				requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObjectId);
-				requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObjectId, sideEffects);
-			} else {
-				requestLogger.info("No sideEffect found for RegistryObject[id={}]", registryObjectId);
+			if (request != null) {
+				// add the SideEffects to the queue
+				if (!sideEffects.isEmpty()) {
+					myceliumSideEffectService.queueSideEffects(request, sideEffects);
+					requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObjectId);
+					requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObjectId, sideEffects);
+				} else {
+					requestLogger.info("No sideEffect found for RegistryObject[id={}]", registryObjectId);
+				}
 			}
 		}
 		catch (Exception e) {

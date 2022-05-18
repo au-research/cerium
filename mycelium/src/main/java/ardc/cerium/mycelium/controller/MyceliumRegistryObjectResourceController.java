@@ -61,6 +61,7 @@ public class MyceliumRegistryObjectResourceController {
 
 	/**
 	 * Get the registryObject Vertex
+	 * @param acceptHeader the Accept Header that would determine the output format
 	 * @param registryObjectId id of the registry object
 	 * @return the {@link Vertex} representation of the RegistryObject
 	 */
@@ -71,10 +72,16 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok().body(converter.convert(vertex));
 	}
 
-	// todo implement DELETE /{id}
 	@DeleteMapping(path = "/{registryObjectId}")
-	public ResponseEntity<?> deleteRegistryObject(@PathVariable("registryObjectId") String registryObjectId) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+	public ResponseEntity<?> deleteRegistryObject(@PathVariable("registryObjectId") String registryObjectId, @RequestParam(required = false) String requestId) {
+		log.info("Deleting RegistryObject[id={}, requestId={}]", registryObjectId, requestId);
+
+		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
+
+		// run the DeleteTask
+		myceliumService.runDeleteTask(registryObjectId, request);
+
+		return ResponseEntity.ok(request);
 	}
 
 	/**

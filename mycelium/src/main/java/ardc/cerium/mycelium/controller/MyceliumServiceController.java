@@ -191,6 +191,7 @@ public class MyceliumServiceController {
 		// add the immediate relationships (include Duplicate), excludes the
 		// overLimitRelationTypes
 		graph.mergeGraph(graphService.getRegistryObjectGraph(vertex, overLimitRelationType));
+
 		log.debug("Added registryObjectGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
 				graph.getEdges().size());
 
@@ -210,10 +211,25 @@ public class MyceliumServiceController {
 			Collection<Vertex> duplicateRegistryObjects = graphService.getDuplicateRegistryObject(vertex);
 			duplicateRegistryObjects.stream().filter(v -> !v.getId().equals(vertex.getId())).forEach(duplicate -> {
 				graph.addVertex(duplicate);
+				log.debug("Adding duplicates to Graph {}, edges:{}", vertex.getIdentifier(), vertex.getIdentifierType());
 				graph.addEdge(new Edge(vertex, duplicate, RIFCSGraphProvider.RELATION_SAME_AS));
 			});
-			log.debug("Added duplicateGraph Graph[vertex: {}, edges:{}]", graph.getVertices().size(),
-					graph.getEdges().size());
+			log.debug("Added duplicateGraph Graph[vertex: {}]", duplicateRegistryObjects.size());
+		}
+
+
+		if(vertex.getStatus().equals(Vertex.Status.DRAFT.name())){
+			// remove its PUBLISHED for start
+			Collection<Vertex> altVersions = graphService.getAltStatusRecord(vertex, Vertex.Status.PUBLISHED.name());
+			graph.removeAll(altVersions);
+			altVersions = new ArrayList<>(Collections.emptySet());
+			for (Vertex v : graph.getVertices()) {
+				// remove all DRAFT versions if their PUBLISHED are in the graph
+				if (v.getStatus() != null && v.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+					altVersions.addAll(graphService.getAltStatusRecord(v, Vertex.Status.DRAFT.name()));
+				}
+			}
+			graph.removeAll(altVersions);
 		}
 
 		// interlinking between current graph vertices
@@ -230,10 +246,7 @@ public class MyceliumServiceController {
 		// clean up the data
 
 
-		if(vertex.getStatus().equals(Vertex.Status.DRAFT.name())){
-			Collection<Vertex> publishedVersions = graphService.getAltStatusRecord(vertex, Vertex.Status.PUBLISHED.name());
-			graph.removeAll(publishedVersions);
-		}
+
 
 		graphService.removeDanglingVertices(graph);
 		log.debug("Removed dangling vertices. Prepare to render graph");

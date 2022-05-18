@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE;
-import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE;
 
 /**
  * Spring Service to ingest/import Graph data
@@ -172,7 +171,8 @@ public class GraphService {
 				+ "    maxLevel: 10\n"
 				+ "})\n"
 				+ "YIELD node\n"
-				+ "UNWIND node as from\n"
+				+ "WITH collect(origin) + collect(node) as complete\n"
+				+ "UNWIND complete as from\n"
 				+ "WITH distinct from\n"
 				+ "MATCH (from)-[r]->(to)\n"
 				+ "WHERE type(r) <> 'isSameAs'\n"
@@ -197,12 +197,14 @@ public class GraphService {
 				+ "    minLevel: 0, \n"
 				+ "    maxLevel: 10 \n"
 				+ "}) \n"
-				+ "YIELD node \n"
-				+ "UNWIND node as from \n"
-				+ "WITH distinct from \n"
+				+ "YIELD node\n"
+				+ "WITH collect(origin) + collect(node) as complete\n"
+				+ "UNWIND complete as from\n"
+				+ "WITH distinct from\n"
 				+ "MATCH (from)-[r]->(to) \n"
 				+ "WHERE type(r) <> 'isSameAs' \n"
 				+ "RETURN from, to, collect(r) as relations;";
+		log.debug("CypherQuery(getDuplicateOutboundRelationships): {}", cypherQuery);
 		return getRelationships(cypherQuery);
 	}
 
@@ -338,11 +340,11 @@ public class GraphService {
 	 * @return the unique {@link Collection} of {@link Vertex} that matches the query
 	 */
 	public Collection<Vertex> getSameAs(String identifier, String identifierType) {
+
 		if(identifier == null || identifier.isEmpty() || identifierType == null || identifierType.isEmpty()){
 			return Collections.emptyList();
 		}
 		Vertex v = getVertexByIdentifier(identifier, identifierType);
-		log.debug("get sameAs for : {},{}", identifier, identifierType);
 		return getSameAs(v);
 	}
 
@@ -392,11 +394,15 @@ public class GraphService {
 		return neo4jClient
 				.query("MATCH (origin:Vertex {identifier: $id, identifierType: 'ro:id'}) \n"
 						+ "OPTIONAL MATCH (origin)-[:isSameAs]-(k{identifierType:'ro:key'})-[:isSameAs]-(duplicate{status:$status,identifierType:'ro:id'}) \n"
-						+ "RETURN distinct duplicate;")
+						+ "RETURN duplicate;")
 				.bind(v.getIdentifier()).to("id").bind(status).to("status").fetchAs(Vertex.class)
 				.mappedBy(((typeSystem, record) -> {
-					Node node = record.get("duplicate").asNode();
-					return vertexMapper.getConverter().convert(node);
+					if(record.get("duplicate").isNull()){
+						return new Vertex();
+					}else{
+						Node node = record.get("duplicate").asNode();
+						return vertexMapper.getConverter().convert(node);
+					}
 				})).all();
 	}
 
@@ -553,7 +559,6 @@ public class GraphService {
 			// convert to toVertex
 			Node toNode = record.get("to").asNode();
 			Vertex toVertex = vertexMapper.getConverter().convert(toNode);
-
 			// convert collect(r) as relations to List<Edge> for Relationship
 			List<EdgeDTO> edges = record.get("relations").asList().stream()
 					.map(rel -> (org.neo4j.driver.types.Relationship) rel)
@@ -612,21 +617,9 @@ public class GraphService {
 	}
 
 	public Collection<Vertex> getParentCollection(String registryObjectId) {
-		Vertex v = getVertexByIdentifier(registryObjectId,
-				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-		if(v == null){
-			return Collections.emptyList();
-		}
-		String labelFilter = "";
-		if(v.getStatus()!= null && v.getStatus().equals(Vertex.Status.PUBLISHED.name())){
-			labelFilter = "labelFilter: '-DRAFT', \n";
-		}
-
 		return neo4jClient.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
 				+ "CALL apoc.path.spanningTree(origin, {\n"
-				+ "    relationshipFilter: \"isSameAs|isPartOf>|isOutputOf>|isFundedBy>\","
-				+ labelFilter
-				+ "    minLevel: 1,\n"
+				+ "    relationshipFilter: \"isSameAs|isPartOf>|isOutputOf>|isFundedBy>\",\n" + "    minLevel: 1,\n"
 				+ "    maxLevel: 100})\n" + "YIELD path WITH nodes(path) as targets\n"
 				+ "MATCH (collection:RegistryObject {objectClass: \"collection\"}) WHERE collection IN targets\n"
 				+ "MATCH (party:RegistryObject {objectClass: \"party\"}) WHERE party IN targets\n"
@@ -638,21 +631,10 @@ public class GraphService {
 	}
 
 	public Collection<Vertex> getChildCollection(String registryObjectId) {
-		Vertex v = getVertexByIdentifier(registryObjectId,
-				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-		if(v == null){
-			return Collections.emptyList();
-		}
-		String labelFilter = "";
-		if(v.getStatus()!= null && v.getStatus().equals(Vertex.Status.PUBLISHED.name())){
-			labelFilter = "labelFilter: '-DRAFT', \n";
-		}
 		return neo4jClient
 				.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
 						+ "CALL apoc.path.spanningTree(origin, {\n"
-						+ "    relationshipFilter: $relationshipFilter, \n"
-						+ labelFilter
-						+" minLevel: $minLevel, maxLevel: $maxLevel"
+						+ "    relationshipFilter: $relationshipFilter, minLevel: $minLevel, maxLevel: $maxLevel"
 						+ "}) YIELD path WITH nodes(path) as targets\n"
 						+ "MATCH (collection:RegistryObject {objectClass: 'collection'}) WHERE collection IN targets\n"
 						+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
@@ -768,6 +750,9 @@ public class GraphService {
 	 */
 	@Transactional(readOnly = true)
 	public Stream<Vertex> streamChildCollection(Vertex from) {
+		if(from == null){
+			return null;
+		}
 		return vertexRepository.streamSpanningTreeFromId(from.getIdentifier(), "isSameAs|hasPart>|outputs>|hasOutput>|isFunderOf>",
 				"collection");
 	}
@@ -832,20 +817,26 @@ public class GraphService {
 		// add origin node
 		Graph graph = new Graph();
 		graph.addVertex(from);
-		String removeDraftSegment = "";
+		String draftFilter = "";
 		// add direct relationships
 
 		if(from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
-			removeDraftSegment = 	"WHERE duplicates.status <> 'DRAFT'\n";
+			draftFilter = " labelFilter: '-DRAFT',\n";
 		}
 
-		StringBuilder cypherQuery = new StringBuilder(
-				"MATCH (origin:Vertex {identifier: \"" + from.getIdentifier() + "\", identifierType: \""
-						+ from.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
-						+ removeDraftSegment
-						+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
-						+ "WITH distinct from\n"
-						+ "MATCH (from)-[r]->(to)\n");
+		StringBuilder cypherQuery = new StringBuilder("MATCH (origin:Vertex {identifier: '" + from.getIdentifier()
+						+ "', identifierType: '" + from.getIdentifierType() + "'})\n"
+						+ " CALL apoc.path.subgraphNodes(origin, {\n"
+						+ " relationshipFilter: 'isSameAs',\n"
+						+ draftFilter
+						+ " minLevel: 0,\n"
+						+ " maxLevel: 10\n"
+						+ " })\n"
+						+ " YIELD node\n"
+						+ " WITH collect(origin) + collect(node) as complete\n"
+				        + " UNWIND complete as from\n"
+						+ " WITH distinct from\n"
+						+ " MATCH (from)-[r]->(to)\n");
 		cypherQuery.append("WHERE type(r) <> \"isSameAs\"\n");
 		for (String relationType : excludeRelationTypes) {
 			cypherQuery.append("AND type(r) <> \"").append(relationType).append("\"\n");
@@ -860,12 +851,20 @@ public class GraphService {
 			// obtain target-duplicates, this will bring resolved Vertices of ro:key
 			// relationships as well as duplicated relationships
 			Collection<Vertex> sameAsNodeCluster = getSameAs(to.getIdentifier(), to.getIdentifierType());
+
+
 			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
+
+			if(from.getStatus().equals(Vertex.Status.PUBLISHED.name()) || toRelatedObjects.size() > 1){
+				toRelatedObjects = sameAsNodeCluster.stream()
+						.filter(vertex -> vertex.hasLabel(Vertex.Label.PUBLISHED)).collect(Collectors.toList());
+			}
 
 			if (toRelatedObjects.size() > 0) {
 				// is a relatedObject relation
 				toRelatedObjects.forEach(toRelatedObject -> {
+
 					graph.addVertex(toRelatedObject);
 					relationship.getRelations().forEach(relation -> graph
 							.addEdge(new Edge(from, toRelatedObject, relation.getType(), relation.getId())));
@@ -895,29 +894,30 @@ public class GraphService {
 		// add origin node
 		Graph graph = new Graph();
 		graph.addVertex(from);
-		String removeDraftSegment = "";
+		String draftFilter = "";
 
 		if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.DRAFT.name())){
-			Optional<Vertex> fromKey = getSameAsIdentifierWithType(from, RIFCS_KEY_IDENTIFIER_TYPE);
-			fromKey.ifPresent(vertex -> {
-				log.debug("Got the Key : {}", vertex.getIdentifier());
 				Collection<Vertex> publishedVersions = getAltStatusRecord(from, Vertex.Status.PUBLISHED.name());
 				publishedVersions.forEach(v ->
 				{
 					log.debug("removing published version: {}", v.getIdentifier());
 					validTargetIdentifiers.remove(v.getIdentifier());
 				});
-			});
 		}else{
-			removeDraftSegment = "WHERE duplicates.status <> 'DRAFT'";
+			draftFilter = "labelFilter: '-DRAFT',";
 		}
 
-		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n" +
-				"OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates) %s\n" +
-				"WITH collect(origin) + collect(duplicates) as identical\n" +
-				"UNWIND identical as from\n" +
-				"WITH distinct from\n" +
-				"MATCH (from)-[r]->(to)\n", from.getIdentifier(), from.getIdentifierType(), removeDraftSegment);
+		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n"
+				+ " CALL apoc.path.subgraphNodes(origin, {\n"
+				+ " relationshipFilter: 'isSameAs', %s\n"
+				+ " minLevel: 0,\n"
+				+ " maxLevel: 10\n"
+				+ " })\n"
+				+ " YIELD node\n"
+				+ " WITH collect(origin) + collect(node) as complete\n"
+				+ " UNWIND complete as from\n"
+				+ " WITH distinct from\n"
+				+ " MATCH (from)-[r]->(to)\n", from.getIdentifier(), from.getIdentifierType(), draftFilter);
 		if (validTargetIdentifiers.size() > 0) {
 			cypherQuery += "WHERE to.identifier IN [" + validTargetIdentifiers.stream()
 					.map(s -> "\"" + s + "\"")
@@ -1028,7 +1028,7 @@ public class GraphService {
 	public Graph getGrantsNetworkDownwards(Vertex origin, List<String> excludedTypes) {
 		String cypherQuery = "";
 
-		List<String> relationTypes = Arrays.asList(new String[]{"hasPart", "hasOutput", "isFunderOf"});
+		List<String> relationTypes = Arrays.asList("hasPart", "hasOutput", "isFunderOf");
 
 		// filter out the relationTypes that should be excluded
 		relationTypes = relationTypes.stream().filter(relationType -> {
@@ -1069,7 +1069,7 @@ public class GraphService {
 	public Graph getGrantsNetworkGraphUpwards(Vertex origin, List<String> excludedTypes) {
 		String cypherQuery = "";
 
-		List<String> relationTypes = Arrays.asList(new String[]{"isPartOf", "isOutputOf", "isFundedBy"});
+		List<String> relationTypes = Arrays.asList("isPartOf", "isOutputOf", "isFundedBy");
 
 		// filter out the relationTypes that should be excluded
 		relationTypes = relationTypes.stream().filter(relationType -> {

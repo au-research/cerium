@@ -48,6 +48,9 @@ public class GrantsNetworkInheritenceExecutor extends Executor {
 		String registryObjectClass = sideEffect.getRegistryObjectClass();
 
 		Vertex vertex = myceliumService.getVertexFromRegistryObjectId(sideEffect.getRegistryObjectId());
+		if(vertex == null){
+			return;
+		}
 
 		switch (registryObjectClass) {
 			case "collection":

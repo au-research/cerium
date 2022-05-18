@@ -76,6 +76,9 @@ public class MyceliumIndexingService {
 	 * @param from the {@link Vertex} to index
 	 */
 	public void indexGrantsNetworkRelationships(Vertex from) {
+		if(from == null){
+			return;
+		}
 		switch (from.getObjectClass()) {
 		case "collection":
 			indexImplicitLinksForCollection(from);
@@ -284,6 +287,17 @@ public class MyceliumIndexingService {
 				from.getStatus() != null && from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
 			return;
 		}
+		// RDA-769 only allow DRAFT to relate to other DRAFT if that DRAFT doesn't have a PUBLISHED version
+		if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.DRAFT.name()) &&
+				to.getStatus() != null && to.getStatus().equals(Vertex.Status.DRAFT.name())) {
+			Collection<Vertex> publishedVersions = graphService.getAltStatusRecord(to, Vertex.Status.PUBLISHED.name());
+			// if the Vertex 'to' has a PUBLISHED version it is going to get indexed
+			// so no need to add relationship to its DRAFT version
+			if(!publishedVersions.isEmpty()){
+				return;
+			}
+		}
+
 		List<String> relationTypes = relations.stream().map(EdgeDTO::getType).collect(Collectors.toList());
 		List<Boolean> directions = relations.stream().map(EdgeDTO::isReverse).collect(Collectors.toList());
 		// RDA-554 checking for issues with reverse direction
@@ -454,6 +468,9 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForActivity(Vertex from) {
+		if(from == null){
+			return;
+		}
 		log.debug("Indexing implicit links for activity Vertex[id={}]", from.getIdentifier());
 
 		// the activity hasOutput all child collections
@@ -489,6 +506,9 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForParty(Vertex from) {
+		if(from == null){
+			return;
+		}
 		log.debug("Indexing implicit links for party Vertex[id={}]", from.getIdentifier());
 
 		// the party isFunderOf all child activities
@@ -513,6 +533,9 @@ public class MyceliumIndexingService {
 	 */
 	@Transactional(readOnly = true)
 	public void indexImplicitLinksForCollection(Vertex from) {
+		if(from == null){
+			return;
+		}
 		log.debug("Indexing implicit links for collection Vertex[id={}]", from.getIdentifier());
 
 		// obtain all the duplicate registryObjectId so that they can be post-filtered out

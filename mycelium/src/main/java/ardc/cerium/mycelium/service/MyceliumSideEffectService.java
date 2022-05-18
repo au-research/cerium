@@ -213,8 +213,14 @@ public class MyceliumSideEffectService {
 		}
 
 		if (GrantsNetworkInheritenceExecutor.detect(before, after, myceliumService)) {
-			sideEffects.add(new GrantsNetworkInheritenceSideEffect(after.getRegistryObjectId(),
-					after.getRegistryObjectClass()));
+			if (before == null){
+				sideEffects.add(new GrantsNetworkInheritenceSideEffect(after.getRegistryObjectId(),
+						after.getRegistryObjectClass()));
+			}
+			if (after == null){
+				sideEffects.add(new GrantsNetworkInheritenceSideEffect(before.getRegistryObjectId(),
+						before.getRegistryObjectClass()));
+			}
 		}
 
 // RDA-492 the related Objects have keys not ids so we must find the ids to modify their portal indexes

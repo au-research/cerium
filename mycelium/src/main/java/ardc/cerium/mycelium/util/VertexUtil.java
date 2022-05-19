@@ -49,9 +49,9 @@ public class VertexUtil {
 		switch (type) {
 		case "doi":
 			// if it's a valid DOI eg there is a string that starts with 10.
-			// upper case DOI values they are case insensitive
-			value = value.toUpperCase(Locale.ROOT);
 			if (value.contains("10.")) {
+				// upper case DOI values they are case insensitive
+				value = value.toUpperCase(Locale.ROOT);
 				value = value.substring(value.indexOf("10."));
 			}
 			return value;
@@ -94,8 +94,7 @@ public class VertexUtil {
 		case "AU-ANL:PEAU":
 			if (value.contains("nla.party-")) {
 				value = value.substring(value.indexOf("nla.party-"));
-			}
-			else {
+			}else if(!value.startsWith("https://") && !value.startsWith("http://")){
 				value = "nla.party-" + value;
 			}
 			return value;

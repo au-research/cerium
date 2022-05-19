@@ -10,6 +10,10 @@ public class IdentifierUtil {
 	 * @return a url representation for the identifier
 	 */
     public static String getUrl(String identifierValue, String identifierType){
+
+        if(identifierValue.startsWith("https://") || identifierValue.startsWith("http://")){
+            return identifierValue;
+        }
         switch (identifierType) {
 
             case "doi":

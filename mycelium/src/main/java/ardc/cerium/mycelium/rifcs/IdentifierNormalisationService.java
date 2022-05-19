@@ -40,9 +40,9 @@ public class IdentifierNormalisationService {
         {
             case "doi":
                 // if it's a valid DOI eg there is a string that starts with 10.
-                // upper case DOI values they are case insensitive
-                value = value.toUpperCase(Locale.ROOT);
                 if(value.contains("10.")){
+                    // upper case DOI values they are case insensitive
+                    value = value.toUpperCase(Locale.ROOT);
                     value = value.substring(value.indexOf("10."));
                 }
             break;

@@ -105,10 +105,18 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok().body(identifiers);
 	}
 
-	// todo implement GET /{id}/duplicates
 	@GetMapping(path = "/{registryObjectId}/duplicates")
 	public ResponseEntity<?> getRegistryObjectDuplicates(@PathVariable("registryObjectId") String registryObjectId) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+		log.info("Get Duplicate Record RegistryObject[id={}]", registryObjectId);
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		if (from == null) {
+			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+			return ResponseEntity.badRequest()
+					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+		}
+		Collection<Vertex> duplicates = myceliumService.getGraphService().getDuplicateRegistryObject(from);
+		log.debug("getDuplicates completed Vertex[identifier={}]", from.getIdentifier());
+		return ResponseEntity.ok().body(duplicates);
 	}
 
 	// todo implement GET /{id}/local-graph

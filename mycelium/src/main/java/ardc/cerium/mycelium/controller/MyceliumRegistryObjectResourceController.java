@@ -54,6 +54,14 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok(resultDTO);
 	}
 
+	/**
+	 * Import RegistryObject
+	 *
+	 * Handles POST /api/resources/mycelium-registry-objects
+	 * @param json the JSON Payload that deserialised into a {@link RegistryObject}
+	 * @param requestId an optional RequestID to track SideEffect
+	 * @return a {@link Request} of the Import
+	 */
 	@PostMapping(path = "")
 	public ResponseEntity<?> importRegistryObject(@RequestBody String json,
 			@RequestParam(required = false) String requestId) {
@@ -68,7 +76,9 @@ public class MyceliumRegistryObjectResourceController {
 	}
 
 	/**
-	 * Get the registryObject Vertex
+	 * Get the RegistryObject by ID
+	 *
+	 * Handles GET /api/resources/mycelium-registry-objects/{registryObjectId}
 	 * @param acceptHeader the Accept Header that would determine the output format
 	 * @param registryObjectId id of the registry object
 	 * @return the {@link Vertex} representation of the RegistryObject
@@ -80,8 +90,17 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok().body(converter.convert(vertex));
 	}
 
+	/**
+	 * Delete a RegistryObject by ID
+	 *
+	 * Handles DELETE /api/resources/mycelium-registry-objects/{registryObjectId}
+	 * @param registryObjectId the registryObjectId to be deleted from the Graph
+	 * @param requestId an optional RequestID to track SideEffect
+	 * @return the {@link Request} of the Deletion
+	 */
 	@DeleteMapping(path = "/{registryObjectId}")
-	public ResponseEntity<?> deleteRegistryObject(@PathVariable("registryObjectId") String registryObjectId, @RequestParam(required = false) String requestId) {
+	public ResponseEntity<?> deleteRegistryObject(@PathVariable("registryObjectId") String registryObjectId,
+			@RequestParam(required = false) String requestId) {
 		log.info("Deleting RegistryObject[id={}, requestId={}]", registryObjectId, requestId);
 
 		Request request = myceliumService.getMyceliumRequestService().findById(requestId);
@@ -94,7 +113,8 @@ public class MyceliumRegistryObjectResourceController {
 
 	/**
 	 * Get All Identifiers for a given RegistryObject
-	 * todo Accept: application/json+ardc-identifier
+	 *
+	 * Handles GET /api/resources/mycelium-registry-objects/{registryObjectId}/identifiers
 	 * Includes all duplicates identifiers
 	 * @param registryObjectId id of the registry object
 	 * @return a list of identifiers belonging to the registry object
@@ -113,6 +133,13 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok().body(identifiers);
 	}
 
+	/**
+	 * Get RegistryObject duplicates or Identical Records
+	 *
+	 * Handles GET /api/resources/mycelium-registry-objects/{registryObjectId}/duplicates
+	 * @param registryObjectId id of the registry object
+	 * @return a {@link Collection} of Vertices
+	 */
 	@GetMapping(path = "/{registryObjectId}/duplicates")
 	public ResponseEntity<?> getRegistryObjectDuplicates(@PathVariable("registryObjectId") String registryObjectId) {
 		log.info("Get Duplicate Record RegistryObject[id={}]", registryObjectId);
@@ -127,6 +154,20 @@ public class MyceliumRegistryObjectResourceController {
 		return ResponseEntity.ok().body(duplicates);
 	}
 
+	/**
+	 * Obtain a Graph of the RegistryObject
+	 *
+	 * Handles GET /api/resources/mycelium-registry-objects/{registryObjectId}/graphs
+	 * @param registryObjectId the RegistryObject ID of the origin Vertex
+	 * @param includeReverseExternal whether to include reverse external relationships
+	 * @param includeReverseInternal whether to include reverse internal relationships
+	 * @param includeDuplicates whether to include isSameAs relationships and vertices
+	 * @param includeGrantsNetwork whether to include the GrantsNetwork path upwards
+	 * @param includeInterLinking whether to include relationships found between any of
+	 * the visible nodes (defaults to true)
+	 * @param includeCluster whether to include cluster nodes when
+	 * @return a {@link Graph} with all relevant vertices and edges
+	 */
 	@GetMapping(path = "/{registryObjectId}/graph")
 	public ResponseEntity<?> getRegistryObjectGraph(@PathVariable("registryObjectId") String registryObjectId,
 			@RequestParam(defaultValue = "true") boolean includeReverseExternal,
@@ -410,6 +451,11 @@ public class MyceliumRegistryObjectResourceController {
 
 	}
 
+	/**
+	 * Obtain the {@link Converter} to be used with an Accept header.
+	 * @param acceptHeader the Accept header
+	 * @return the {@link Converter} to be used to render returned values
+	 */
 	private Converter getConverterFromAcceptHeader(String acceptHeader) {
 
 		// application/vnd.ardc.vertex.ro+json

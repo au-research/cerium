@@ -1,8 +1,16 @@
 # Mycelium
 
-## Testing
-### Testing with docker
+for workstation that runs Apple Silicon chipset (ie. Apple M1) use the `docker-compose-m1.yml` file to bootstrap the test dependency containers. for .e.g
+```
+docker compose -f docker-compose-m1.yml up -d
+```
 
+## Build
+```shell
+docker compose run --rm -w=/cerium mycelium mvn -pl core,mycelium clean install -Dmaven.test.skip=true
+```
+
+## Test
 ```
 # build
 echo "Building core and mycelium"
@@ -24,8 +32,10 @@ else
     docker compose run --rm -w=/cerium mycelium mvn -pl mycelium org.openclover:clover-maven-plugin:4.4.1:setup test org.openclover:clover-maven-plugin:4.4.1:aggregate org.openclover:clover-maven-plugin:4.4.1:clover --fail-never
 fi
 ```
+## Docker Image
 
-for workstation that runs Apple Silicon chipset (ie. Apple M1) use the `docker-compose-m1.yml` file to bootstrap the test dependency containers. for .e.g 
+After building the `.jar` file, we can publish the docker image to the repository with
+```shell
+docker buildx build --platform linux/amd64,linux/arm64/v8 -t minhd/mycelium:dev --push .
 ```
-docker compose -f docker-compose-m1.yml up -d
-```
+replace `{:dev}` with the relevant tag

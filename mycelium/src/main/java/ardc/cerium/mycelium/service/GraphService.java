@@ -907,7 +907,7 @@ public class GraphService {
 			draftFilter = "labelFilter: '-DRAFT',";
 		}
 
-		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: '%s', identifierType: '%s'})\n"
+		String cypherQuery = String.format("MATCH (origin:Vertex {identifier: \"%s\", identifierType: \"%s\"})\n"
 				+ " CALL apoc.path.subgraphNodes(origin, {\n"
 				+ " relationshipFilter: 'isSameAs', %s\n"
 				+ " minLevel: 0,\n"

@@ -16,19 +16,23 @@ public class Name {
 
     private String familyName = "";
 
-    @JsonProperty("credit-name")
     private String creditName;
 
     private String fullName;
 
     @JsonProperty("given-names")
     public void unpackGivenNameNested(Map<String, String> name) {
-        givenName = name.get("value");
+        givenName = name != null ? name.get("value") : "";
     }
 
     @JsonProperty("family-name")
     public void unpackFamilyNameNested(Map<String, String> name) {
-        familyName = name.get("value");
+        familyName = name != null ? name.get("value") : "";
+    }
+
+    @JsonProperty("credit-name")
+    public void unpackCreditNameNested(Map<String, String> name) {
+        creditName = name != null ? name.get("value") : null;
     }
 
     public String getFullName() {

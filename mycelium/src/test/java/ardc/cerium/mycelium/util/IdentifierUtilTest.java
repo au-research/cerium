@@ -73,4 +73,11 @@ class IdentifierUtilTest {
         AssertionsForClassTypes.assertThat(url).isEqualTo("https://somewebsiteexample.com.id");
     }
 
+    @Test
+    void it_can_get_ror_url(){
+
+        String url = IdentifierUtil.getUrl("01pmm8272", "ror");
+        AssertionsForClassTypes.assertThat(url).isEqualTo("https://ror.org/01pmm8272");
+    }
+
 }

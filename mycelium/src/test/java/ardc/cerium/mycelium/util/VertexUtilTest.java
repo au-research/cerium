@@ -53,6 +53,35 @@ class VertexUtilTest {
 	}
 
     @Test
+    void testResolveRORVertex() {
+        // given an ror vertex with an empty title
+        Vertex vertex = new Vertex("031gd3q51", "ror");
+        vertex.setTitle("Unknown");
+
+        // upon resolving
+        VertexUtil.resolveVertex(vertex);
+
+        // the title is updated to the right value fetched from ROR server
+        assertThat(vertex.getTitle()).isEqualTo("Conservatorio di Musica Giacomo Puccini");
+
+        // the rawTitle is saved in the meta
+        assertThat(vertex.getMetaAttribute("rawTitle")).isEqualTo("Unknown");
+    }
+
+    @Test
+    void testResolveUnknownRORVertex() {
+        // given an ror vertex with an empty title
+        Vertex vertex = new Vertex("not-valid", "ror");
+
+
+        // upon resolving
+        VertexUtil.resolveVertex(vertex);
+
+        // the title is not changed, and there's no error
+        assertThat(vertex.getTitle()).isNull();
+    }
+
+    @Test
     void testResolveUnknownORCIDVertex() {
         // given a vertex with pretty much unresolvable value
         Vertex vertex = new Vertex("not-valid", "orcid");
@@ -84,6 +113,10 @@ class VertexUtilTest {
             "https://doi.org/10.234/455, uri, 10.234/455, doi",
             "https://doi.org/10.234/455, doi, 10.234/455, doi",
             "10.234/455, doi, 10.234/455, doi",
+
+            // ror
+            "https://ror.org/01pmm8272, ror, 01pmm8272, ror",
+            "01pmm8272, ror, 01pmm8272, ror",
 
             // random
             "1.234/455, fish, 1.234/455, fish",

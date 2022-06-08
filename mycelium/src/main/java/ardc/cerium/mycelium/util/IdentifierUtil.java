@@ -50,6 +50,11 @@ public class IdentifierUtil {
                     return String.format("https://,%s", identifierValue);
                 }
                 return String.format("https://isni.org/,%s", identifierValue);
+            case "ror":
+                if (identifierValue.contains("ror.org/")){
+                    return String.format("https://%s", identifierValue);
+                }
+                return String.format("https://ror.org/%s", identifierValue);
             default:
                 return null;
         }

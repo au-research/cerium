@@ -6,6 +6,8 @@ import ardc.cerium.doi.schema.citeproc.json.CiteProcJson;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.orcid.PublicOrcidClient;
 import ardc.cerium.orcid.schema.orcid.json.OrcidRecord;
+import ardc.cerium.ror.PublicRorClient;
+import ardc.cerium.ror.schema.ror.json.RorRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,6 +91,11 @@ public class VertexUtil {
 		case "purl":
 			if (value.contains("purl.org")) {
 				value = "https://" + value.substring(value.indexOf("purl.org"));
+			}
+			return value;
+		case "ror":
+			if (value.contains("ror.org")) {
+				value = value.substring(value.indexOf("ror.org/") + 8);
 			}
 			return value;
 		case "AU-ANL:PEAU":
@@ -208,6 +215,25 @@ public class VertexUtil {
 				PublicOrcidClient client = new PublicOrcidClient();
 				OrcidRecord orcidRecord = client.resolve(identifierValue);
 				String title = orcidRecord.getPerson().getName().getFullName();
+				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
+					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
+				vertex.setTitle(title);
+			}
+			catch (Exception e) {
+				log.warn("Failed to resolve identifier for Vertex[identifier={}, type={}] Reason: {}", identifierValue,
+						identifierType, e.getMessage());
+				return;
+			} finally{
+				vertex.setMetaAttribute("lastResolved", Instant.now().toString());
+			}
+		}
+		else if (identifierType.equals("ror")) {
+			// todo check identifierValue to match a ROR regex first
+			try {
+				PublicRorClient client = new PublicRorClient();
+				RorRecord rorRecord = client.resolve(identifierValue);
+				String title = rorRecord.getName();
 				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
 					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
 				}

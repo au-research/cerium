@@ -22,7 +22,6 @@ public class PublicRorClient {
 
     public PublicRorClient() {
         this.baseUrl = PUBLIC_ROR_API_V1;
-
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
@@ -37,11 +36,11 @@ public class PublicRorClient {
     public RorRecord resolve(String ror) {
         try {
             String json = resolveString(ror, MetadataContentType.ROR_JSON);
-            if(isJSONValid(json)) {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.readValue(json, RorRecord.class);
+            if(json == ""){
+                return null;
             }
-            return null;
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, RorRecord.class);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -56,20 +55,10 @@ public class PublicRorClient {
                 .addHeader("Accept", contentType.getContentType())
                 .build();
         Response response = client.newCall(request).execute();
+        if(response.code()==404) {
+            return "";
+        }
         String data = response.body().string();
         return data;
-    }
-
-    public boolean isJSONValid(String test) {
-        try {
-            new JSONObject(test);
-        } catch (JSONException ex) {
-            try {
-                new JSONArray(test);
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return true;
     }
 }

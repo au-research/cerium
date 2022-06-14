@@ -70,4 +70,26 @@ class PublicRorClientTest {
         assertThat(record.getName()).isEqualTo(expected_name);
 
     }
+
+    @Test
+    void testRorNotFound() throws IOException {
+        // mock the call to ORCID JSON
+        final OkHttpClient mockedHttpClient = mock(OkHttpClient.class);
+        final Call remoteCall = mock(Call.class);
+        final Response response = new Response.Builder().request(new Request.Builder().url("http://api.ror.org/organisations").build())
+                .protocol(Protocol.HTTP_1_1).code(404).message("")
+                .body(ResponseBody.create(MediaType.parse("application/orcid+json"),
+                        Helpers.readFile("src/test/resources/ror/ror_not_found.html")))
+                .build();
+
+        when(remoteCall.execute()).thenReturn(response);
+        when(mockedHttpClient.newCall(any())).thenReturn(remoteCall);
+
+        // when not resolved
+        PublicRorClient client = new PublicRorClient(mockedHttpClient);
+        RorRecord record = client.resolve("https://ror.org/notvalidror");
+
+        assertThat(record).isNull();
+
+    }
 }

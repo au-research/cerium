@@ -6,10 +6,12 @@ import ardc.cerium.core.exception.RecordNotFoundException;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.dto.TreeNodeDTO;
 import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
+import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import com.google.common.base.Converter;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class MyceliumServiceController {
 
 	private final MyceliumService myceliumService;
+	private final VertexDTOMapper vertexMapper;
 
 	private final TreeNodeDTOMapper treeNodeDTOMapper;
 
@@ -118,6 +121,22 @@ public class MyceliumServiceController {
 			relationshipDocuments.add(doc);
 		}
 		return ResponseEntity.ok().body(relationshipDocuments);
+	}
+
+	/**
+	 * API to return the resolved identifier VertexDTO
+	 *
+	 * @param value the value of the identifier
+	 * @param type the type of the identifier
+	 * @return a string response
+	 */
+	@GetMapping(path = "/resolve-identifiers")
+	public ResponseEntity<?> getIdentifierVertex(
+			@RequestParam("value") String value,
+			@RequestParam("type") String type) {
+		Vertex result = myceliumService.getGraphService().getVertexByIdentifier(value,type);
+		Converter converter = vertexMapper.getConverter();
+		return ResponseEntity.ok().body(converter.convert(result));
 	}
 
 }

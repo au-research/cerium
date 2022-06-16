@@ -329,6 +329,7 @@ public class MyceliumIndexingService {
 		doc.setToIdentifierType(to.getIdentifierType());
 		doc.setToClass(to.getObjectClass());
 		doc.setToType(to.getObjectType());
+		if(to.getIdentifierType().equals("ror")) {doc.setToType("group");}
 		doc.setToTitle(to.getTitle());
 		doc.setToListTitle(to.getListTitle());
 		doc.setToGroup(to.getGroup());

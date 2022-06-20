@@ -192,12 +192,29 @@ public class VertexUtil {
 
 		if (identifierType.equals("doi")) {
 			// todo check identifierValue to match a DOI regex first
+			// todo index the vertex in solr instead of neo4j
 			try {
 				ContentNegotiationClient client = new ContentNegotiationClient();
 				CiteProcJson citeProcJson = client.resolveCiteProcJson(identifierValue);
 				String title = citeProcJson.getTitle();
+				String publisher = citeProcJson.getPublisher();
+				String type = citeProcJson.getType();
+				String doi_abstract = citeProcJson.getDoi_abstract();
+				String source = citeProcJson.getSource();
 				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
 					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
+				if(publisher != null && !publisher.isBlank()){
+					vertex.setMetaAttribute("publisher", publisher);
+				}
+				if(type != null && !type.isBlank()){
+					vertex.setMetaAttribute("type", type);
+				}
+				if(doi_abstract != null && !doi_abstract.isBlank()){
+					vertex.setMetaAttribute("abstract", doi_abstract);
+				}
+				if(source != null && !source.isBlank()){
+					vertex.setMetaAttribute("source", source);
 				}
 				vertex.setTitle(title);
 			}
@@ -248,5 +265,4 @@ public class VertexUtil {
 			}
 		}
 	}
-
 }

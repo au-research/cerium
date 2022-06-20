@@ -22,4 +22,7 @@ public class CiteProcJson {
     private String type;
 
     private String source;
+
+    @JsonProperty(value="abstract")
+    private String doi_abstract;
 }

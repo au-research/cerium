@@ -22,6 +22,12 @@ class VertexUtilTest {
 
         // the title is updated to the right value fetched from DOI server
         assertThat(vertex.getTitle()).isEqualTo("The Structure of Ordinary Water");
+        //The type is added as an meta field
+        assertThat(vertex.getMetaAttribute("type"))
+                .isEqualTo("journal-article");
+        //The publisher is added as an meta field
+        assertThat(vertex.getMetaAttribute("publisher"))
+                .isEqualTo("American Association for the Advancement of Science (AAAS)");
 	}
 
     @Test

@@ -7,6 +7,8 @@ import okhttp3.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ListIterator;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +39,12 @@ class PublicRorClientTest {
         assertThat(record.getId()).isNotNull();
         // RorRecord contains an identifier
         assertThat(record.getName()).isNotNull();
+        // RorRecord contains a list of types
+        assertThat(record.getTypes().contains("Education"));
+        // RorRecord contains a country name
+        assertThat(record.getCountry().getCountryName().equals("Austria"));
+        // RorRecord contains a website link
+        assertThat(record.getLinks().contains("https://www.uni-seeburg.at/"));
     }
 
     @Test

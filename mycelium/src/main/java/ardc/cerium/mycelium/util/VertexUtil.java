@@ -14,7 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class VertexUtil {
@@ -255,8 +257,26 @@ public class VertexUtil {
 				PublicRorClient client = new PublicRorClient();
 				RorRecord rorRecord = client.resolve(identifierValue);
 				String title = rorRecord.getName();
+				List types = rorRecord.getTypes();
+				List links = rorRecord.getLinks();
+				String country = rorRecord.getCountry().getCountryName();
 				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
 					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
+				if (country != null && !country.isBlank()) {
+					vertex.setMetaAttribute("country", country);
+				}
+				if (types != null && !types.isEmpty()) {
+					String result = (String) types.stream()
+							.map(n -> String.valueOf(n))
+							.collect(Collectors.joining(", "));
+					vertex.setMetaAttribute("types",result);
+				}
+				if (links != null && !links.isEmpty()) {
+					String result = (String) links.stream()
+							.map(n -> String.valueOf(n))
+							.collect(Collectors.joining(", "));
+					vertex.setMetaAttribute("links",result);
 				}
 				vertex.setTitle(title);
 			}

@@ -1,17 +1,12 @@
 package ardc.cerium.mycelium.controller;
 
-import ardc.cerium.core.common.dto.IdentifierDTO;
-import ardc.cerium.core.common.dto.mapper.IdentifierMapper;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.exception.NotFoundException;
 import ardc.cerium.mycelium.model.*;
-import ardc.cerium.mycelium.model.dto.RegistryObjectVertexDTO;
 import ardc.cerium.mycelium.model.dto.TreeNodeDTO;
-import ardc.cerium.mycelium.model.dto.VertexDTO;
 import ardc.cerium.mycelium.model.mapper.RegistryObjectVertexDTOMapper;
 import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
-import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -20,10 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.function.Function;
@@ -298,7 +291,8 @@ public class MyceliumRegistryObjectResourceController {
 		Graph graph = myceliumService.getGraphService().getNestedCollectionParents(from);
 
 		// get a map of all the nodes based on the vertices
-		Map<String, TreeNodeDTO> nodes = graph.getVertices().stream().map(vertex -> {
+		Map<String, TreeNodeDTO> nodes = graph.getVertices().stream()
+				.filter(vertex -> vertex.getObjectType().equals("collection")).map(vertex -> {
 			return treeNodeDTOMapper.getConverter().convert(vertex);
 		}).collect(Collectors.toMap(TreeNodeDTO::getIdentifier, Function.identity()));
 

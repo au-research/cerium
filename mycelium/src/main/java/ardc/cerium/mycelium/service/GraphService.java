@@ -1313,18 +1313,37 @@ public class GraphService {
 	}
 
 	public Graph getNestedCollectionParents(Vertex origin) {
+
+		String draftFilter = "";
+		if(origin.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			draftFilter = ", labelFilter: '-DRAFT'";
+		}
+
 		String cypherQuery = "MATCH (origin:RegistryObject {identifier: '"+origin.getIdentifier()+"'}) CALL apoc.path.spanningTree(origin, {\n"
-				+ " relationshipFilter: 'isSameAs|isPartOf>', minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
+				+ " relationshipFilter: 'isSameAs|isPartOf>'"+draftFilter+", minLevel: 1, maxLevel: 100, labelFilter: '-Terminated'\n"
 				+ "}) YIELD path RETURN path LIMIT 100;";
 
 		return getGraphsFromPaths(cypherQuery);
 	}
 
 	public Collection<Relationship> getNestedCollectionChildren(Vertex origin, Integer limit, Integer skip, List<String> excludeIDs) {
-		String cypherQuery = "MATCH (origin:Vertex {identifier: \"" + origin.getIdentifier() + "\", identifierType: \""
-				+ origin.getIdentifierType() + "\"})\n" + "OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n"
-				+ "WITH collect(origin) + collect(duplicates) as identical\n" + "UNWIND identical as from\n"
-				+ "WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"})))\n";
+		String draftFilter = "";
+		if(origin.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+			draftFilter = ", labelFilter: '-DRAFT',\n";
+		}
+
+		String cypherQuery = "MATCH (origin:Vertex {identifier:'" + origin.getIdentifier() +"', identifierType:'"+origin.getIdentifierType()+"'})\n"
+				+ " CALL apoc.path.subgraphNodes(origin, {\n"
+				+ " relationshipFilter: 'isSameAs'\n"
+				+ draftFilter
+				+ " minLevel: 0,\n"
+				+ " maxLevel: 10\n"
+				+ " })\n"
+				+ " YIELD node\n"
+				+ " WITH collect(origin) + collect(node) as complete\n"
+				+ " UNWIND complete as from\n"
+				+ " WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"}))"
+				+ " AND to.objectClass = 'collection')\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {

@@ -41,6 +41,7 @@ class PublicOrcidClientTest {
         assertThat(record.getPerson().getName().getFamilyName()).isEqualTo("Carberry");
         assertThat(record.getPerson().getName().getFullName()).isEqualTo("Josiah Carberry");
         assertThat(record.getPerson().getName().getCreditName()).isNull();
+        assertThat(record.getPerson().getBiography().getContent().getClass().isInstance("String"));
     }
 
     @Test

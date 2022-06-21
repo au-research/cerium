@@ -232,8 +232,12 @@ public class VertexUtil {
 				PublicOrcidClient client = new PublicOrcidClient();
 				OrcidRecord orcidRecord = client.resolve(identifierValue);
 				String title = orcidRecord.getPerson().getName().getFullName();
+				String biography = orcidRecord.getPerson().getBiography().getContent();
 				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
 					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+				}
+				if (biography!= null && !biography.isBlank()) {
+					vertex.setMetaAttribute("biography", biography);
 				}
 				vertex.setTitle(title);
 			}

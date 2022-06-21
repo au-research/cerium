@@ -10,8 +10,9 @@ import java.util.Map;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Person {
-    Name name;
-    Biography biography;
+public class Biography {
+
+    @JsonProperty("content")
+    String content;
 
 }

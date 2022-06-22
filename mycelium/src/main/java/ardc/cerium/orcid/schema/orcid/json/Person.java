@@ -12,6 +12,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Person {
     Name name;
-    Biography biography;
+    Biography biography = null;
 
 }

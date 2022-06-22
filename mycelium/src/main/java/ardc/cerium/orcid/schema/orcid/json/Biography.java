@@ -13,6 +13,6 @@ import java.util.Map;
 public class Biography {
 
     @JsonProperty("content")
-    String content;
+    private String content = null;
 
 }

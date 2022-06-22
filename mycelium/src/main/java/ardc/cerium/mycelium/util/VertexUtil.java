@@ -5,6 +5,7 @@ import ardc.cerium.doi.ContentNegotiationClient;
 import ardc.cerium.doi.schema.citeproc.json.CiteProcJson;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.orcid.PublicOrcidClient;
+import ardc.cerium.orcid.schema.orcid.json.Biography;
 import ardc.cerium.orcid.schema.orcid.json.OrcidRecord;
 import ardc.cerium.ror.PublicRorClient;
 import ardc.cerium.ror.schema.ror.json.RorRecord;
@@ -233,19 +234,22 @@ public class VertexUtil {
 			try {
 				PublicOrcidClient client = new PublicOrcidClient();
 				OrcidRecord orcidRecord = client.resolve(identifierValue);
+
 				String title = orcidRecord.getPerson().getName().getFullName();
-				String biography = orcidRecord.getPerson().getBiography().getContent();
+				Biography biography = orcidRecord.getPerson().getBiography();
 				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
 					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
 				}
-				if (biography!= null && !biography.isBlank()) {
-					vertex.setMetaAttribute("biography", biography);
+				if (biography!= null && !biography.getContent().isBlank()) {
+					vertex.setMetaAttribute("biography", biography.getContent());
 				}
 				vertex.setTitle(title);
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				log.warn("Failed to resolve identifier for Vertex[identifier={}, type={}] Reason: {}", identifierValue,
 						identifierType, e.getMessage());
+
 				return;
 			} finally{
 				vertex.setMetaAttribute("lastResolved", Instant.now().toString());

@@ -9,6 +9,7 @@ import ardc.cerium.mycelium.service.RelationLookupService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -109,6 +110,49 @@ public class RelationUtil {
         // party isFunderOf activity
         if (fromClass.equals("party") && (toClass.equals("collection") || toClass.equals("activity"))) {
             return relationType.equals("isFunderOf");
+        }
+
+        return false;
+    }
+
+    public static boolean isDCIRelation(Relationship relationship) {
+        Set<String> relationTypes = relationship.getRelations().stream().map(EdgeDTO::getType)
+                .collect(Collectors.toSet());
+
+        String fromClass = relationship.getFrom().getObjectClass();
+        String toClass = relationship.getTo().getObjectClass();
+        log.trace("Checking DCI Relation [from={}, to={}, types={}]", fromClass, toClass, relationTypes);
+
+        return relationTypes.stream().anyMatch(relationType -> isDCIRelation(fromClass, toClass, relationType));
+    }
+
+    public static boolean isDCIRelation(String fromClass, String toClass, String relationType) {
+
+        // author from party perspective, does not need to check toClass due to accepting relatedInfo
+        if (fromClass.equals("party")) {
+            List<String> validAuthorRelationTypes = Arrays.asList("hasPrincipalInvestigator", "hasAuthor", "hasCoInvestigator", "isOwnerOf", "isCollectorOf");
+            return validAuthorRelationTypes.contains(relationType);
+        }
+
+        // author from collection perspective
+        if (fromClass.equals("collection") && toClass != null && toClass.equals("party")) {
+            List<String> validAuthorRelationTypes = Arrays.asList("IsPrincipalInvestigatorOf", "author", "coInvestigator", "isOwnedBy", "hasCollector");
+            return validAuthorRelationTypes.contains(relationType);
+        }
+
+        // parent record reference
+        if (fromClass.equals("collection")) {
+            return relationType.equals("isPartOf");
+        }
+
+        // funding organisation from party
+        if (fromClass.equals("party")) {
+            return relationType.equals("isFunderOf");
+        }
+
+        // funding organisation from collection
+        if (fromClass.equals("collection") && toClass != null && toClass.equals("party")) {
+            return relationType.equals("isFundedBy");
         }
 
         return false;

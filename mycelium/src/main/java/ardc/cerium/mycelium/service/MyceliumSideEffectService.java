@@ -20,10 +20,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -222,6 +219,54 @@ public class MyceliumSideEffectService {
 						before.getRegistryObjectClass()));
 			}
 		}
+
+		if (DCIRelationChangeExecutor.detect(before, after, myceliumService)) {
+			// Affected Records are the related collections after the modification
+			List<Relationship> relatedCollections = after.getOutbounds()
+					.stream()
+					.map(relationship -> {
+						Vertex to = relationship.getTo();
+						if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+							Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
+									.findFirst().orElse(null);
+							if (resolvedRegistryObjectVertex == null) {
+								return null;
+							}
+							relationship.setTo(to);
+						}
+						return relationship;
+					}).filter(Objects::nonNull).collect(Collectors.toList());
+
+			// new sideEffect per affectedRecords
+			after.getOutbounds().forEach(relationship -> {
+
+				Vertex affectedCollection = null;
+				Vertex to = relationship.getTo();
+				if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+
+					Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
+							.filter(v -> {
+								return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+							}).findFirst().orElse(null);
+
+					if (resolvedRegistryObjectVertex == null) {
+						return;
+					}
+					if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
+						affectedCollection = resolvedRegistryObjectVertex;
+					}
+				} else if (to.getObjectClass().equals("collection")) {
+					affectedCollection = to;
+				}
+
+				if (affectedCollection != null) {
+					sideEffects.add(new DCIRelationChangeSideEffect(affectedCollection.getIdentifier()));
+				}
+
+
+			});
+		}
+
 
 // RDA-492 the related Objects have keys not ids so we must find the ids to modify their portal indexes
 		if(DirectRelationshipChangedExecutor.detect(before, after , myceliumService)){

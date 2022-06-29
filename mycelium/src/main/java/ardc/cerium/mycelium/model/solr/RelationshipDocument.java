@@ -7,6 +7,7 @@ import org.springframework.data.solr.core.mapping.Indexed;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
 import javax.persistence.Id;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -97,5 +98,5 @@ public class RelationshipDocument {
     private Date updatedAt;
 
     @ChildDocument
-    List<EdgeDocument> relations;
+    List<EdgeDocument> relations = new ArrayList<>();
 }

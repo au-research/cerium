@@ -27,4 +27,11 @@ public class RDAEventListener {
         RDAEventDTO eventDTO = event.toRDAEventDTO();
         rdaRegistryClient.sendWebHookRequest(eventDTO);
     }
+
+    @EventListener
+    public void handleRegenerateMetadataEvent(RegenerateMetadataEvent event) {
+        log.debug("Dispatching event {}", event);
+        RDAEventDTO eventDTO = event.toRDAEventDTO();
+        rdaRegistryClient.sendWebHookRequest(eventDTO);
+    }
 }

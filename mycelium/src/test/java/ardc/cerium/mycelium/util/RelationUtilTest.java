@@ -71,4 +71,12 @@ class RelationUtilTest {
         // one has a different datasource id
         assertThat(RelationUtil.isInternal(c1,c2)).isFalse();
     }
+
+    @Test
+	void isDCIRelation() {
+        assertThat(RelationUtil.isDCIRelation("party", null, "isOwnerOf")).isTrue();
+        assertThat(RelationUtil.isDCIRelation("party", "collection", "isOwnerOf")).isTrue();
+        assertThat(RelationUtil.isDCIRelation("collection", null, "isPartOf")).isTrue();
+        assertThat(RelationUtil.isDCIRelation("collection", null, "hasAssociationWith")).isFalse();
+	}
 }

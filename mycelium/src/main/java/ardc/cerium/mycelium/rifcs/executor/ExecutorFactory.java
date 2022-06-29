@@ -37,6 +37,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof DirectRelationshipChangedSideEffect) {
 			return new DirectRelationshipChangedExecutor((DirectRelationshipChangedSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof DCIRelationChangeSideEffect) {
+			return new DCIRelationChangeExecutor((DCIRelationChangeSideEffect) sideEffect, myceliumService);
+		}
 		return null;
 	}
 

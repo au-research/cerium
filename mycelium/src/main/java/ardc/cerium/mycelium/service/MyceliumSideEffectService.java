@@ -221,22 +221,6 @@ public class MyceliumSideEffectService {
 		}
 
 		if (DCIRelationChangeExecutor.detect(before, after, myceliumService)) {
-			// Affected Records are the related collections after the modification
-			List<Relationship> relatedCollections = after.getOutbounds()
-					.stream()
-					.map(relationship -> {
-						Vertex to = relationship.getTo();
-						if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
-							Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
-									.findFirst().orElse(null);
-							if (resolvedRegistryObjectVertex == null) {
-								return null;
-							}
-							relationship.setTo(to);
-						}
-						return relationship;
-					}).filter(Objects::nonNull).collect(Collectors.toList());
-
 			// new sideEffect per affectedRecords
 			after.getOutbounds().forEach(relationship -> {
 
@@ -252,9 +236,11 @@ public class MyceliumSideEffectService {
 					if (resolvedRegistryObjectVertex == null) {
 						return;
 					}
+
 					if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
 						affectedCollection = resolvedRegistryObjectVertex;
 					}
+
 				} else if (to.getObjectClass().equals("collection")) {
 					affectedCollection = to;
 				}
@@ -262,8 +248,37 @@ public class MyceliumSideEffectService {
 				if (affectedCollection != null) {
 					sideEffects.add(new DCIRelationChangeSideEffect(affectedCollection.getIdentifier()));
 				}
+			});
+		}
 
+		if (ScholixRelationChangeExecutor.detect(before, after, myceliumService)) {
+			// new sideEffect per affectedRecords
+			after.getOutbounds().forEach(relationship -> {
 
+				Vertex affectedCollection = null;
+				Vertex to = relationship.getTo();
+				if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+
+					Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
+							.filter(v -> {
+								return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+							}).findFirst().orElse(null);
+
+					if (resolvedRegistryObjectVertex == null) {
+						return;
+					}
+
+					if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
+						affectedCollection = resolvedRegistryObjectVertex;
+					}
+
+				} else if (to.getObjectClass().equals("collection")) {
+					affectedCollection = to;
+				}
+
+				if (affectedCollection != null) {
+					sideEffects.add(new ScholixRelationChangeSideEffect(affectedCollection.getIdentifier()));
+				}
 			});
 		}
 

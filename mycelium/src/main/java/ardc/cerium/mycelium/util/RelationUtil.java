@@ -199,4 +199,33 @@ public class RelationUtil {
                 from.getDataSourceId().equals(to.getDataSourceId());
     }
 
+    public static boolean isScholixRelation(Relationship relationship) {
+
+        Set<String> relationTypes = relationship.getRelations().stream().map(EdgeDTO::getType)
+                .collect(Collectors.toSet());
+
+        String fromClass = relationship.getFrom().getObjectClass();
+        String toClass = relationship.getTo().getObjectClass();
+        log.trace("Checking DCI Relation [from={}, to={}, types={}]", fromClass, toClass, relationTypes);
+
+        return relationTypes.stream().anyMatch(relationType -> isScholixRelation(fromClass, toClass, relationType));
+
+    }
+
+    private static boolean isScholixRelation(String fromClass, String toClass, String relationType) {
+
+        // author
+        if (fromClass.equals("party")) {
+            List<String> validAuthorRelationTypes = Arrays.asList("hasPrincipalInvestigator", "hasAuthor", "hasCoInvestigator", "isOwnerOf", "isCollectorOf");
+            return validAuthorRelationTypes.contains(relationType);
+        }
+
+        // author from collection perspective
+        if (fromClass.equals("collection") && toClass != null && toClass.equals("party")) {
+            List<String> validAuthorRelationTypes = Arrays.asList("IsPrincipalInvestigatorOf", "author", "coInvestigator", "isOwnedBy", "hasCollector");
+            return validAuthorRelationTypes.contains(relationType);
+        }
+
+        return false;
+    }
 }

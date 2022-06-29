@@ -40,6 +40,9 @@ public class ExecutorFactory {
 		else if (sideEffect instanceof DCIRelationChangeSideEffect) {
 			return new DCIRelationChangeExecutor((DCIRelationChangeSideEffect) sideEffect, myceliumService);
 		}
+		else if (sideEffect instanceof ScholixRelationChangeSideEffect) {
+			return new ScholixRelationChangeExecutor((ScholixRelationChangeSideEffect) sideEffect, myceliumService);
+		}
 		return null;
 	}
 

@@ -79,4 +79,12 @@ class RelationUtilTest {
         assertThat(RelationUtil.isDCIRelation("collection", null, "isPartOf")).isTrue();
         assertThat(RelationUtil.isDCIRelation("collection", null, "hasAssociationWith")).isFalse();
 	}
+
+    @Test
+	void isScholixRelation() {
+        assertThat(RelationUtil.isScholixRelation("party", null, "isOwnerOf")).isTrue();
+        assertThat(RelationUtil.isScholixRelation("party", "collection", "isOwnerOf")).isTrue();
+        assertThat(RelationUtil.isScholixRelation("party", null, "IsPrincipalInvestigatorOf")).isTrue();
+        assertThat(RelationUtil.isScholixRelation("party", null, "hasCollector")).isTrue();
+	}
 }

@@ -967,6 +967,7 @@ public class GraphService {
 	 * @return the resulting {@link Graph}
 	 */
 	public Graph getGraphsFromPaths(String cypherQuery) {
+		log.debug("getGraphsFromPaths cypher: {}", cypherQuery);
 		Collection<Graph> graphs = neo4jClient.query(cypherQuery)
 				.fetchAs(Graph.class).mappedBy((typeSystem, record) -> {
 					Graph graph = new Graph();

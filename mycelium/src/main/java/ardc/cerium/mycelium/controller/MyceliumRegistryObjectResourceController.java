@@ -292,7 +292,7 @@ public class MyceliumRegistryObjectResourceController {
 
 		// get a map of all the nodes based on the vertices
 		Map<String, TreeNodeDTO> nodes = graph.getVertices().stream()
-				.filter(vertex -> vertex.getObjectType().equals("collection")).map(vertex -> {
+				.filter(vertex -> vertex.getObjectClass().equals("collection")).map(vertex -> {
 			return treeNodeDTOMapper.getConverter().convert(vertex);
 		}).collect(Collectors.toMap(TreeNodeDTO::getIdentifier, Function.identity()));
 

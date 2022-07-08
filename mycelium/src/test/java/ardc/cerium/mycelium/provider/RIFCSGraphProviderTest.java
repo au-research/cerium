@@ -71,4 +71,10 @@ class RIFCSGraphProviderTest {
         assertThat(bToA.getType()).isEqualTo("hasPart");
 	}
 
+    @Test
+	void parsePayloadToRegistryObject() throws IOException {
+        String json = Helpers.readFile("src/test/resources/653061.json");
+        RegistryObject registryObject = RIFCSGraphProvider.parsePayloadToRegistryObject(json);
+        assertThat(registryObject.getRegistryObjectId()).isEqualTo(653061);
+    }
 }

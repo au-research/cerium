@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.model.solr;
 
+import ardc.cerium.mycelium.model.Vertex;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,8 +18,10 @@ class EdgeDocumentTest {
 		b.setRelationOrigin("GrantsNetwork");
 
 		assertEquals(a, b);
-
 		assertTrue(List.of(a).contains(b));
+
+		Vertex v = new Vertex();
+		assertFalse(a.equals(v));
 	}
 
 	@Test

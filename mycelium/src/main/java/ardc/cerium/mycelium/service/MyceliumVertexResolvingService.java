@@ -21,9 +21,6 @@ public class MyceliumVertexResolvingService {
     @Autowired
     GraphService graphService;
 
-    @Autowired
-    VertexRepository vertexRepository;
-
 	/**
 	* Resolve all the resolvable vertices
      * scheduled to run monthly

@@ -4,10 +4,8 @@ import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
-import ardc.cerium.mycelium.service.MyceliumIndexingService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,10 +60,7 @@ public class DeleteTask implements Runnable {
 			myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();
 			requestLogger.info("Deleted RegistryObject[id={}]", registryObjectId);
 
-			RecordState after = myceliumService.getRecordState(registryObjectId);
-			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", before);
-
-			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
+			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, null);
 			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
 			if (request != null) {

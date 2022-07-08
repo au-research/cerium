@@ -820,7 +820,7 @@ public class GraphService {
 		String draftFilter = "";
 		// add direct relationships
 
-		if(from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
+		if(from.getStatus() == null || from.getStatus().equals(Vertex.Status.PUBLISHED.name())){
 			draftFilter = " labelFilter: '-DRAFT',\n";
 		}
 
@@ -856,7 +856,7 @@ public class GraphService {
 			Collection<Vertex> toRelatedObjects = sameAsNodeCluster.stream()
 					.filter(vertex -> vertex.hasLabel(Vertex.Label.RegistryObject)).collect(Collectors.toList());
 
-			if(from.getStatus().equals(Vertex.Status.PUBLISHED.name()) || toRelatedObjects.size() > 1){
+			if(from.getStatus() == null || from.getStatus().equals(Vertex.Status.PUBLISHED.name()) || toRelatedObjects.size() > 1){
 				toRelatedObjects = sameAsNodeCluster.stream()
 						.filter(vertex -> vertex.hasLabel(Vertex.Label.PUBLISHED)).collect(Collectors.toList());
 			}

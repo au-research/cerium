@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.rifcs.executor.*;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.util.DataSourceUtil;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Getter
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -64,25 +66,6 @@ public class MyceliumSideEffectService {
 			addToQueue(queueID, sideEffect);
 			log.debug("Added Side Effect[class={}] to Queue[queueID={}]", sideEffect.getClass(), queueID);
 		});
-	}
-
-	public void workQueue(String queueID) {
-		log.debug("Start working RQueue[id={}]", queueID);
-		RQueue<SideEffect> queue = getQueue(queueID);
-		while (!queue.isEmpty()) {
-			SideEffect sideEffect = queue.poll();
-			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
-
-			if (executor == null) {
-				log.error("No executor found for sideEffect[class={}]", sideEffect.getClass());
-				continue;
-			}
-
-			log.debug("Executing sideEffect[class={}] with executor[class={}]", sideEffect.getClass(),
-					executor.getClass());
-			executor.handle();
-		}
-		log.info("Finish working RQueue[id={}]", queueID);
 	}
 
 	public void workQueue(String queueID, Request request) {

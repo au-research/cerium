@@ -306,9 +306,4 @@ public class MyceliumService {
 		applicationEventPublisher.publishEvent(event);
 	}
 
-	@Async
-	public void publishEventAsync(ApplicationEvent event) {
-		publishEvent(event);
-	}
-
 }

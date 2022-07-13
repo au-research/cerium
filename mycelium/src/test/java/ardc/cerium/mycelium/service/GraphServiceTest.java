@@ -7,12 +7,12 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.harness.Neo4j;
@@ -20,16 +20,31 @@ import org.neo4j.harness.Neo4jBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.containers.Neo4jLabsPlugin;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @DataNeo4jTest
+@Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional(propagation = Propagation.NEVER)
+@ExtendWith(SpringExtension.class)
 @Import({GraphService.class, VertexMapper.class, EdgeDTOMapper.class, ModelMapper.class})
 class GraphServiceTest {
 
@@ -39,27 +54,20 @@ class GraphServiceTest {
 	@Autowired
 	Neo4jClient neo4jClient;
 
-	private static Neo4j embeddedDatabaseServer;
+	@Container
+	static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.4")
+			.withLabsPlugins(Neo4jLabsPlugin.APOC);
 
-	@BeforeAll
-	static void initializeNeo4j() {
-
-		embeddedDatabaseServer = Neo4jBuilders.newInProcessBuilder()
-				.withDisabledServer()
-				.build();
-	}
-
-	@AfterAll
-	static void stopNeo4j() {
-		embeddedDatabaseServer.close();
+	@AfterEach
+	void wipeNeo4j() {
+		neo4jClient.query("MATCH (n) DETACH DELETE n;").run();
 	}
 
 	@DynamicPropertySource
 	static void neo4jProperties(DynamicPropertyRegistry registry) {
-
-		registry.add("spring.neo4j.uri", embeddedDatabaseServer::boltURI);
+		registry.add("spring.neo4j.uri", neo4jContainer::getBoltUrl);
 		registry.add("spring.neo4j.authentication.username", () -> "neo4j");
-		registry.add("spring.neo4j.authentication.password", () -> null);
+		registry.add("spring.neo4j.authentication.password", neo4jContainer::getAdminPassword);
 	}
 
 	@Test
@@ -81,6 +89,44 @@ class GraphServiceTest {
 		assertThat(actual).isNotNull();
 		assertThat(actual.getIdentifier()).isEqualTo("testIdentifier");
 		assertThat(actual.getIdentifierType()).isEqualTo(RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+	}
+
+	@Test
+	void ingestVertexExistingShouldUpdate() {
+		// given an existing vertex
+		Vertex fixture = new Vertex("testIdentifier", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		fixture.setTitle("Old Title");
+		graphService.ingestVertex(fixture);
+
+		// when ingest a second time
+		Vertex vertex = new Vertex("testIdentifier", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		vertex.setTitle("New Title");
+		graphService.ingestVertex(vertex);
+
+		// it should have new titles
+		Vertex actual = graphService.getVertexByIdentifier("testIdentifier", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+
+		assertThat(actual).isNotNull();
+		assertThat(actual.getTitle()).isEqualTo("New Title");
+	}
+
+	@Test
+	void deleteVertex() {
+		// given an existing vertex
+		Vertex fixture = new Vertex("testIdentifier", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graphService.ingestVertex(fixture);
+
+		// when delete
+		graphService.deleteVertex(fixture);
+
+		// it should be gone
+		Vertex actual = graphService.getVertexByIdentifier("testIdentifier", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		assertThat(actual).isNull();
+	}
+
+	@Test
+	void deleteUnknownVertexShouldntException() {
+		graphService.deleteVertex(new Vertex("testIdentifier", "ro:key"));
 	}
 
 	@Test
@@ -174,7 +220,6 @@ class GraphServiceTest {
 	}
 
 	@Test
-	@Disabled("getSameAs is using apoc libraries disable testing until library can be loaded with neo4j-harness")
 	void getDuplicateRegistryObjectTest() {
 		// given A, B, C isSameAs identifier I1
 		Graph graph = new Graph();
@@ -212,7 +257,6 @@ class GraphServiceTest {
 	}
 
 	@Test
-	@Disabled("getSameAs is using apoc libraries disable testing until library can be loaded with neo4j-harness")
 	void getDuplicateofDraftRegistryObjectTest() {
 		// given A, B, C isSameAs identifier I1
 		Graph graph = new Graph();
@@ -247,7 +291,6 @@ class GraphServiceTest {
 
 
 	@Test
-	@Disabled("getSameAs is using apoc libraries disable testing until library can be loaded with neo4j-harness")
 	void getDuplicateMultipleStep() {
 		// given A isSameAs I1
 		// B isSameAs I1 and isSameAs I2
@@ -327,7 +370,6 @@ class GraphServiceTest {
 	}
 
 	@Test
-	@Disabled("getSameAs is using apoc libraries disable testing until library can be loaded with neo4j-harness")
 	void getRecordState() {
 		// given (c)-[isSameAs]->(i1)<-[isSameAs]-(a)-[isPartOf]->(b) and
 		// (b)-[hasPart]->(a)
@@ -383,7 +425,6 @@ class GraphServiceTest {
 	}
 
 	@Test
-	@Disabled("getSameAs is using apoc libraries disable testing until library can be loaded with neo4j-harness")
 	void getDuplicateWithDraftsRegistryObjectTest() {
 		// given A, B, C isSameAs identifier I1
 		Graph graph = new Graph();
@@ -425,4 +466,390 @@ class GraphServiceTest {
 		assertThat(actual).isNotNull();
 		assertThat(vertex.getMetaAttribute("listTitle")).isEqualTo("Random List Title");
 	}
+
+	@Test
+	void removeDanglingVertices() {
+		// given a graph with a dangling vertex
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", "test");
+		a.setId(1L);
+		Vertex b = new Vertex("b", "test");
+		b.setId(2L);
+		Vertex c = new Vertex("c", "test");
+		c.setId(3L);
+
+		graph.addVertex(a, b, c);
+		graph.addEdge(new Edge(a, b, "hasAssociationWith"));
+
+		// when removeDangling
+		graphService.removeDanglingVertices(graph);
+
+		// the dangling vertex should be gone
+		assertThat(graph.getVertices().size()).isEqualTo(2);
+		assertThat(graph.getVertices().stream().filter(vertex -> {
+			return vertex.getIdentifier().equals("c");
+		}).findFirst().orElse(null)).isNull();
+	}
+
+	@Test
+	void getRegistryObjectByKey() {
+		// given (a:RegistryObject status:PUBLISHED)-[:isSameAs]->(k:Identifier {type:key})
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus(Vertex.Status.PUBLISHED);
+		Vertex k = new Vertex("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graph.addVertex(a, k);
+		graph.addEdge(new Edge(a, k, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// when obtaining RegistryObject from the key
+		Vertex actual = graphService.getRegistryObjectByKey("key");
+
+		// a is returned
+		assertThat(actual).isNotNull();
+		assertThat(actual.getIdentifier()).isEqualTo(a.getIdentifier());
+		assertThat(actual.getIdentifierType()).isEqualTo(a.getIdentifierType());
+	}
+
+	@Test
+	void getRegistryObjectByKeyVertex() {
+		// given (a:RegistryObject status:PUBLISHED)-[:isSameAs]->(k:Identifier {type:key})
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus(Vertex.Status.PUBLISHED);
+		Vertex k = new Vertex("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		k.addLabel(Vertex.Label.Identifier);
+		graph.addVertex(a, k);
+		graph.addEdge(new Edge(a, k, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// when obtaining RegistryObject from the keyVertex
+		Vertex actual = graphService.getRegistryObjectByKeyVertex(k);
+
+		// a is returned
+		assertThat(actual).isNotNull();
+		assertThat(actual.getIdentifier()).isEqualTo(a.getIdentifier());
+		assertThat(actual.getIdentifierType()).isEqualTo(a.getIdentifierType());
+	}
+
+	@Test
+	void getDirectInboundRelationships() {
+		// given (a:Vertex)<-[:hasAssociationWith]-(b:Vertex)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		graph.addVertex(a, b);
+		graph.addEdge(new Edge(b, a, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+		// when obtain direct inbound relationships of a
+		Collection<ardc.cerium.mycelium.model.Relationship> actual = graphService.getDirectInboundRelationships(a.getIdentifier(), a.getIdentifierType());
+
+		// we should get (b)-[hasAssociationWith]->(a)
+		assertThat(actual.size()).isNotEqualTo(0);
+		ardc.cerium.mycelium.model.Relationship bToA = actual.stream().filter(relationship -> {
+			return relationship.getFrom().getIdentifier().equals("b") && relationship.getTo().getIdentifier().equals("a");
+		}).findFirst().orElse(null);
+		assertThat(bToA).isNotNull();
+		assertThat(bToA.getRelations().size()).isEqualTo(1);
+		assertThat(bToA.getRelations().get(0).getType()).isEqualTo("hasAssociationWith");
+	}
+
+	@Test
+	void getDirectOutboundRelationships() {
+		// given (a:Vertex)-[:hasAssociationWith]->(b:Vertex)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		graph.addVertex(a, b);
+		graph.addEdge(new Edge(a, b, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+		// when obtain direct outbound relationships of a
+		Collection<ardc.cerium.mycelium.model.Relationship> actual = graphService.getDirectOutboundRelationships(a.getIdentifier(), a.getIdentifierType());
+
+		// we should get (a)-[hasAssociationWith]->(b)
+		assertThat(actual.size()).isNotEqualTo(0);
+		ardc.cerium.mycelium.model.Relationship aToB = actual.stream().filter(relationship -> {
+			return relationship.getFrom().getIdentifier().equals("a") && relationship.getTo().getIdentifier().equals("b");
+		}).findFirst().orElse(null);
+		assertThat(aToB).isNotNull();
+		assertThat(aToB.getRelations().size()).isEqualTo(1);
+		assertThat(aToB.getRelations().get(0).getType()).isEqualTo("hasAssociationWith");
+	}
+
+	@Test
+	void getAllRegistryObjects_noVertices() {
+		Page<Vertex> allRegistryObjects = graphService.getAllRegistryObjects(Pageable.unpaged());
+		assertThat(allRegistryObjects.getTotalElements()).isEqualTo(0L);
+	}
+
+	@Test
+	void getAllRegistryObjects_noRegistryObjects() {
+		// given a Vertex
+		Vertex a = new Vertex("a", "doi");
+		graphService.ingestVertex(a);
+
+		Page<Vertex> allRegistryObjects = graphService.getAllRegistryObjects(Pageable.unpaged());
+		assertThat(allRegistryObjects.getTotalElements()).isEqualTo(0L);
+	}
+
+	@Test
+	void getAllRegistryObjects_excludesDrafts() {
+		// given a Vertex
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.setStatus(Vertex.Status.DRAFT);
+		graphService.ingestVertex(a);
+
+		Page<Vertex> allRegistryObjects = graphService.getAllRegistryObjects(Pageable.unpaged());
+		assertThat(allRegistryObjects.getTotalElements()).isEqualTo(0L);
+	}
+
+	@Test
+	void getAllRegistryObjects() {
+		// given a Vertex
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.setStatus(Vertex.Status.PUBLISHED);
+		graphService.ingestVertex(a);
+
+		Page<Vertex> allRegistryObjects = graphService.getAllRegistryObjects(Pageable.unpaged());
+		assertThat(allRegistryObjects.getTotalElements()).isEqualTo(1L);
+	}
+
+
+
+	@Test
+	void getLocalGraph() {
+		// given a general graph
+		// (a)-[:hasAssociationWith]->(b)
+		// (b)-[:hasAssociationWith]->(c)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		graph.addVertex(a, b, c);
+		graph.addEdge(new Edge(a, b, "hasAssociationWith"));
+		graph.addEdge(new Edge(b, c, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+
+		Graph actual = graphService.getLocalGraph(a);
+
+		assertThat(actual.getVertices().size()).isGreaterThan(0);
+
+		// localGraph of a should include (a)-[:hasAssociationWith]->(b)
+		Edge aToB = actual.getEdges().stream().filter(edge -> {
+			return edge.getFrom().getIdentifier().equals("a") && edge.getTo().getIdentifier().equals("b");
+		}).findFirst().orElse(null);
+		assertThat(aToB).isNotNull();
+		assertThat(aToB.getType()).isEqualTo("hasAssociationWith");
+
+		// but no (b)-[:hasAssociationWith]->(c)
+		Edge bToC = actual.getEdges().stream().filter(edge -> {
+			return edge.getFrom().getIdentifier().equals("b") && edge.getTo().getIdentifier().equals("c");
+		}).findFirst().orElse(null);
+		assertThat(bToC).isNull();
+	}
+
+	@Test
+	void getNestedCollectionChildren() {
+		// given (a)-[:hasPart]->(b) and (a)-[:hasPart]-(c) and (a)-[:hasAssociationWith]->(d)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.setObjectClass("collection");
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		b.setObjectClass("collection");
+		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		c.setObjectClass("collection");
+		Vertex d = new Vertex("d", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		d.setObjectClass("collection");
+		graph.addVertex(a, b, c, d);
+		graph.addEdge(new Edge(a, b, "hasPart"));
+		graph.addEdge(new Edge(a, c, "hasPart"));
+		graph.addEdge(new Edge(a, d, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+		// b and c is nested under a, that means all paths from a->b and b->c should exists, but not c->d
+		Collection<ardc.cerium.mycelium.model.Relationship> actual = graphService.getNestedCollectionChildren(a, 100, 0, new ArrayList<>());
+		assertThat(actual.size()).isGreaterThan(0);
+
+		// a->b is included
+		assertThat(actual.stream().anyMatch(relationship -> {
+			return relationship.getFrom().getIdentifier().equals("a") && relationship.getTo().getIdentifier().equals("b");
+		})).isTrue();
+
+		// a->c is included
+		assertThat(actual.stream().anyMatch(relationship -> {
+			return relationship.getFrom().getIdentifier().equals("a") && relationship.getTo().getIdentifier().equals("c");
+		})).isTrue();
+
+		// a->d is not
+		assertThat(actual.stream().anyMatch(relationship -> {
+			return relationship.getFrom().getIdentifier().equals("a") && relationship.getTo().getIdentifier().equals("d");
+		})).isFalse();
+	}
+
+	@Test
+	void getNestedCollectionChildrenCount() {
+		// given (a)-[:hasPart]->(b) and (a)-[:hasPart]-(c) and (a)-[:hasAssociationWith]->(d)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.setObjectClass("collection");
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		b.setObjectClass("collection");
+		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		c.setObjectClass("collection");
+		Vertex d = new Vertex("d", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		d.setObjectClass("collection");
+		graph.addVertex(a, b, c, d);
+		graph.addEdge(new Edge(a, b, "hasPart"));
+		graph.addEdge(new Edge(a, c, "hasPart"));
+		graph.addEdge(new Edge(a, d, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+		// a has exactly 2 nested children
+		int actual = graphService.getNestedCollectionChildrenCount(a.getIdentifier(), new ArrayList<>());
+		assertThat(actual).isEqualTo(2);
+	}
+
+	@Test
+	void getSameAs() {
+		// given (a Published)-[isSameAs]->(i)<-[isSameAs]-(b)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.addLabel(Vertex.Label.RegistryObject);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		Vertex i = new Vertex("i", "local");
+		graph.addVertex(a, b, i);
+		graph.addEdge(new Edge(a, i, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(b, i, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// a, b, i turns up
+		Collection<Vertex> actual = graphService.getSameAs(a);
+		assertThat(actual.size()).isEqualTo(3);
+	}
+
+	@Test
+	void getSameAsWithIdentifierAndType_callsGetSameAs() {
+		GraphService mockedService = Mockito.mock(GraphService.class);
+		doCallRealMethod().when(mockedService).getSameAs(any(String.class), any(String.class));
+		when(mockedService.getVertexByIdentifier(any(String.class), any(String.class))).thenReturn(new Vertex());
+		mockedService.getSameAs("identifier", "type");
+		verify(mockedService, times(1)).getVertexByIdentifier(any(String.class), any(String.class));
+		verify(mockedService, times(1)).getSameAs(any(Vertex.class));
+
+		// null cases
+		assertThat(mockedService.getSameAs("identifier", null).size()).isEqualTo(0);
+		assertThat(mockedService.getSameAs("identifier", "").size()).isEqualTo(0);
+		assertThat(mockedService.getSameAs("", "").size()).isEqualTo(0);
+		assertThat(mockedService.getSameAs("", "type").size()).isEqualTo(0);
+		assertThat(mockedService.getSameAs(null, "type").size()).isEqualTo(0);
+	}
+
+	@Test
+	void getSameAsRegistryObject_Published() {
+		// given (a Published)-[isSameAs]->(i)<-[isSameAs]-(b Published)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.addLabel(Vertex.Label.RegistryObject);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		b.addLabel(Vertex.Label.RegistryObject);
+		Vertex i = new Vertex("i", "local");
+		graph.addVertex(a, b, i);
+		graph.addEdge(new Edge(a, i, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(b, i, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// when getSameAsRegistryObject of a, b turns up
+		Collection<Vertex> actual = graphService.getSameAsRegistryObject(a);
+		assertThat(actual.stream().anyMatch(vertex -> {
+			return vertex.getIdentifier().equals("b");
+		})).isTrue();
+	}
+
+	@Test
+	void getSameAsIdentifierWithType() {
+		GraphService mockedService = Mockito.mock(GraphService.class);
+		doCallRealMethod().when(mockedService).getSameAsIdentifierWithType(any(Vertex.class), any(String.class));
+		when(mockedService.getSameAs(any(String.class), any(String.class))).thenReturn(Collections.emptyList());
+		mockedService.getSameAsIdentifierWithType(new Vertex("id", "type"), "type");
+		verify(mockedService, times(1)).getSameAs(any(String.class), any(String.class));
+	}
+
+	@Test
+	void setRegistryObjectKeyNodeTerminated() {
+		// there exists a lonely key vertex and a key with a real RegistryObject
+		Graph graph = new Graph();
+		Vertex k = new Vertex("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex a = new Vertex("1", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.addLabel(Vertex.Label.RegistryObject);
+		Vertex k2 = new Vertex("k2", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graph.addVertex(a, k, k2);
+		graph.addEdge(new Edge(a, k2, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// when setRegistryObjectKeyNodeTerminated
+		graphService.setRegistryObjectKeyNodeTerminated();
+
+		// the key vertex is set to Terminated
+		Vertex actual = graphService.getVertexByIdentifier("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		assertThat(actual).isNotNull();
+		assertThat(actual.getLabels().contains("Terminated")).isTrue();
+	}
+
+	@Test
+	void reinstateTerminatedNodes() {
+		// given a Terminated key node with a real Object
+		Graph graph = new Graph();
+		Vertex k = new Vertex("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graph.addVertex(k);
+		graphService.ingestGraph(graph);
+		graphService.setRegistryObjectKeyNodeTerminated();
+
+		Vertex actual = graphService.getVertexByIdentifier("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		assertThat(actual).isNotNull();
+		assertThat(actual.getLabels().contains("Terminated")).isTrue();
+
+		Vertex a = new Vertex("1", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		a.addLabel(Vertex.Label.RegistryObject);
+		graph.addVertex(a, k);
+		graph.addEdge(new Edge(a, k, RIFCSGraphProvider.RELATION_SAME_AS));
+		graphService.ingestGraph(graph);
+
+		// when reinstate
+		graphService.reinstateTerminatedNodes();
+
+		// it doesn't have the Terminated label anymore
+		actual = graphService.getVertexByIdentifier("key", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		assertThat(actual).isNotNull();
+		assertThat(actual.getLabels().contains("Terminated")).isFalse();
+	}
+
+	@Test
+	void streamRegistryObjectFromDataSource() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamRegistryObjectFromDataSource("1");
+		verify(mockedRepository, times(1)).streamRegistryObjectByDataSourceId("1");
+	}
+
+	@Test
+	void streamRegistryObjectFromDataSourceIdAndClass() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamRegistryObjectFromDataSource("1", "collection");
+		verify(mockedRepository, times(1)).streamRegistryObjectByDataSourceAndClass("1", "collection");
+	}
+
+	@Test
+	void streamVertexByIdentifierType() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamVertexByIdentifierType("type");
+		verify(mockedRepository, times(1)).streamVertexByIdentifierType("type");
+	}
+
 }

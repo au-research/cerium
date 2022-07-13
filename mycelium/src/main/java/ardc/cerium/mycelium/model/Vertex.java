@@ -73,6 +73,13 @@ public class Vertex {
 		labels = new ArrayList<>();
 	}
 
+	public Vertex(String identifier, String identifierType, Status status) {
+		this.identifier = identifier;
+		this.identifierType = identifierType;
+		this.setStatus(status);
+		labels = new ArrayList<>();
+	}
+
 	public void addLabel(Label label) {
 		labels.add(label.toString());
 	}

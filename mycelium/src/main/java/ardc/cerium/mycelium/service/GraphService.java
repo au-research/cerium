@@ -9,6 +9,7 @@ import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
@@ -41,6 +42,7 @@ import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_ID_IDENTIFI
 @Service
 @Slf4j
 @Getter
+@Setter
 public class GraphService {
 
 	private final VertexRepository vertexRepository;
@@ -572,78 +574,6 @@ public class GraphService {
 
 			return relationship;
 		}).all();
-	}
-
-	/**
-	 * Ingest relations from duplicate as Implicit Edges
-	 * @param vertices a {@link List} of {@link Vertex} to generate and ingest Duplicate
-	 * relations for
-	 */
-	public void generateDuplicateRelationships(List<Vertex> vertices) {
-
-		// for each imported Vertex (as origin)
-		vertices.forEach(origin -> {
-			// AllDupes contains Identifier and itself
-			Collection<Vertex> AllDupes = getSameAs(origin.getIdentifier(), origin.getIdentifierType());
-
-			// duplicates only contains true duplicate
-			List<Vertex> duplicates = AllDupes.stream()
-					.filter(duplicate -> !duplicate.getIdentifier().equals(origin.getIdentifier())
-							&& !duplicate.getLabels().contains("Identifier"))
-					.collect(Collectors.toList());
-
-			duplicates.forEach(duplicate -> {
-				// todo pagination when there's more than 100
-				Collection<Relationship> allRelationsFromVertex = allRelationsFromVertex(duplicate,
-						PageRequest.of(0, 100));
-				allRelationsFromVertex.forEach(relationship -> {
-					relationship.getRelations().forEach(relation -> {
-						Edge edge = new Edge(origin, relationship.getTo(), relation.getType());
-						edge.setOrigin(relation.getOrigin());
-						edge.setReverse(relation.isReverse());
-						edge.setInternal(relation.isInternal());
-						edge.setPublic(relation.isPublic());
-						edge.setDuplicate(true);
-						ingestEdge(edge);
-
-						// reversed edge should also be inserted
-						Edge reversed = RIFCSGraphProvider.getReversedEdge(edge);
-						edge.setDuplicate(true);
-						ingestEdge(reversed);
-					});
-				});
-			});
-		});
-	}
-
-	public Collection<Vertex> getParentCollection(String registryObjectId) {
-		return neo4jClient.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
-				+ "CALL apoc.path.spanningTree(origin, {\n"
-				+ "    relationshipFilter: \"isSameAs|isPartOf>|isOutputOf>|isFundedBy>\",\n" + "    minLevel: 1,\n"
-				+ "    maxLevel: 100})\n" + "YIELD path WITH nodes(path) as targets\n"
-				+ "MATCH (collection:RegistryObject {objectClass: \"collection\"}) WHERE collection IN targets\n"
-				+ "MATCH (party:RegistryObject {objectClass: \"party\"}) WHERE party IN targets\n"
-				+ "RETURN DISTINCT collection SKIP 0 LIMIT 100").bind(registryObjectId).to("identifier")
-				.fetchAs(Vertex.class).mappedBy((typeSystem, record) -> {
-					Node n = record.get("collection").asNode();
-					return vertexMapper.getConverter().convert(n);
-				}).all();
-	}
-
-	public Collection<Vertex> getChildCollection(String registryObjectId) {
-		return neo4jClient
-				.query("MATCH (origin:RegistryObject) WHERE origin.identifier = $identifier\n"
-						+ "CALL apoc.path.spanningTree(origin, {\n"
-						+ "    relationshipFilter: $relationshipFilter, minLevel: $minLevel, maxLevel: $maxLevel"
-						+ "}) YIELD path WITH nodes(path) as targets\n"
-						+ "MATCH (collection:RegistryObject {objectClass: 'collection'}) WHERE collection IN targets\n"
-						+ "RETURN DISTINCT collection SKIP 0 LIMIT 100")
-				.bind(registryObjectId).to("identifier")
-				.bind("isSameAs|hasPart>|outputs>|funds>|isFunderOf>|hasOutput>").to("relationshipFilter").bind(1)
-				.to("minLevel").bind(100).to("maxLevel").fetchAs(Vertex.class).mappedBy((typeSystem, record) -> {
-					Node n = record.get("collection").asNode();
-					return vertexMapper.getConverter().convert(n);
-				}).all();
 	}
 
 	/**

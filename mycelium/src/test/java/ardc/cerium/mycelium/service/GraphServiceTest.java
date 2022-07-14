@@ -1,9 +1,6 @@
 package ardc.cerium.mycelium.service;
 
-import ardc.cerium.mycelium.model.Edge;
-import ardc.cerium.mycelium.model.Graph;
-import ardc.cerium.mycelium.model.RelationDocument;
-import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
@@ -12,6 +9,7 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.util.Neo4jClientBiFunctionHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.neo4j.driver.types.Relationship;
@@ -23,6 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.solr.core.query.Query;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -618,8 +617,6 @@ class GraphServiceTest {
 		assertThat(allRegistryObjects.getTotalElements()).isEqualTo(1L);
 	}
 
-
-
 	@Test
 	void getLocalGraph() {
 		// given a general graph
@@ -777,6 +774,260 @@ class GraphServiceTest {
 		when(mockedService.getSameAs(any(String.class), any(String.class))).thenReturn(Collections.emptyList());
 		mockedService.getSameAsIdentifierWithType(new Vertex("id", "type"), "type");
 		verify(mockedService, times(1)).getSameAs(any(String.class), any(String.class));
+	}
+
+	@Test
+	void getSameAsIdentifierWithTypeString() {
+		GraphService mockedService = Mockito.mock(GraphService.class);
+		doCallRealMethod().when(mockedService).getSameAsIdentifierWithType(any(String.class), any(String.class), any(String.class));
+		when(mockedService.getSameAs(any(String.class), any(String.class))).thenReturn(Collections.emptyList());
+		mockedService.getSameAsIdentifierWithType("identifier", "identifier-type", "type");
+		verify(mockedService, times(1)).getSameAs(any(String.class), any(String.class));
+	}
+
+	@Test
+	void streamChildCollection() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamChildCollection(new Vertex("test", "test"));
+		verify(mockedRepository, times(1)).streamSpanningTreeFromId("test", "isSameAs|hasPart>|outputs>|hasOutput>|isFunderOf>", "collection");
+	}
+
+	@Test
+	void streamChildActivity() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamChildActivity(new Vertex("test", "test"));
+		verify(mockedRepository, times(1)).streamSpanningTreeFromId("test", "isSameAs|hasPart>", "activity");
+	}
+
+	@Test
+	void streamParentParty() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamParentParty(new Vertex("test", "test"));
+		verify(mockedRepository, times(1)).streamSpanningTreeFromId("test", "isSameAs|isPartOf>|isOutputOf>|isFundedBy>", "party");
+	}
+
+	@Test
+	void streamParentActivity() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamParentActivity(new Vertex("test", "test"));
+		verify(mockedRepository, times(1)).streamSpanningTreeFromId("test", "isSameAs|isPartOf>", "activity");
+	}
+
+	@Test
+	void getVertexIdentifiersByType() {
+		// given 2 vertex with type doi and 1 vertex with type RegistryObject
+		graphService.ingestVertex(new Vertex("a", "doi"));
+		graphService.ingestVertex(new Vertex("b", "doi"));
+		graphService.ingestVertex(new Vertex("c", "ro:id"));
+
+		// when getVertexIdentifiersByType doi, 2 returns
+		Collection<String> actualDOIs = graphService.getVertexIdentifiersByType("doi");
+		assertThat(actualDOIs.size()).isEqualTo(2);
+		assertThat(actualDOIs.contains("a")).isTrue();
+		assertThat(actualDOIs.contains("b")).isTrue();
+
+		// when getVertexIdentifiersByType ro:id, 1 returns
+		Collection<String> actualRO = graphService.getVertexIdentifiersByType("ro:id");
+		assertThat(actualRO.size()).isEqualTo(1);
+		assertThat(actualRO.contains("c")).isTrue();
+	}
+
+	@Test
+	void streamParentCollection() {
+		VertexRepository mockedRepository = Mockito.mock(VertexRepository.class);
+		GraphService mockedGraphService = new GraphService(mockedRepository, graphService.getNeo4jClient(), graphService.getVertexMapper(), graphService.getEdgeDTOMapper());
+		mockedGraphService.streamParentCollection(new Vertex("test", "test"));
+		verify(mockedRepository, times(1)).streamSpanningTreeFromId("test", "isSameAs|isPartOf>", "collection");
+	}
+
+	@Test
+	void getRegistryObjectGraph() {
+		// todo
+	}
+
+	@Test
+	void getGrantsNetworkDownwards() {
+		// given (p party)-[isFunderOf]->(a activity)-[hasOutput]->(c collection)
+		Graph graph = new Graph();
+		Vertex p = new Vertex("p", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		p.addLabel(Vertex.Label.RegistryObject);
+		p.setStatus(Vertex.Status.PUBLISHED);
+		Vertex pkey = new Vertex("pkey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus(Vertex.Status.PUBLISHED);
+		Vertex akey = new Vertex("akey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus(Vertex.Status.PUBLISHED);
+		Vertex ckey = new Vertex("ckey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graph.addVertex(p, pkey, a, akey, c, ckey);
+		graph.addEdge(new Edge(p, pkey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(a, akey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(c, ckey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(p, akey, "isFunderOf"));
+		graph.addEdge(new Edge(a, ckey, "hasOutput"));
+		graphService.ingestGraph(graph);
+
+		Graph actual = graphService.getGrantsNetworkDownwards(p, new ArrayList<>());
+
+		// 3 vertices from p -> includes p, a and c
+		assertThat(actual.getVertices().size()).isEqualTo(3);
+		assertThat(actual.getVertices().stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList()).containsAll(Arrays.asList("p", "a", "c"))).isTrue();
+
+		// 2 edges, isFunderOf and hasOutput
+		assertThat(actual.getEdges().size()).isEqualTo(2);
+		assertThat(actual.getEdges().stream().map(edge -> {
+			return edge.getType();
+		}).collect(Collectors.toList()).containsAll(Arrays.asList("isFunderOf", "hasOutput"))).isTrue();
+	}
+
+	@Test
+	void getGrantsNetworkGraphUpwards() {
+		// given (p party)<-[isFundedBy]-(a activity)<-[isOutputOf]-(c collection)
+		Graph graph = new Graph();
+		Vertex p = new Vertex("p", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		p.addLabel(Vertex.Label.RegistryObject);
+		p.setStatus(Vertex.Status.PUBLISHED);
+		Vertex pkey = new Vertex("pkey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.addLabel(Vertex.Label.RegistryObject);
+		a.setStatus(Vertex.Status.PUBLISHED);
+		Vertex akey = new Vertex("akey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		c.addLabel(Vertex.Label.RegistryObject);
+		c.setStatus(Vertex.Status.PUBLISHED);
+		Vertex ckey = new Vertex("ckey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		graph.addVertex(p, pkey, a, akey, c, ckey);
+		graph.addEdge(new Edge(p, pkey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(a, akey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(c, ckey, RIFCSGraphProvider.RELATION_SAME_AS));
+		graph.addEdge(new Edge(a, pkey, "isFundedBy"));
+		graph.addEdge(new Edge(c, akey, "isOutputOf"));
+		graphService.ingestGraph(graph);
+
+		Graph actual = graphService.getGrantsNetworkGraphUpwards(c, new ArrayList<>());
+
+		// 3 vertices from p -> includes p, a and c
+		assertThat(actual.getVertices().size()).isEqualTo(3);
+		assertThat(actual.getVertices().stream().map(vertex -> {
+			return vertex.getIdentifier();
+		}).collect(Collectors.toList()).containsAll(Arrays.asList("p", "a", "c"))).isTrue();
+
+		// 2 edges, isFundedBy and isOutputOf
+		assertThat(actual.getEdges().size()).isEqualTo(2);
+		assertThat(actual.getEdges().stream().map(edge -> {
+			return edge.getType();
+		}).collect(Collectors.toList()).containsAll(Arrays.asList("isFundedBy", "isOutputOf"))).isTrue();
+	}
+
+	@Test
+	void collapseGraph() {
+		// given a graph of (a)-[isSameAs]->(k) and (b)-[hasAssociationWith]->(k)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		a.setId(1L);
+		Vertex k = new Vertex("k", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE);
+		k.setId(2L);
+		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+		b.setId(3L);
+		graph.addVertex(a, b, k);
+		graph.addEdge(new Edge(a, k, RIFCSGraphProvider.RELATION_SAME_AS, 1L));
+		graph.addEdge(new Edge(b, k, "hasAssociationWith", 2L));
+
+		// when collapse
+		Graph actual = graphService.collapseGraph(graph);
+
+		// (b)-[hasAssociationWith]->(a) is found, only 2 vertices
+		assertThat(actual.getVertices().size()).isEqualTo(2);
+		assertThat(actual.getEdges().stream().anyMatch(edge -> {
+			return edge.getFrom().getIdentifier().equals("b") && edge.getTo().getIdentifier().equals("a") && edge.getType().equals("hasAssociationWith");
+		})).isTrue();
+	}
+
+	@Test
+	void getGraphBetweenVertices() {
+		// todo
+	}
+
+	@Test
+	void getRelationTypeGrouping() {
+		// given (a)-[hasAssociationWith]->(b collection), (a)-[hasAssociationWith]->(c collection)
+		// (a)-[isOwnedBy]->(p party)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", "ro:id");
+		Vertex b = new Vertex("b", "ro:id");
+		b.setObjectClass("collection");
+		b.setObjectType("collection");
+		Vertex c = new Vertex("c", "ro:id");
+		c.setObjectClass("collection");
+		c.setObjectType("collection");
+		Vertex p = new Vertex("p", "ro:id");
+		p.setObjectClass("party");
+		p.setObjectType("group");
+		graph.addVertex(a, b, c, p);
+		graph.addEdge(new Edge(a, b, "hasAssociationWith"));
+		graph.addEdge(new Edge(a, c, "hasAssociationWith"));
+		graph.addEdge(new Edge(a, p, "isOwnedBy"));
+		graphService.ingestGraph(graph);
+
+		// when get RelationType Grouping of (a)
+		Collection<RelationTypeGroup> actual = graphService.getRelationTypeGrouping(a);
+
+		// (a) hasAssociationWith 2 collections
+		assertThat(actual.stream().anyMatch(relationTypeGroup -> {
+			return relationTypeGroup.getRelation().equals("hasAssociationWith") && relationTypeGroup.getCount() == 2 && relationTypeGroup.getObjectClass().equals("collection");
+		})).isTrue();
+
+		// (a) isOwnedBy 1 party
+		assertThat(actual.stream().anyMatch(relationTypeGroup -> {
+			return relationTypeGroup.getRelation().equals("isOwnedBy") && relationTypeGroup.getCount() == 1 && relationTypeGroup.getObjectClass().equals("party");
+		})).isTrue();
+	}
+
+	@Test
+	void deletePrimaryKeyEdge() {
+		// given (a)-[hasAssociationWith]->(b), (a)-[hasAssociationWith origin:PrimaryLink]->(c ro:key)
+		Graph graph = new Graph();
+		Vertex a = new Vertex("a", "ro:id");
+		Vertex b = new Vertex("b", "ro:id");
+		Vertex c = new Vertex("c", "ro:key");
+		graph.addVertex(a, b , c);
+		Edge pkEdge = new Edge(a, c, "hasAssociationWith");
+		pkEdge.setOrigin(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK);
+		graph.addEdge(pkEdge);
+		graph.addEdge(new Edge(a, b, "hasAssociationWith"));
+		graphService.ingestGraph(graph);
+
+		// when deletePrimaryKeyEdge
+		graphService.deletePrimaryKeyEdge("c");
+
+		// no edge primary key edge remains
+		Collection<ardc.cerium.mycelium.model.Relationship> actual = graphService.getDirectOutboundRelationships("a", "ro:id");
+		assertThat(actual.size()).isEqualTo(1);
+		assertThat(actual.stream().anyMatch(relationship -> {
+			return relationship.getRelations().stream().anyMatch(edgeDTO -> {
+				return edgeDTO.getOrigin().equals(RIFCSGraphProvider.ORIGIN_PRIMARY_LINK);
+			});
+		})).isFalse();
+	}
+
+	@Test
+	void getNestedCollectionParents() {
+		GraphService mockedService = Mockito.mock(GraphService.class);
+		doCallRealMethod().when(mockedService).getNestedCollectionParents(any(Vertex.class));
+		Vertex fixture = new Vertex();
+		fixture.setStatus("PUBLISHED");
+		ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+		mockedService.getNestedCollectionParents(fixture);
+		verify(mockedService, times(1)).getGraphsFromPaths(queryCaptor.capture());
+		assertThat(queryCaptor.getValue().contains("labelFilter: '-DRAFT'"));
 	}
 
 	@Test

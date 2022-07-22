@@ -2,12 +2,20 @@ package ardc.cerium.mycelium.rifcs.executor;
 
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
+import ardc.cerium.mycelium.rifcs.effect.IdentifierForgoSideEffect;
+import ardc.cerium.mycelium.service.GraphService;
+import ardc.cerium.mycelium.service.MyceliumIndexingService;
+import ardc.cerium.mycelium.service.MyceliumService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.data.solr.core.query.result.Cursor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.*;
 
 class IdentifierForgoExecutorTest {
 
@@ -56,6 +64,45 @@ class IdentifierForgoExecutorTest {
         assertThat(IdentifierForgoExecutor.detect(before, after)).isTrue();
     }
 
+    @Test
+	void detect_created_or_no_identifiers() {
+        RecordState after = new RecordState();
+        assertThat(IdentifierForgoExecutor.detect(null, after)).isFalse();
 
+        RecordState before = new RecordState();
+        assertThat(IdentifierForgoExecutor.detect(before, after)).isFalse();
+	}
 
+    @Test
+	void deleted_or_draft() {
+        RecordState before = new RecordState();
+        before.setIdentifiers(Arrays.asList(new Vertex("1", "doi")));
+        assertThat(IdentifierForgoExecutor.detect(before, null)).isFalse();
+
+        RecordState after = new RecordState();
+        after.setStatus(Vertex.Status.DRAFT.name());
+        assertThat(IdentifierForgoExecutor.detect(before, after)).isFalse();
+
+        after.setStatus(Vertex.Status.PUBLISHED.name());
+        assertThat(IdentifierForgoExecutor.detect(before, after)).isFalse();
+	}
+
+    @Test
+	void handle() {
+        IdentifierForgoSideEffect sideEffect = new IdentifierForgoSideEffect("1", "deleted-identifier",
+				"deleted-identifier-type", "searchTitle", "recordClass", "recordType");
+
+        MyceliumService myceliumService = Mockito.mock(MyceliumService.class);
+        MyceliumIndexingService indexingService = Mockito.mock(MyceliumIndexingService.class);
+        GraphService graphService = Mockito.mock(GraphService.class);
+        when(myceliumService.getIndexingService()).thenReturn(indexingService);
+        when(myceliumService.getGraphService()).thenReturn(graphService);
+        when(indexingService.cursorFor(any())).thenReturn(Mockito.mock(Cursor.class));
+
+        IdentifierForgoExecutor executor = new IdentifierForgoExecutor(sideEffect, myceliumService);
+        executor.handle();
+        verify(indexingService, times(1)).cursorFor(any());
+        verify(myceliumService, times(1)).getIdentifierVertex(any(), any());
+        verify(graphService, times(1)).getDirectInboundRelationships(any(), any());
+	}
 }

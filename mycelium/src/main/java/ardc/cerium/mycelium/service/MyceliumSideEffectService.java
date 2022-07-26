@@ -88,7 +88,13 @@ public class MyceliumSideEffectService {
 			}
 
 			requestLogger.info("Handling SideEffect[class={}] with executor[class={}]", sideEffect.getClass(), executor.getClass());
-			executor.handle();
+			// Exception handling for SideEffects
+			try{
+				executor.handle();
+			}catch (Exception e){
+				log.error("Error while Handling SideEffect sideEffect[class={}], {}", sideEffect.getClass(), e.getMessage());
+			}
+
 		}
 		requestLogger.info("Finished queue processing Queue[id={}]", queueID);
 

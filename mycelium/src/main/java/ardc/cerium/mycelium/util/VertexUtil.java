@@ -234,16 +234,18 @@ public class VertexUtil {
 			try {
 				PublicOrcidClient client = new PublicOrcidClient();
 				OrcidRecord orcidRecord = client.resolve(identifierValue);
+				if(orcidRecord.getPerson() != null){
+					String title = orcidRecord.getPerson().getName().getFullName();
+					Biography biography = orcidRecord.getPerson().getBiography();
+					if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
+						vertex.setMetaAttribute("rawTitle", vertex.getTitle());
+					}
+					if (biography!= null && !biography.getContent().isBlank()) {
+						vertex.setMetaAttribute("biography", biography.getContent());
+					}
+					vertex.setTitle(title);
+				}
 
-				String title = orcidRecord.getPerson().getName().getFullName();
-				Biography biography = orcidRecord.getPerson().getBiography();
-				if (vertex.getTitle() != null && !vertex.getTitle().isBlank()) {
-					vertex.setMetaAttribute("rawTitle", vertex.getTitle());
-				}
-				if (biography!= null && !biography.getContent().isBlank()) {
-					vertex.setMetaAttribute("biography", biography.getContent());
-				}
-				vertex.setTitle(title);
 			}
 			catch (Exception e) {
 				e.printStackTrace();

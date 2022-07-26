@@ -14,7 +14,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @AutoConfigureWebTestClient(timeout = "10000")
 public abstract class MyceliumScenarioTest extends MyceliumIntegrationTest {
 
-	public static String importRecordAPI = "/api/services/mycelium/import-record";
+	public static String importRecordAPI = "/api/resources/mycelium-registry-objects";
 
 	public static String indexRecordAPI = "/api/services/mycelium/index-record";
 

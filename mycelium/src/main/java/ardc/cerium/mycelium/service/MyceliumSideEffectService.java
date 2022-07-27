@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Getter
@@ -76,10 +77,10 @@ public class MyceliumSideEffectService {
 		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
-
+		int totalCount = queue.size();
 		while (!queue.isEmpty()) {
-			SideEffect sideEffect = queue.poll();
 
+			SideEffect sideEffect = queue.poll();
 			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
 
 			if (executor == null) {
@@ -90,11 +91,14 @@ public class MyceliumSideEffectService {
 			requestLogger.info("Handling SideEffect[class={}] with executor[class={}]", sideEffect.getClass(), executor.getClass());
 			// Exception handling for SideEffects
 			try{
+				request.setSummary(String.format("total:%d,processed:%d", totalCount, (totalCount - queue.size())));
+				myceliumRequestService.save(request);
 				executor.handle();
 			}catch (Exception e){
 				log.error("Error while Handling SideEffect sideEffect[class={}], {}", sideEffect.getClass(), e.getMessage());
+				request.setSummary(String.format("total:%d,processed:%d,error:%s", totalCount, (totalCount - queue.size()),e.getMessage()));
+				myceliumRequestService.save(request);
 			}
-
 		}
 		requestLogger.info("Finished queue processing Queue[id={}]", queueID);
 

@@ -12,7 +12,7 @@ import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKe
 import ardc.cerium.mycelium.util.DataSourceUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;  
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
@@ -21,8 +21,10 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
@@ -78,6 +80,8 @@ public class MyceliumSideEffectService {
 		RQueue<SideEffect> queue = getQueue(queueID);
 		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
 		int totalCount = queue.size();
+		long startTime = System.currentTimeMillis();
+		long now;
 		while (!queue.isEmpty()) {
 
 			SideEffect sideEffect = queue.poll();
@@ -91,8 +95,14 @@ public class MyceliumSideEffectService {
 			requestLogger.info("Handling SideEffect[class={}] with executor[class={}]", sideEffect.getClass(), executor.getClass());
 			// Exception handling for SideEffects
 			try{
-				request.setSummary(String.format("total:%d,processed:%d", totalCount, (totalCount - queue.size())));
-				myceliumRequestService.save(request);
+				now = System.currentTimeMillis();
+				// save it to the database every second
+				// for the progressbar of the Datasource Import Status in the Registry
+				if((now - startTime) > 1000){
+					startTime = System.currentTimeMillis();
+					request.setSummary(String.format("total:%d,processed:%d", totalCount, (totalCount - queue.size())));
+					myceliumRequestService.save(request);
+				}
 				executor.handle();
 			}catch (Exception e){
 				log.error("Error while Handling SideEffect sideEffect[class={}], {}", sideEffect.getClass(), e.getMessage());

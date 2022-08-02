@@ -1273,8 +1273,8 @@ public class GraphService {
 				+ " YIELD node\n"
 				+ " WITH collect(origin) + collect(node) as complete\n"
 				+ " UNWIND complete as from\n"
-				+ " WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"}))"
-				+ " AND to.objectClass = 'collection')\n";
+				+ " WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\""
+				+ " OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\", objectClass:\"collection\"})))\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {
@@ -1289,7 +1289,8 @@ public class GraphService {
 	public int getNestedCollectionChildrenCount(String registryObjectId, List<String> excludeIDs) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical UNWIND identical as from\n" +
-				"WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\" OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\"})))\n";
+				"WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\"" +
+		        "OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\", objectClass:\"collection\"})))\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {

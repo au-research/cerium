@@ -405,7 +405,13 @@ public class MyceliumRegistryObjectResourceController {
 			@RequestParam(required = false, defaultValue = "0") String offset,
 			@RequestParam(required = false, defaultValue = "") String excludeIdentifiers) {
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
-
+		int iOffSet = Integer.parseInt(offset);
+		/*
+		avoid offset being less than 0
+		 */
+		if(iOffSet < 0){
+			iOffSet = 0;
+		}
 		// exclude my duplicates (avoid cycles)
 		Collection<Vertex> duplicateRegistryObject = myceliumService.getGraphService().getSameAs(from.getIdentifier(), from.getIdentifierType());
 		List<String> duplicateIDs = duplicateRegistryObject.stream().map(vertex -> {
@@ -425,7 +431,7 @@ public class MyceliumRegistryObjectResourceController {
 
 		GraphService graphService = myceliumService.getGraphService();
 		Collection<Relationship> relationships = graphService.getNestedCollectionChildren(from, Integer.parseInt(limit),
-				Integer.parseInt(offset), excludeIDs);
+				iOffSet, excludeIDs);
 
 		List<TreeNodeDTO> children = relationships.stream().map(relationship -> {
 			Vertex target = relationship.getTo();

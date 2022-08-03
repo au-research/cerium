@@ -225,64 +225,69 @@ public class MyceliumSideEffectService {
 
 		if (DCIRelationChangeExecutor.detect(before, after, myceliumService)) {
 			// new sideEffect per affectedRecords
-			after.getOutbounds().forEach(relationship -> {
+			if(after != null){
+				after.getOutbounds().forEach(relationship -> {
 
-				Vertex affectedCollection = null;
-				Vertex to = relationship.getTo();
-				if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+					Vertex affectedCollection = null;
+					Vertex to = relationship.getTo();
+					if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
 
-					Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
-							.filter(v -> {
-								return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-							}).findFirst().orElse(null);
+						Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
+								.filter(v -> {
+									return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+								}).findFirst().orElse(null);
 
-					if (resolvedRegistryObjectVertex == null) {
-						return;
+						if (resolvedRegistryObjectVertex == null) {
+							return;
+						}
+
+						if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
+							affectedCollection = resolvedRegistryObjectVertex;
+						}
+
+					} else if (to.getObjectClass().equals("collection")) {
+						affectedCollection = to;
 					}
 
-					if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
-						affectedCollection = resolvedRegistryObjectVertex;
+					if (affectedCollection != null) {
+						sideEffects.add(new DCIRelationChangeSideEffect(affectedCollection.getIdentifier()));
 					}
+				});
+			}
 
-				} else if (to.getObjectClass().equals("collection")) {
-					affectedCollection = to;
-				}
-
-				if (affectedCollection != null) {
-					sideEffects.add(new DCIRelationChangeSideEffect(affectedCollection.getIdentifier()));
-				}
-			});
 		}
 
 		if (ScholixRelationChangeExecutor.detect(before, after, myceliumService)) {
 			// new sideEffect per affectedRecords
-			after.getOutbounds().forEach(relationship -> {
+			if(after != null) {
+				after.getOutbounds().forEach(relationship -> {
 
-				Vertex affectedCollection = null;
-				Vertex to = relationship.getTo();
-				if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
+					Vertex affectedCollection = null;
+					Vertex to = relationship.getTo();
+					if (!to.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE)) {
 
-					Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
-							.filter(v -> {
-								return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-							}).findFirst().orElse(null);
+						Vertex resolvedRegistryObjectVertex = myceliumService.getGraphService().getDuplicateRegistryObject(to).stream()
+								.filter(v -> {
+									return v.getIdentifierType().equals(RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
+								}).findFirst().orElse(null);
 
-					if (resolvedRegistryObjectVertex == null) {
-						return;
+						if (resolvedRegistryObjectVertex == null) {
+							return;
+						}
+
+						if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
+							affectedCollection = resolvedRegistryObjectVertex;
+						}
+
+					} else if (to.getObjectClass().equals("collection")) {
+						affectedCollection = to;
 					}
 
-					if (resolvedRegistryObjectVertex.getObjectClass().equals("collection")) {
-						affectedCollection = resolvedRegistryObjectVertex;
+					if (affectedCollection != null) {
+						sideEffects.add(new ScholixRelationChangeSideEffect(affectedCollection.getIdentifier()));
 					}
-
-				} else if (to.getObjectClass().equals("collection")) {
-					affectedCollection = to;
-				}
-
-				if (affectedCollection != null) {
-					sideEffects.add(new ScholixRelationChangeSideEffect(affectedCollection.getIdentifier()));
-				}
-			});
+				});
+			}
 		}
 
 

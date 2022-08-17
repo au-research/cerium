@@ -164,6 +164,9 @@ public class MyceliumRequestService {
 	 * @return the {@link} Request, null if not found
 	 */
 	public Request findById(String id) {
+		if (id == null) {
+			return null;
+		}
 		return requestService.findById(id);
 	}
 

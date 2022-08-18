@@ -21,6 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,10 +110,13 @@ public class GraphService {
 		log.debug("Finished ingesting graph");
 	}
 
+
 	/**
 	 * Ingest a single {@link Vertex} using SDN
 	 * @param vertex the {@link Vertex}
 	 */
+	@Transactional
+	@Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 250))
 	public void ingestVertex(Vertex vertex) {
 		Vertex existing = getVertexByIdentifier(vertex.getIdentifier(), vertex.getIdentifierType());
 		if (existing == null) {
@@ -306,6 +311,8 @@ public class GraphService {
 	 * the dynamic relationship and relationship properties requirements
 	 * @param edge the {@link Edge} to ingest
 	 */
+	@Transactional
+	@Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
 	public void ingestEdge(Edge edge) {
 
 		org.neo4j.cypherdsl.core.Node from = Cypher.node("Vertex").named("from");

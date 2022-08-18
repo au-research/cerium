@@ -53,17 +53,21 @@ public class DeleteTask implements Runnable {
 		try {
 			log.debug("Started deleting registryObject[id={}]", registryObjectId);
 
-			RecordState before = myceliumService.getRecordState(registryObjectId);
-			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
+			RecordState before = null;
+			if (request != null) {
+				before = myceliumService.getRecordState(registryObjectId);
+				log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
+			}
 
 			myceliumService.deleteRecord(registryObjectId);
 			myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();
+
 			requestLogger.info("Deleted RegistryObject[id={}]", registryObjectId);
 
-			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, null);
-			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
-
 			if (request != null) {
+				List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, null);
+				log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
+
 				// add the SideEffects to the queue
 				if (!sideEffects.isEmpty()) {
 					myceliumSideEffectService.queueSideEffects(request, sideEffects);
@@ -73,6 +77,7 @@ public class DeleteTask implements Runnable {
 					requestLogger.info("No sideEffect found for RegistryObject[id={}]", registryObjectId);
 				}
 			}
+
 		}
 		catch (Exception e) {
 			log.error("Error in DeleteTask Request[id={}] Reason: {}", request.getId(), e.getMessage());

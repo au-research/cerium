@@ -131,14 +131,14 @@ public class MyceliumService {
 
 	public void deleteRecord(String recordId) throws Exception {
 		Vertex vertex = graphService.getVertexByIdentifier(recordId, RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
-		if (vertex == null) {
-			log.error("Record with ID {} doesn't exist", recordId);
-			return;
+		if (vertex != null) {
+			graphService.deleteVertex(vertex);
+			log.debug("Deleted Vertex {}", vertex);
 		}
-		graphService.deleteVertex(vertex);
 
 		// delete all the relationships for that recordId
 		indexingService.deleteRelationship(recordId);
+		log.debug("Deleted Relationship for recordId:{}", recordId);
 	}
 
 	public void indexVertex(Vertex vertex) {

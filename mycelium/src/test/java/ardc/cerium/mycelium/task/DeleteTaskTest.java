@@ -59,7 +59,8 @@ class DeleteTaskTest {
         DeleteTask task = new DeleteTask(request, myceliumService);
 
         task.run();
-        Mockito.verify(myceliumService, times(1)).deleteRecord("9999999");
+        // it doesn't call delete if record doesn't exist
+        Mockito.verify(myceliumService, times(1)).getVertexFromRegistryObjectId("9999999");
     }
 
 }

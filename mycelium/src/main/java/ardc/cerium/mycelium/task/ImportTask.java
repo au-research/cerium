@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -62,6 +64,10 @@ public class ImportTask implements Runnable {
 	@Override
 	public void run() {
 		Logger requestLogger = LogManager.getLogger(this.getClass().getName());
+
+		RecordState after = null;
+		RecordState before = null;
+		List<SideEffect> sideEffects = null;
 		if (request != null) {
 			requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		}
@@ -72,25 +78,30 @@ public class ImportTask implements Runnable {
 			requestLogger.info("Ingesting RegistryObject[id={}]", registryObject.getRegistryObjectId());
 
 			// record before state
-			RecordState before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
-			log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
+			if (request != null) {
+				before = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+				log.debug("Change Detection, RecordState(before) captured RecordState[{}]", before);
+			}
+
 
 			// ingest the record
 			myceliumService.ingestRegistryObject(registryObject);
 			myceliumService.getGraphService().reinstateTerminatedNodes();
 			log.debug("Ingested registryObject[id={}] payload", registryObject.getRegistryObjectId());
+			if (request != null) {
+				// record after state
+				after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
+				log.debug("Change Detection, RecordState(after) captured RecordState[{}]", after);
 
-			// record after state
-			RecordState after = myceliumService.getRecordState(registryObject.getRegistryObjectId().toString());
-			log.debug("Change Detection, RecordState(after) captured RecordState[{}]", after);
+				// obtain the list of SideEffects from before and after state
+				sideEffects = myceliumSideEffectService.detectChanges(before, after);
+				log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
+			}
 
-			// obtain the list of SideEffects from before and after state
-			List<SideEffect> sideEffects = myceliumSideEffectService.detectChanges(before, after);
-			log.debug("Change Detection, sideEffect[count={}]", sideEffects.size());
 
 			// add the SideEffects to the queue
 			if (request != null) {
-				if (!sideEffects.isEmpty() && request != null) {
+				if (!sideEffects.isEmpty()) {
 					myceliumSideEffectService.queueSideEffects(request, sideEffects);
 					requestLogger.info("{} sideEffects queued for RegistryObject[id={}]", sideEffects.size(), registryObject.getRegistryObjectId());
 					requestLogger.debug("SideEffects for RegistryObject[id={}] [queued={}]", registryObject.getRegistryObjectId(), sideEffects);
@@ -102,11 +113,14 @@ public class ImportTask implements Runnable {
 				request.setMessage("ImportTask successfully completed");
 				request.setStatus(Request.Status.COMPLETED);
 			}
-
 		}
 		catch (Exception e) {
 			log.error("Error Importing Reason:{}", e.getMessage());
-			e.printStackTrace();
+			try {
+				throw e;
+			} catch (JsonProcessingException ex) {
+				throw new RuntimeException(ex);
+			}
 		} finally {
 			if (request != null) {
 				myceliumService.getMyceliumRequestService().getRequestService().closeLoggerFor(request);

@@ -10,6 +10,7 @@ import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Converter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,14 +58,27 @@ public class MyceliumRegistryObjectResourceController {
 	 */
 	@PostMapping(path = "")
 	public ResponseEntity<?> importRegistryObject(@RequestBody String json,
-			@RequestParam(required = false) String requestId) {
+			@RequestParam(required = false) String requestId){
 		log.info("Importing Record requestId={}", requestId);
 
 		Request request = requestId != null ? myceliumService.getMyceliumRequestService().findById(requestId) : null;
 
 		// create the import task and run it immediately
-		myceliumService.runImportTask(json, request);
-
+		try {
+			myceliumService.runImportTask(json, request);
+		}catch(Exception e){
+			try {
+				RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
+				return ResponseEntity.badRequest()
+						.body(String.format("Error importing registryObject id::%d error:%s", registryObject.getRegistryObjectId(), e.getMessage()));
+			}catch(JsonProcessingException ee){
+				return ResponseEntity.badRequest()
+						.body(String.format("Error importing content error:%s", ee.getMessage()));
+			}
+		}
+		if(request == null){
+			return ResponseEntity.ok("OK");
+		}
 		return ResponseEntity.ok(request);
 	}
 

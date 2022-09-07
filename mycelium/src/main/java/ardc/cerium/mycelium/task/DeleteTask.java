@@ -2,6 +2,7 @@ package ardc.cerium.mycelium.task;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.model.Attribute;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumService;
@@ -9,6 +10,7 @@ import ardc.cerium.mycelium.service.MyceliumSideEffectService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -51,6 +53,11 @@ public class DeleteTask implements Runnable {
 		}
 
 		try {
+			Vertex vertex = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+			if (vertex == null) {
+				log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+				return;
+			}
 			log.debug("Started deleting registryObject[id={}]", registryObjectId);
 
 			RecordState before = null;

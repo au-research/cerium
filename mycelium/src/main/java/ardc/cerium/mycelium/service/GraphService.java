@@ -11,6 +11,7 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.jni.Thread;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
@@ -25,11 +26,15 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.TransientDataAccessResourceException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,35 +80,42 @@ public class GraphService {
 		neo4jClient.query("CREATE INDEX ro_id IF NOT EXISTS FOR (n:RegistryObject) ON (n.identifier);").run();
 		neo4jClient.query("CREATE INDEX vertex_type IF NOT EXISTS FOR (n:Vertex) ON (n.identifierType);").run();
 		neo4jClient.query("CREATE INDEX ro_class IF NOT EXISTS FOR (n:RegistryObject) ON (n.objectClass);").run();
+		neo4jClient.query("CREATE CONSTRAINT vertex_id_type_unique IF NOT EXISTS FOR (n:Vertex) REQUIRE (n.identifier, n.identifierType) IS UNIQUE;").run();
 	}
 
 	/**
 	 * Ingest an entire {@link Graph}
 	 * @param graph the {@link Graph} to ingest
 	 */
-	@Transactional
 	public void ingestGraph(Graph graph) {
 		log.debug("Starting graph ingest verticesCount: {}, edgesCount: {}", graph.getVertices().size(),
 				graph.getEdges().size());
 
 		graph.getVertices().forEach(vertex -> {
 			try {
-				log.debug("Ingesting vertex id: {} type: {}", vertex.getIdentifier(), vertex.getIdentifierType());
 				ingestVertex(vertex);
+			}catch(TransientDataAccessResourceException e){
+				log.error("Failed to ingest vertex id: '{}' TransientDataAccessResourceException: '{}'", vertex.getIdentifier(), e.getMessage());
+			}
+			catch(UndeclaredThrowableException e){
+				log.error("Failed to ingest vertex id: '{}' UndeclaredThrowableException: '{}'", vertex.getIdentifier(), e.getUndeclaredThrowable().getClass());
 			}
 			catch (Exception e) {
-				log.error("Failed to ingest vertex id: {} Reason: {}", vertex.getIdentifier(), e.getMessage());
+				log.error("Failed to ingest vertex id: '{}' Reason: '{}'", vertex.getIdentifier(), e.getClass());
 			}
 		});
 
 		graph.getEdges().forEach(edge -> {
 			try {
-				log.debug("Ingesting edge from {} to {} type: {}", edge.getFrom().getIdentifier(),
+				log.debug("Ingesting edge from '{}' to '{}' type: '{}'", edge.getFrom().getIdentifier(),
 						edge.getTo().getIdentifier(), edge.getType());
 				ingestEdge(edge);
+			}catch(UndeclaredThrowableException e){
+				log.error("Failed to ingest edge from '{}' to '{}' type: '{}' UndeclaredThrowableException: '{}'", edge.getFrom().getIdentifier(),
+						edge.getTo().getIdentifier(), edge.getType(), e.getUndeclaredThrowable().getClass());
 			}
 			catch (Exception e) {
-				log.error("Failed to ingest edge from {} to {} type: {} Reason: {}", edge.getFrom().getIdentifier(),
+				log.error("Failed to ingest edge from '{}' to '{}' type: '{}' Reason: '{}'", edge.getFrom().getIdentifier(),
 						edge.getTo().getIdentifier(), edge.getType(), e.getMessage());
 			}
 		});
@@ -114,45 +126,105 @@ public class GraphService {
 	/**
 	 * Ingest a single {@link Vertex} using SDN
 	 * @param vertex the {@link Vertex}
+	 * Retryable annotation can NOT be used here because the function is called from INSIDE the class
 	 */
 	@Transactional
-	@Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 250))
-	public void ingestVertex(Vertex vertex) {
-		Vertex existing = getVertexByIdentifier(vertex.getIdentifier(), vertex.getIdentifierType());
-		if (existing == null) {
-			// create
-			vertex.setUpdatedAt(new Date());
-			vertex.setCreatedAt(new Date());
-			vertexRepository.save(vertex);
-		} else {
-			// update existing
-			existing.setTitle(vertex.getTitle());
-			existing.setUpdatedAt(new Date());
-			existing.setObjectClass(vertex.getObjectClass());
-			existing.setObjectType(vertex.getObjectType());
-			existing.setUrl(vertex.getUrl());
-			existing.setNotes(vertex.getNotes());
-			existing.setGroup(vertex.getGroup());
-			existing.setMeta(vertex.getMeta());
-			vertexRepository.save(existing);
-		}
+	public void ingestVertex(Vertex vertex) throws TransientDataAccessResourceException {
+			int maxtry = 4;
+			int tryCount = 0;
+			long sleepTime = 200;
+			Vertex existing = getVertexByIdentifier(vertex.getIdentifier(), vertex.getIdentifierType());
+			if (existing == null) {
+				// create
+				log.debug("Creating vertex id: '{}' type: '{}'", vertex.getIdentifier(), vertex.getIdentifierType());
+				vertex.setUpdatedAt(new Date());
+				vertex.setCreatedAt(new Date());
+				// home-made recover from deadlock
+				while(tryCount < maxtry) {
+					try {
+						++tryCount;
+						vertexRepository.save(vertex);
+						return;
+					} catch (org.springframework.dao.TransientDataAccessResourceException e) {
+						log.warn("Deadlock no:{} while adding new vertex id: '{}' type: '{}'", tryCount, vertex.getIdentifier(), vertex.getIdentifierType());
+						try {
+							sleepTime += (long) (Math.random() * 500);
+							log.info("sleeping for '{}'ms", sleepTime);
+							TimeUnit.MILLISECONDS.sleep(sleepTime);
+						}catch(InterruptedException ee){
+							log.error("bother:{}", ee.getMessage());
+						}
+					} catch (org.springframework.dao.DataIntegrityViolationException e) {
+						log.error("Vertex already exist:" + e.getClass() + "Message" + e.getMessage());
+						return;
+					} catch (Exception e) {
+						log.error("OTHER ERROR while updating vertex:" + e.getClass() + "Message" + e.getMessage());
+						return;
+					}
+				}
+				throw new TransientDataAccessResourceException(String.format("Failed  adding vertex id: '%s' type: '%s' after:%d re-tries and %dms waiting",
+						vertex.getIdentifier(), vertex.getIdentifierType(),maxtry,sleepTime));
+
+			} else {
+				// update existing
+				log.debug("Updating vertex id: '{}' type: '{}'", vertex.getIdentifier(), vertex.getIdentifierType());
+				existing.setTitle(vertex.getTitle());
+				existing.setUpdatedAt(new Date());
+				existing.setObjectClass(vertex.getObjectClass());
+				existing.setObjectType(vertex.getObjectType());
+				existing.setUrl(vertex.getUrl());
+				existing.setNotes(vertex.getNotes());
+				existing.setGroup(vertex.getGroup());
+				existing.setMeta(vertex.getMeta());
+				while (tryCount < maxtry) {
+					try {
+						++tryCount;
+						vertexRepository.save(existing);
+						return;
+					}catch (org.springframework.dao.TransientDataAccessResourceException e) {
+						log.warn("deadlock no:{} while updating vertex id: '{}' type: '{}'", tryCount, vertex.getIdentifier(), vertex.getIdentifierType());
+						try {
+							sleepTime += (long) (Math.random() * 500);
+							log.info("sleeping for '{}'ms", sleepTime);
+							TimeUnit.MILLISECONDS.sleep(sleepTime);
+						}catch (InterruptedException ee) {log.error("bother:{}", ee.getMessage());}
+					}catch(java.lang.reflect.UndeclaredThrowableException e){
+						log.error("UndeclaredThrowableException while Updating vertex id: '{}' type: '{}' e:{}", vertex.getIdentifier(), vertex.getIdentifierType(), e.getUndeclaredThrowable().getClass());
+						return;
+					}
+					catch(Exception e){
+						log.error("OTHER ERROR while updating vertex:" + e.getClass() + "Message" + e.getMessage());
+						return;
+					}
+				}
+				// if we got this far then
+				throw new TransientDataAccessResourceException(String.format("Failed  Updating vertex id: '%s' type: '%s' after:%d re-tries and %dms waiting",
+						existing.getIdentifier(), existing.getIdentifierType(),maxtry,sleepTime));
+			}
+
 	}
 
 	/**
 	 * Delete single {@link Vertex} using SDN
 	 * @param vertex the {@link Vertex}
+	 * Retryable annotation can be used here because the function is called from outside the class
 	 */
+
+	@Retryable(value = TransientDataAccessResourceException.class, maxAttempts = 4,
+			backoff = @Backoff(random = true, delay = 100, maxDelay = 500, multiplier = 2))
 	@Transactional
-	public void deleteVertex(Vertex vertex) {
-		// todo update the vertex
+	public void deleteVertex(Vertex vertex) throws TransientDataAccessResourceException{
+		log.info("deleting Vertex I:{}, T:{}", vertex.getIdentifier(), vertex.getIdentifierType());
 		// we can't delete null so do a try catch
-		try {
+		 try {
 			if (vertexRepository.existsVertexByIdentifierAndIdentifierType(vertex.getIdentifier(),
 					vertex.getIdentifierType())) {
 				vertexRepository.delete(vertex);
 			}
+		}catch(TransientDataAccessResourceException e) {
+			 throw new TransientDataAccessResourceException("try again");
 		}catch(Exception e){
-			log.error("Unable to delete Vertex {}", vertex);
+			log.error("Unable to delete Vertex {}, exception:{}", vertex, e.getClass());
 		}
 	}
 
@@ -312,8 +384,23 @@ public class GraphService {
 	 * @param edge the {@link Edge} to ingest
 	 */
 	@Transactional
-	@Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
 	public void ingestEdge(Edge edge) {
+
+		int tryCount = 0;
+		int maxtry = 4;
+		long sleepTime = 200;
+
+		Vertex vFrom = getVertexByIdentifier(edge.getFrom().getIdentifier(), edge.getFrom().getIdentifierType());
+		Vertex vTo = getVertexByIdentifier(edge.getTo().getIdentifier(), edge.getTo().getIdentifierType());
+		// in case the vertex couldn't be created prior
+		if(vFrom == null){
+			log.error("Unable to add edge From Vertex I:{},iT:{} doesn't exist", edge.getFrom().getIdentifierType(), edge.getFrom().getIdentifierType());
+			return;
+		}
+		if(vTo == null){
+			log.error("Unable to add edge To Vertex I:{},iT:{} doesn't exist", edge.getTo().getIdentifierType(), edge.getTo().getIdentifierType());
+			return;
+		}
 
 		org.neo4j.cypherdsl.core.Node from = Cypher.node("Vertex").named("from");
 		org.neo4j.cypherdsl.core.Node to = Cypher.node("Vertex").named("to");
@@ -321,6 +408,7 @@ public class GraphService {
 		org.neo4j.cypherdsl.core.Relationship relation = from.relationshipTo(to, edge.getType()).named("r");
 		Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String updateAt = formatter.format(new Date());
+
 		Statement statement = Cypher.match(from).match(to)
 				.where(from.property("identifier").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifier())))
 				.and(from.property("identifierType").isEqualTo(Cypher.literalOf(edge.getFrom().getIdentifierType())))
@@ -336,10 +424,25 @@ public class GraphService {
 						relation.property("updatedAt").to(Cypher.literalOf(updateAt)),
 						relation.property("duplicate").to(Cypher.literalOf(edge.isDuplicate())))
 				.returning("r").build();
-
-		String cypherQuery = statement.getCypher();
-
-		neo4jClient.query(cypherQuery).run();
+		while (tryCount < maxtry) {
+			try {
+				++tryCount;
+				String cypherQuery = statement.getCypher();
+				neo4jClient.query(cypherQuery).run();
+				return;
+			} catch (java.lang.reflect.UndeclaredThrowableException e) {
+				log.warn("trying no:{}, to add edge {}, UndeclaredThrowableException:{}", tryCount, edge.getTo().getIdentifierType(), e.getUndeclaredThrowable().getClass());
+				try {
+					sleepTime += (long) (Math.random() * 500);
+					log.info("sleeping for '{}'ms", sleepTime);
+					TimeUnit.MILLISECONDS.sleep(sleepTime);
+				} catch (InterruptedException ee) {
+					log.error("bother:{}", ee.getMessage());
+				}
+			} catch (Exception e) {
+				log.error("Unable to add edge {}, exception:{}", edge.getTo().getIdentifierType(), e.getClass());
+			}
+		}
 	}
 
 	/**
@@ -500,7 +603,6 @@ public class GraphService {
 		return getSameAs(identifier, identifierType).stream()
 				.filter(v -> v.getIdentifierType().equals(type)).findFirst();
 	}
-
 
 	public Vertex getVertexByIdentifier(String identifier, String identifierType) {
 		return neo4jClient
@@ -672,11 +774,21 @@ public class GraphService {
 	 * method will remove the "Terminated" label from the ro:key Vertex and thus enable
 	 * path finding algorithm to the RegistryObject vertex again
 	 */
+	@Retryable(value = TransientDataAccessResourceException.class, maxAttempts = 4,
+			backoff = @Backoff(random = true, delay = 1000, maxDelay = 5000, multiplier = 2))
+	@Transactional
 	public void reinstateTerminatedNodes() {
 		String cypherQuery = "MATCH (n:Vertex {identifierType:\"ro:key\"})-[:isSameAs]-(:RegistryObject)\n"
 				+ "REMOVE n:Terminated;";
+		try {
 		ResultSummary resultSummary = neo4jClient.query(cypherQuery).run();
-		log.debug("Reinstate ro:key nodes ResultSummary[{}]", resultSummary.counters());
+			log.debug("Reinstate ro:key nodes ResultSummary[{}]", resultSummary.counters());
+		}catch(TransientDataAccessResourceException e) {
+			log.warn("Deadlock: reinstateTerminatedNodes");
+			throw e;
+		}catch(Exception e){
+			log.error("Unable reinstateTerminatedNodes, exception:{}", e.getClass());
+		}
 	}
 
 	/**

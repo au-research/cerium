@@ -20,9 +20,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.UnexpectedRollbackException;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,17 +106,33 @@ public class MyceliumService {
 		deleteTask.run();
 	}
 
+	@Transactional
 	public void ingestRegistryObject(RegistryObject registryObject) {
-		RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
-		Graph graph = graphProvider.get(registryObject);
+		try {
+			RIFCSGraphProvider graphProvider = new RIFCSGraphProvider();
+			Graph graph = graphProvider.get(registryObject);
 
-		// delete the original vertex with detach before insertion
-		Vertex original = getVertexFromRegistryObjectId(registryObject.getRegistryObjectId().toString());
-		if (original != null) {
-			graphService.deleteVertex(original);
+			// delete the original vertex with detach before insertion
+			try {
+				Vertex original = getVertexFromRegistryObjectId(registryObject.getRegistryObjectId().toString());
+				if (original != null) {
+					graphService.deleteVertex(original);
+				}
+			}catch(Exception e){
+				log.error("Failed deleting existing Vertex for recordId:{}, error:{}", registryObject.getRegistryObjectId().toString(), e.getMessage());
+			}
+			graphService.ingestGraph(graph);
+			Vertex newVertex = getVertexFromRegistryObjectId(registryObject.getRegistryObjectId().toString());
+			if (newVertex == null) {
+				throw new RuntimeException(String.format("Failed ingesting RegistryObject for recordId: '%s'", registryObject.getRegistryObjectId().toString()));
+			}
+
+		}catch(org.springframework.transaction.UnexpectedRollbackException e) {
+			log.error("UnexpectedRollbackException for recordId:{}, error:{}", registryObject.getRegistryObjectId().toString(), e.getMessage());
+		}catch (Exception e){
+			log.error("Failed ingesting RegistryObject for recordId:{}, error:{}", registryObject.getRegistryObjectId().toString(), e.getClass());
+			throw new RuntimeException(String.format("Failed ingesting RegistryObject for recordId: '%s' Reason: '%s'", registryObject.getRegistryObjectId().toString(), e.getClass()));
 		}
-
-		graphService.ingestGraph(graph);
 	}
 
 	public Vertex getVertexFromRegistryObjectId(String registryObjectId) {

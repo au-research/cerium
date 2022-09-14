@@ -56,11 +56,8 @@
         </xsl:attribute>
     </xsl:template>
 
-    <xsl:template match="@xml:lang">
-        <xsl:attribute name="xml:lang">
-            <xsl:value-of select="."/>
-        </xsl:attribute>
-    </xsl:template>
+    <!-- xml:lang breaks jackson mapping in description -->
+    <xsl:template match="@xml:lang"/>
 
     <xsl:template match="@xsi:schemaLocation">
         <xsl:attribute name="xsi:schemaLocation">

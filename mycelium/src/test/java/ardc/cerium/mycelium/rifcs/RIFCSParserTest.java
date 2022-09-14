@@ -46,4 +46,13 @@ class RIFCSParserTest {
         assertThat(registryObjects).isNotNull();
         assertThat(registryObjects.getRegistryObjects().size()).isEqualTo(2);
 	}
+
+    @Test
+    void itCanParseMultipleDescriptions() throws IOException {
+        String rifcs = Helpers
+                .readFile("src/test/resources/rifcs/relation_with_multiple_descriptions.xml");
+        RegistryObjects registryObjects = RIFCSParser.parse(rifcs);
+        assertThat(registryObjects).isNotNull();
+        assertThat(registryObjects.getRegistryObjects().size()).isEqualTo(1);
+    }
 }

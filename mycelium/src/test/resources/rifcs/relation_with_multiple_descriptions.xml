@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:extRif="http://ands.org.au/standards/rif-cs/extendedRegistryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
+    <registryObject group="Monash University">
+        <key>MON:1959.1/489126</key>
+        <originatingSource type="authorative">http://www.monash.edu.au/</originatingSource>
+        <collection type="dataset">
+            <name type="primary" xml:lang="en">
+                <namePart>Pharmacology of polymyxins, for developing novel antibiotics against 'superbugs': data</namePart>
+            </name>
+            <relatedObject>
+                <key>MON:0000040603</key>
+                <relation type="hasPrincipalInvestigator">
+                    <description xml:lang="en">Primary Chief Investigator; Point of contact</description>
+                    <description>Point of contact</description>
+                </relation>
+            </relatedObject>
+        </collection>
+    </registryObject></registryObjects>

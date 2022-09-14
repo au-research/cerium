@@ -4,12 +4,14 @@ import ardc.cerium.core.common.transform.XSLTransformer;
 import ardc.cerium.mycelium.rifcs.model.RegistryObjects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Parsing RIFCS
  *
  * @author Minh Duc Nguyen
  */
+@Slf4j
 public class RIFCSParser {
 
 	private static final String path = "xslt/rifcs_fix_non_group.xsl";
@@ -31,9 +33,10 @@ public class RIFCSParser {
 			return xmlMapper.readValue(fixedRifcs, RegistryObjects.class);
 		}
 		catch (JsonProcessingException e) {
-			return null;
+			log.error(e.getMessage());
+			e.printStackTrace();
 		}
-
+		return null;
 	}
 
 }

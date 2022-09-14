@@ -110,15 +110,8 @@ public class RIFCSGraphProvider {
 
 		// find the RegistryObject and have the ID as the originNode
 		// keys and Identifiers shouldn't have leading and tailing white spaces
-		String key = registryObject.getKey().trim();
-		String keyFromPayload = rifcs.getKey().trim();
-		log.debug("keys should match here {} {}", key, keyFromPayload);
 
-		if (!key.equals(keyFromPayload)) {
-			log.error("XML Key does not match registryObject key, {} and {}", key, keyFromPayload);
-			// todo throw and handle exception
-			return graph;
-		}
+		String key = rifcs.getKey().trim();
 
 		log.debug("RegistryObjectId: {}", registryObject.getRegistryObjectId());
 		log.info("Ingesting RegistryObject[id={}, key={}]", registryObject.getRegistryObjectId(), key);

@@ -91,7 +91,7 @@ public class MyceliumRegistryObjectResourceController {
 	 * @return the {@link Vertex} representation of the RegistryObject
 	 */
 	@GetMapping(path = "/{registryObjectId}")
-	public ResponseEntity<?> getRegistryObjectVertex(@RequestHeader(name="Accept") String acceptHeader, @PathVariable("registryObjectId") String registryObjectId) {
+	public ResponseEntity<?> getRegistryObjectVertex(@RequestHeader(name="Accept",required = false) String acceptHeader, @PathVariable("registryObjectId") String registryObjectId) {
 		Vertex vertex = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		Converter converter = getConverterFromAcceptHeader(acceptHeader);
 		return ResponseEntity.ok().body(converter.convert(vertex));
@@ -473,7 +473,7 @@ public class MyceliumRegistryObjectResourceController {
 	private Converter getConverterFromAcceptHeader(String acceptHeader) {
 
 		// application/vnd.ardc.vertex.ro+json
-		if (acceptHeader.equals("application/vnd.ardc.vertex.ro+json")) {
+		if (acceptHeader != null && acceptHeader.equals("application/vnd.ardc.vertex.ro+json")) {
 			return roMapper.converter;
 		}
 

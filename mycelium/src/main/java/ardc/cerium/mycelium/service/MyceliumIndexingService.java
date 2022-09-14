@@ -584,14 +584,8 @@ public class MyceliumIndexingService {
 
 		// index the implicit edge but only between (to and from) registry Objects
 		// RDA-624
-		if (!to.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE)) {
-			log.warn("Indexes for Grants Network should have only To Registry Objects not {}:{}}",
-					to.getIdentifierType(), to.getIdentifier());
-			return;
-		}
-		if (!from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE)) {
-			log.warn("Indexes for Grants Network should have only From Registry Objects not {}:{}}",
-					from.getIdentifierType(), from.getIdentifier());
+		if (!to.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE) || !from.getIdentifierType().equals(RIFCS_ID_IDENTIFIER_TYPE)) {
+			//log.warn("Indexes for Grants Network shouldn't be between {} and {}", to.getIdentifierType(), from.getIdentifierType());
 			return;
 		}
 

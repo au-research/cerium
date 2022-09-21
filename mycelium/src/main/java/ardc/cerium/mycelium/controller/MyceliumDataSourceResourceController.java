@@ -96,16 +96,17 @@ public class MyceliumDataSourceResourceController {
 
 		DataSource dataSource = myceliumService.getDataSourceById(dataSourceId);
 		if (dataSource == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSource "+dataSourceId+" Not Found");
+			log.error("DataSource with id:{} Not Found", dataSourceId);
+			//throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSource "+dataSourceId+" Not Found");
 		}
 
 		// delete from index
-		log.info("Deleting All RelationshipDocument for DataSource[id={}]", dataSource.getId());
-		myceliumService.getMyceliumIndexingService().deleteAllDataSourceRelationship(dataSource.getId());
+		log.info("Deleting All RelationshipDocument for DataSource[id={}]", dataSourceId);
+		myceliumService.getMyceliumIndexingService().deleteAllDataSourceRelationship(dataSourceId);
 
 		// delete from graph database
-		log.info("Deleting All Vertices for DataSource[id={}]", dataSource.getId());
-		myceliumService.deleteVerticesByDataSource(dataSource);
+		log.info("Deleting All Vertices for DataSource[id={}]", dataSourceId);
+		myceliumService.deleteVerticesByDataSourceID(dataSourceId);
 
 		myceliumService.getGraphService().setRegistryObjectKeyNodeTerminated();
 

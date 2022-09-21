@@ -308,7 +308,11 @@ public class MyceliumService {
 	public void deleteDataSourceById(String dataSourceId) {
 		Vertex dataSourceVertex = graphService.getVertexByIdentifier(dataSourceId,
 				RIFCSGraphProvider.DATASOURCE_ID_IDENTIFIER_TYPE);
-		graphService.deleteVertex(dataSourceVertex);
+		if(dataSourceVertex == null){
+			log.error("DataSource with id:{} Not Found", dataSourceId);
+		}else {
+			graphService.deleteVertex(dataSourceVertex);
+		}
 	}
 
 	public Page<Vertex> getVerticesByDataSource(DataSource dataSource, Pageable pageable) {
@@ -317,6 +321,10 @@ public class MyceliumService {
 
 	public void deleteVerticesByDataSource(DataSource dataSource) {
 		graphService.getVertexRepository().deleteByDataSourceId(dataSource.getId());
+	}
+
+	public void deleteVerticesByDataSourceID(String dataSourceId) {
+		graphService.getVertexRepository().deleteByDataSourceId(dataSourceId);
 	}
 
 	public void publishEvent(ApplicationEvent event) {

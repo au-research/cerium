@@ -1,12 +1,13 @@
 package ardc.cerium.mycelium.controller;
 
-import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.service.MyceliumVertexResolvingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 
 @RestController
 @RequestMapping(value = "/api/admin/mycelium")
@@ -27,4 +28,14 @@ public class MyceliumAdminController {
 		return ResponseEntity.ok("");
 	}
 
+	@GetMapping("/info")
+	public ResponseEntity<?> getSystemInfo(@RequestParam(required = false, defaultValue = "brief") String level) {
+		HashMap<String, Object> info = new HashMap<>() ;
+		info.put("infoLevel", level);
+		// TODO: add more system wide stats and info
+		log.info("Generating {} System Information", level);
+		myceliumService.getSystemInfo(info);
+
+		return ResponseEntity.ok().body(info);
+	}
 }

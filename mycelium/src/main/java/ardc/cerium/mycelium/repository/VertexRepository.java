@@ -76,4 +76,10 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 
 	Page<Vertex> getVertexByIdentifierTypeAndStatus(String identifierType, String status, Pageable pageable);
 
+	@Query("match(n:RegistryObject) return count(n)")
+	Long getRegistryObjectCount();
+
+	@Query("match(n:Identifier) return count(n)")
+	Long getIdentifierCount();
+
 }

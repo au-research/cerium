@@ -11,7 +11,6 @@ import ardc.cerium.mycelium.rifcs.RecordState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Thread;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
@@ -19,7 +18,6 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.retry.annotation.Backoff;
@@ -27,7 +25,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.TransientDataAccessResourceException;
-import org.springframework.dao.DataIntegrityViolationException;
+
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -78,7 +76,9 @@ public class GraphService {
 	public void insertIndices() {
 		neo4jClient.query("CREATE INDEX vertex_id IF NOT EXISTS FOR (n:Vertex) ON (n.identifier);").run();
 		neo4jClient.query("CREATE INDEX ro_id IF NOT EXISTS FOR (n:RegistryObject) ON (n.identifier);").run();
+		neo4jClient.query("CREATE INDEX identifier_id IF NOT EXISTS FOR (n:Identifier) ON (n.identifier);").run();
 		neo4jClient.query("CREATE INDEX vertex_type IF NOT EXISTS FOR (n:Vertex) ON (n.identifierType);").run();
+		neo4jClient.query("CREATE INDEX identifier_type IF NOT EXISTS FOR (n:Identifier) ON (n.identifierType);").run();
 		neo4jClient.query("CREATE INDEX ro_class IF NOT EXISTS FOR (n:RegistryObject) ON (n.objectClass);").run();
 		neo4jClient.query("CREATE CONSTRAINT vertex_id_type_unique IF NOT EXISTS FOR (n:Vertex) REQUIRE (n.identifier, n.identifierType) IS UNIQUE;").run();
 	}
@@ -1489,6 +1489,35 @@ public class GraphService {
 	public Page<Vertex> getAllRegistryObjects(Pageable pageable) {
 		Page<Vertex> results = vertexRepository.getVertexByIdentifierTypeAndStatus(RIFCS_ID_IDENTIFIER_TYPE, "PUBLISHED", pageable);
 		return results;
+	}
+
+	/**
+	 * Generates information on the current status of the graph
+	 * superNodes are nodes that has more than 1000 relationships
+	 * overAssignedIdentifiers are Identifiers that are shared by more than 5 registryObjects
+	 * @param info
+	 */
+	public void getStatistics(HashMap<String, Object> info){
+
+		Long registryObjectCount = vertexRepository.getRegistryObjectCount();
+		Long identifierObjectCount = vertexRepository.getIdentifierCount();
+		info.put("registryObjectCount", registryObjectCount);
+		info.put("identifierCount", identifierObjectCount);
+
+		if(info.get("infoLevel").toString().equalsIgnoreCase("full")){
+			Collection<Map<String, Object>> superNodesList = neo4jClient
+					.query("match (n:Identifier)-[r]-(d:RegistryObject) with n, count(*) as numRelated where numRelated > 1000 return n.identifier as identifier," +
+							" n.identifierType as type, numRelated order by numRelated desc")
+					.fetch().all();
+			Collection<Map<String, Object>> identifiersList = neo4jClient
+					.query("match (n:Identifier)<-[r:isSameAs]-(d:RegistryObject) with n, count(*) as isSameAsCount where isSameAsCount > 5 return n.identifier as identifier," +
+							" n.identifierType as type, isSameAsCount order by isSameAsCount desc")
+					.fetch().all();
+			info.put("overAssignedIdentifierCount", identifiersList.size());
+			info.put("overAssignedIdentifiers", identifiersList);
+			info.put("superNodeCount", superNodesList.size());
+			info.put("superNodes", superNodesList);
+		}
 	}
 
 }

@@ -28,6 +28,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -330,6 +331,12 @@ public class MyceliumService {
 	public void publishEvent(ApplicationEvent event) {
 		log.debug("Publishing Event {}", event);
 		applicationEventPublisher.publishEvent(event);
+	}
+
+	public void getSystemInfo(HashMap<String, Object> info){
+
+			graphService.getStatistics(info);
+
 	}
 
 }

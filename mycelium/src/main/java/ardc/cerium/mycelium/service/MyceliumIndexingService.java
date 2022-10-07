@@ -73,10 +73,12 @@ public class MyceliumIndexingService {
 
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
-		Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-				from.getIdentifierType(), PageRequest.of(0, superNodeRelationshipStart+1));
-		if(!allowSuperNode && relationships.size() > superNodeRelationshipStart){
-			throw new SuperNodeException(from.getIdentifier());
+		if(!allowSuperNode) {
+			Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+					from.getIdentifierType(), PageRequest.of(0, superNodeRelationshipStart + 1));
+			if (relationships.size() > superNodeRelationshipStart) {
+				throw new SuperNodeException(from.getIdentifier());
+			}
 		}
 		deleteAllRelationship(from);
 		indexDirectRelationships(from);

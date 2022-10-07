@@ -13,7 +13,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.SolrTemplate;
-import org.springframework.data.solr.core.query.*;
+import org.springframework.data.solr.core.query.Criteria;
+import org.springframework.data.solr.core.query.Query;
+import org.springframework.data.solr.core.query.SimpleField;
 import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -21,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.filter;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -66,9 +67,9 @@ class MyceliumIndexingServiceTest {
 	@Test
 	void indexVertexCallsOtherMethods() {
 		MyceliumIndexingService mockedService = Mockito.mock(MyceliumIndexingService.class);
-		doCallRealMethod().when(mockedService).indexVertex(any(Vertex.class));
+		doCallRealMethod().when(mockedService).indexVertex(any(Vertex.class),any(Boolean.class));
 		Vertex vertex = new Vertex();
-		mockedService.indexVertex(vertex);
+		mockedService.indexVertex(vertex, true);
 		verify(mockedService, times(1)).deleteAllRelationship(vertex);
 		verify(mockedService, times(1)).indexDirectRelationships(vertex);
 		verify(mockedService, times(1)).indexGrantsNetworkRelationships(vertex);

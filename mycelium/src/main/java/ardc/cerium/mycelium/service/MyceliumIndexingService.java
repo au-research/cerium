@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.mycelium.event.PortalIndexUpdateEvent;
+import ardc.cerium.mycelium.exception.SuperNodeException;
 import ardc.cerium.mycelium.model.RelationLookupEntry;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
@@ -42,9 +43,11 @@ public class MyceliumIndexingService {
 
 	private final ApplicationEventPublisher applicationEventPublisher;
 
+	private final int superNodeRelationshipStart = 200;
+
 	public MyceliumIndexingService(SolrTemplate solrTemplate,
-			RelationshipDocumentRepository relationshipDocumentRepository, GraphService graphService,
-			VertexRepository vertexRepository, ApplicationEventPublisher applicationEventPublisher) {
+								   RelationshipDocumentRepository relationshipDocumentRepository, GraphService graphService,
+								   VertexRepository vertexRepository, ApplicationEventPublisher applicationEventPublisher) {
 		this.solrTemplate = solrTemplate;
 		this.relationshipDocumentRepository = relationshipDocumentRepository;
 		this.graphService = graphService;
@@ -52,6 +55,10 @@ public class MyceliumIndexingService {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	public void indexVertex(Vertex from) throws SuperNodeException
+	{
+		indexVertex(from, false);
+	}
 
 	/**
 	 * Index a {@link Vertex} by taking the data available in the Graph Service and index
@@ -61,11 +68,16 @@ public class MyceliumIndexingService {
 	 * Source Duplicates and Target Duplicates
 	 * @param from the {@link Vertex} to index
 	 */
-	public void indexVertex(Vertex from) {
+	public void indexVertex(Vertex from, boolean allowSuperNode) throws SuperNodeException {
 		log.debug("Indexing Vertex[from={}]", from.getIdentifier());
 
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
+		Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+				from.getIdentifierType(), PageRequest.of(0, superNodeRelationshipStart+1));
+		if(!allowSuperNode && relationships.size() > superNodeRelationshipStart){
+			throw new SuperNodeException(from.getIdentifier());
+		}
 		deleteAllRelationship(from);
 		indexDirectRelationships(from);
 		indexGrantsNetworkRelationships(from);
@@ -236,40 +248,46 @@ public class MyceliumIndexingService {
 	 */
 	public void indexDirectRelationships(Vertex from) {
 		log.debug("Indexing Direct Relationships Vertex[id={}]", from.getIdentifier());
-
+		Collection<Relationship> relationships = null;
 		// todo convert the GraphService#getDuplicateRelationships function to use direct
 		// repository interface & improve pagination
 		// current implementation only covers 1000 relationships & source duplicates
-		Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-				from.getIdentifierType(), PageRequest.of(0, 1000));
+		int page = 0;
+		relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+				from.getIdentifierType(), PageRequest.of(page, superNodeRelationshipStart));
+		do{
+			log.debug("Page {} Found {} direct relationships for Vertex[id={}]", page, relationships.size(), from.getIdentifier());
+			relationships.forEach(relationship -> {
+				Vertex to = relationship.getTo();
+				log.trace("RelatedEntity[id={}, type={}]", to.getIdentifier(), to.getIdentifierType());
+				// target duplicates
+				Collection<Vertex> toRelatedObjects = graphService.getDuplicateRegistryObject(to);
+				log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());
 
-		log.debug("Found {} direct relationships for Vertex[id={}]", relationships.size(), from.getIdentifier());
-		relationships.forEach(relationship -> {
-			Vertex to = relationship.getTo();
-			log.trace("RelatedEntity[id={}, type={}]", to.getIdentifier(), to.getIdentifierType());
-			// target duplicates
-			Collection<Vertex> toRelatedObjects = graphService.getDuplicateRegistryObject(to);
-			log.trace("RelatedEntity Duplicate count: {}", toRelatedObjects.size());
+				if (toRelatedObjects.size() > 0) {
+					log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
+					toRelatedObjects.forEach(toRelatedObject -> {
+						indexRelation(from, toRelatedObject, relationship.getRelations());
+						// index reverse only if the source is a PUBLISHED RECORD
+						if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
+							List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
+									.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
+									.collect(Collectors.toList());
+							indexRelation(toRelatedObject, from, reversedRelations);
+						}
+					});
+				}
+				else if (!to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
+					// does not resolve to registryObject it's a relatedInfo relation
+					log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
+					indexRelation(from, to, relationship.getRelations());
+				}
+			});
+			relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+					from.getIdentifierType(), PageRequest.of(++page, superNodeRelationshipStart));
+		}while(relationships.size() > 0);
 
-			if (toRelatedObjects.size() > 0) {
-				log.trace("Resolved {} relatedObjects", toRelatedObjects.size());
-				toRelatedObjects.forEach(toRelatedObject -> {
-					indexRelation(from, toRelatedObject, relationship.getRelations());
-					// index reverse only if the source is a PUBLISHED RECORD
-					if(from.getStatus() != null && from.getStatus().equals(Vertex.Status.PUBLISHED.name())) {
-						List<EdgeDTO> reversedRelations = relationship.getRelations().stream()
-								.map(edgeDTO -> RelationUtil.getReversed(edgeDTO, RELATION_RELATED_TO))
-								.collect(Collectors.toList());
-						indexRelation(toRelatedObject, from, reversedRelations);
-					}
-				});
-			}
-			else if (!to.getIdentifierType().equals(RIFCS_KEY_IDENTIFIER_TYPE)) {
-				// does not resolve to registryObject it's a relatedInfo relation
-				log.trace("Does not resolve to any relatedObject. Index as RelatedInfo");
-				indexRelation(from, to, relationship.getRelations());
-			}
-		});
+
 	}
 
 	/**

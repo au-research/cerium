@@ -8,26 +8,19 @@ import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.stubbing.OngoingStubbing;
-import org.mockito.verification.VerificationMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -120,7 +113,7 @@ class MyceliumServiceTest {
 	void indexVertex() {
 		Vertex vertex = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		vertex.setStatus(Vertex.Status.PUBLISHED.name());
-		myceliumService.indexVertex(vertex);
+		myceliumService.indexVertex(vertex, false);
 		verify(myceliumIndexingService, times(1)).indexVertex(vertex);
 	}
 

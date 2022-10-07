@@ -3,6 +3,7 @@ package ardc.cerium.mycelium.service;
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
+import ardc.cerium.mycelium.exception.SuperNodeException;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.rifcs.RecordState;
@@ -20,11 +21,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.UnexpectedRollbackException;
+
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -160,8 +159,8 @@ public class MyceliumService {
 		log.debug("Deleted Relationship for recordId:{}", recordId);
 	}
 
-	public void indexVertex(Vertex vertex) {
-		indexingService.indexVertex(vertex);
+	public void indexVertex(Vertex vertex, boolean allowSuperNodes) throws SuperNodeException {
+		indexingService.indexVertex(vertex, allowSuperNodes);
 	}
 
 	/**

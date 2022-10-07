@@ -1,15 +1,13 @@
 package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.core.common.entity.Request;
-import ardc.cerium.core.exception.NotFoundException;
 import ardc.cerium.core.exception.RecordNotFoundException;
-import ardc.cerium.mycelium.model.*;
-import ardc.cerium.mycelium.model.dto.TreeNodeDTO;
+import ardc.cerium.mycelium.exception.SuperNodeException;
+import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
-import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import com.google.common.base.Converter;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,9 +18,8 @@ import org.springframework.data.solr.core.query.result.Cursor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/services/mycelium")
@@ -41,7 +38,8 @@ public class MyceliumServiceController {
 	 * @return a String response
 	 */
 	@PostMapping("/index-record")
-	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
+	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId,
+										 @RequestParam(required = false, defaultValue = "false") boolean allowSuperNodes) {
 		log.info("Indexing RegistryObject[id={}]", registryObjectId);
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		if (from == null) {
@@ -49,8 +47,16 @@ public class MyceliumServiceController {
 			return ResponseEntity.badRequest()
 					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
 		}
-		log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
-		myceliumService.indexVertex(from);
+
+		try{
+			log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
+			myceliumService.indexVertex(from, allowSuperNodes);
+		}catch (SuperNodeException e){
+			log.warn(e.getMessage());
+			return ResponseEntity.badRequest().body(String.format(e.getMessage()));
+		}
+
+
 		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 
 		// todo formulate a formal response, Request?

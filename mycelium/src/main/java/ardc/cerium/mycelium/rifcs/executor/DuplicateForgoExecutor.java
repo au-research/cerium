@@ -1,5 +1,6 @@
 package ardc.cerium.mycelium.rifcs.executor;
 
+import ardc.cerium.mycelium.exception.SuperNodeException;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DuplicateForgoSideEffect;
@@ -60,7 +61,11 @@ public class DuplicateForgoExecutor extends Executor {
 		for (String registryObjectId : priorDuplicateIDs) {
 			Vertex vertex = getMyceliumService().getVertexFromRegistryObjectId(registryObjectId);
 			if (vertex != null) {
-				myceliumIndexingService.indexVertex(vertex);
+				try {
+					myceliumIndexingService.indexVertex(vertex);
+				}catch(SuperNodeException e){
+					myceliumIndexingService.indexVertex(vertex, true);
+				}
 			} else {
 				log.error("ForgoDuplicate. Vertex id=[{}] not found for re-indexing", registryObjectId);
 			}

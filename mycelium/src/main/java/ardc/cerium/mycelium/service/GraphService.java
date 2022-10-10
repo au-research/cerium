@@ -228,7 +228,7 @@ public class GraphService {
 		}
 	}
 
-	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType,
+	public Collection<Relationship> getMyDuplicateRelationships(String identifier, String identifierType, boolean includeReverse,
 			Pageable pageable) {
 		Vertex v = getVertexByIdentifier(identifier, identifierType);
 		if(v == null){
@@ -241,6 +241,10 @@ public class GraphService {
 		long offset = pageable.getOffset();
 		if(offset < 0){
 			offset = 0L;
+		}
+		String reverseFilter = "";
+		if(!includeReverse){
+			reverseFilter = " AND r.reverse = false\n";
 		}
 		String cypherQuery = "MATCH (origin:Vertex {identifier: '" + identifier + "', identifierType: '"+identifierType+"'})\n"
 				+ "CALL apoc.path.subgraphNodes(origin, {\n"
@@ -255,6 +259,7 @@ public class GraphService {
 				+ "WITH distinct from\n"
 				+ "MATCH (from)-[r]->(to)\n"
 				+ "WHERE type(r) <> 'isSameAs'\n"
+				+ reverseFilter
 				+ "RETURN from, to, collect(r) as relations\n" + "SKIP " + offset + " LIMIT "
 				+ pageable.getPageSize() + ";";
 		return getRelationships(cypherQuery);

@@ -74,10 +74,20 @@ public class MyceliumIndexingService {
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
 		if(!allowSuperNode) {
-			Collection<Relationship> relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-					from.getIdentifierType(), PageRequest.of(0, superNodeRelationshipStart + 1));
-			if (relationships.size() > superNodeRelationshipStart) {
-				throw new SuperNodeException(from.getIdentifier());
+			Collection<Relationship> relationshipsWithReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+					from.getIdentifierType(), true, PageRequest.of(0, superNodeRelationshipStart + 1));
+			if (relationshipsWithReverse.size() > superNodeRelationshipStart) {
+				// check is not a "real" superNode eg: has relationships that are direct and not reverse
+				Collection<Relationship> relationshipsNonReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+						from.getIdentifierType(), false, PageRequest.of(0, 10));
+				if (relationshipsNonReverse.size() > 0) {
+					// these records should be indexed
+					log.warn("Large Node but not SuperNode {}", from.getIdentifier());
+				}
+				else {
+					log.warn("SuperNode {}", from.getIdentifier());
+					throw new SuperNodeException(from.getIdentifier());
+				}
 			}
 		}
 		deleteAllRelationship(from);
@@ -250,13 +260,14 @@ public class MyceliumIndexingService {
 	 */
 	public void indexDirectRelationships(Vertex from) {
 		log.debug("Indexing Direct Relationships Vertex[id={}]", from.getIdentifier());
+		boolean includeReverse = true;
 		Collection<Relationship> relationships = null;
 		// todo convert the GraphService#getDuplicateRelationships function to use direct
 		// repository interface & improve pagination
 		// current implementation only covers 1000 relationships & source duplicates
 		int page = 0;
 		relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-				from.getIdentifierType(), PageRequest.of(page, superNodeRelationshipStart));
+				from.getIdentifierType(), includeReverse, PageRequest.of(page, superNodeRelationshipStart));
 		do{
 			log.debug("Page {} Found {} direct relationships for Vertex[id={}]", page, relationships.size(), from.getIdentifier());
 			relationships.forEach(relationship -> {
@@ -286,10 +297,8 @@ public class MyceliumIndexingService {
 				}
 			});
 			relationships = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-					from.getIdentifierType(), PageRequest.of(++page, superNodeRelationshipStart));
+					from.getIdentifierType(), includeReverse, PageRequest.of(++page, superNodeRelationshipStart));
 		}while(relationships.size() > 0);
-
-
 	}
 
 	/**

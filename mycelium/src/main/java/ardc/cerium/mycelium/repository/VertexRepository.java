@@ -81,5 +81,8 @@ public interface VertexRepository extends Neo4jRepository<Vertex, Long> {
 
 	@Query("match(n:Identifier) return count(n)")
 	Long getIdentifierCount();
+	@Query("match(n:Identifier) return n limit 1")
+	Vertex getOne();
+
 
 }

@@ -2,7 +2,6 @@ package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.exception.RecordNotFoundException;
-import ardc.cerium.mycelium.exception.SuperNodeException;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
@@ -41,26 +40,29 @@ public class MyceliumServiceController {
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId,
 										 @RequestParam(required = false, defaultValue = "false") boolean allowSuperNodes) {
 		log.info("Indexing RegistryObject[id={}]", registryObjectId);
-		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
-		if (from == null) {
-			log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
-			return ResponseEntity.badRequest()
-					.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
-		}
-
+		// 10 minutes should be enough
+		int sleepMillies = 3000; // 3 second
+		int retryCount = 200; // x20
 		try{
-			log.debug("Indexing Vertex[identifier={}]", from.getIdentifier());
+			myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
+			Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+			if (from == null) {
+				log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
+				return ResponseEntity.badRequest()
+						.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
+			}
 			myceliumService.indexVertex(from, allowSuperNodes);
-		}catch (SuperNodeException e){
-			log.warn(e.getMessage());
+			log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
+
+			// todo formulate a formal response, Request?
+			return ResponseEntity.ok("Done!");
+		}catch (Exception e){
+			log.error(e.getMessage());
 			return ResponseEntity.badRequest().body(String.format(e.getMessage()));
 		}
 
 
-		log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 
-		// todo formulate a formal response, Request?
-		return ResponseEntity.ok("Done!");
 	}
 
 	/**

@@ -34,8 +34,16 @@ public class MyceliumAdminController {
 		info.put("infoLevel", level);
 		// TODO: add more system wide stats and info
 		log.info("Generating {} System Information", level);
-		myceliumService.getSystemInfo(info);
-
-		return ResponseEntity.ok().body(info);
+		// 10 minutes should be enough
+		int sleepMillies = 3000; // 3 second
+		int retryCount = 200; // x20
+		try {
+			myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
+			myceliumService.getSystemInfo(info);
+			return ResponseEntity.ok().body(info);
+		}catch(Exception e){
+			log.warn(e.getMessage());
+			return ResponseEntity.badRequest().body(String.format(e.getMessage()));
+		}
 	}
 }

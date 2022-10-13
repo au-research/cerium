@@ -1,6 +1,7 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.repository.specs.SearchCriteria;
+import ardc.cerium.mycelium.exception.Neo4JUnavailableException;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.mapper.EdgeDTOMapper;
@@ -14,9 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.driver.Driver;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -24,8 +28,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.TransientDataAccessResourceException;
-
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -50,6 +52,8 @@ import static ardc.cerium.mycelium.provider.RIFCSGraphProvider.RIFCS_ID_IDENTIFI
 @Setter
 public class GraphService {
 
+	@Autowired
+	private Driver driver;
 	private final VertexRepository vertexRepository;
 
 	private final Neo4jClient neo4jClient;
@@ -1502,14 +1506,14 @@ public class GraphService {
 	 * overAssignedIdentifiers are Identifiers that are shared by more than 5 registryObjects
 	 * @param info
 	 */
-	public void getStatistics(HashMap<String, Object> info){
-
+	public void getStatistics(HashMap<String, Object> info) {
 		Long registryObjectCount = vertexRepository.getRegistryObjectCount();
+		info.put("registryObjectCount", registryObjectCount);
 		Long identifierObjectCount = vertexRepository.getIdentifierCount();
 		info.put("registryObjectCount", registryObjectCount);
 		info.put("identifierCount", identifierObjectCount);
 
-		if(info.get("infoLevel").toString().equalsIgnoreCase("full")){
+		if (info.get("infoLevel").toString().equalsIgnoreCase("full")) {
 			Collection<Map<String, Object>> superNodesList = neo4jClient
 					.query("match (n:Identifier)-[r]-(d:RegistryObject) with n, count(*) as numRelated where numRelated > 1000 return n.identifier as identifier," +
 							" n.identifierType as type, numRelated order by numRelated desc")
@@ -1518,10 +1522,34 @@ public class GraphService {
 					.query("match (n:Identifier)<-[r:isSameAs]-(d:RegistryObject) with n, count(*) as isSameAsCount where isSameAsCount > 5 return n.identifier as identifier," +
 							" n.identifierType as type, isSameAsCount order by isSameAsCount desc")
 					.fetch().all();
+
+			Collection<Map<String, Object>> dbState = neo4jClient.query("CALL dbms.database.state(\"neo4j\")").fetch().all();
+
+
 			info.put("overAssignedIdentifierCount", identifiersList.size());
 			info.put("overAssignedIdentifiers", identifiersList);
 			info.put("superNodeCount", superNodesList.size());
 			info.put("superNodes", superNodesList);
+			info.put("dbState", dbState);
+		}
+	}
+
+	public void verifyConnectivity(int sleepMillies, int retryCount){
+		while (true) {
+			try {
+				driver.verifyConnectivity();
+				return;
+			} catch (Exception e) {
+				log.debug("Neo4JUnavailable sleeping {}ms, {} tries left",sleepMillies,retryCount);
+				try {
+					Thread.sleep(sleepMillies);
+				}catch(InterruptedException ie){
+					log.error(ie.getMessage());
+				}
+				if (--retryCount <= 0) {
+					throw new Neo4JUnavailableException();
+				}
+			}
 		}
 	}
 

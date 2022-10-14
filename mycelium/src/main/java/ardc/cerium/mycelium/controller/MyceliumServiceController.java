@@ -57,7 +57,6 @@ public class MyceliumServiceController {
 			// todo formulate a formal response, Request?
 			return ResponseEntity.ok("Done!");
 		}catch (Exception e){
-			log.error(e.getMessage());
 			return ResponseEntity.badRequest().body(String.format(e.getMessage()));
 		}
 

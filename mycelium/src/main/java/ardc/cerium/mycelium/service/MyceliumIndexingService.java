@@ -68,7 +68,7 @@ public class MyceliumIndexingService {
 	 * Source Duplicates and Target Duplicates
 	 * @param from the {@link Vertex} to index
 	 */
-	public void indexVertex(Vertex from, boolean allowSuperNode) throws SuperNodeException {
+	public void indexVertex(Vertex from, boolean allowSuperNode) throws SuperNodeException{
 		log.debug("Indexing Vertex[from={}]", from.getIdentifier());
 
 		// index all direct (1 step away) relationships, source duplicates and target
@@ -77,17 +77,8 @@ public class MyceliumIndexingService {
 			Collection<Relationship> relationshipsWithReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
 					from.getIdentifierType(), true, PageRequest.of(0, superNodeRelationshipStart + 1));
 			if (relationshipsWithReverse.size() > superNodeRelationshipStart) {
-				// check is not a "real" superNode eg: has relationships that are direct and not reverse
-				Collection<Relationship> relationshipsNonReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-						from.getIdentifierType(), false, PageRequest.of(0, 10));
-				if (relationshipsNonReverse.size() > 0) {
-					// these records should be indexed
-					log.warn("Large Node but not SuperNode {}", from.getIdentifier());
-				}
-				else {
-					log.warn("SuperNode {}", from.getIdentifier());
-					throw new SuperNodeException(from.getIdentifier());
-				}
+				log.warn("SuperNode {}", from.getIdentifier());
+				throw new SuperNodeException(from.getIdentifier());
 			}
 		}
 		deleteAllRelationship(from);

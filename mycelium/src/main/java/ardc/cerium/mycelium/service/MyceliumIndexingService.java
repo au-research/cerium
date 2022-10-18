@@ -69,8 +69,8 @@ public class MyceliumIndexingService {
 	 * Source Duplicates and Target Duplicates
 	 * @param from the {@link Vertex} to index
 	 */
-	public void indexVertex(Vertex from, boolean allowSuperNode) throws SuperNodeException{
-		log.debug("Indexing Vertex[from={}]", from.getIdentifier());
+	public void indexVertex(Vertex from, boolean allowSuperNode){
+
 
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
@@ -109,10 +109,10 @@ public class MyceliumIndexingService {
 		}
 	}
 
-/*	public void deleteAllRelationship(Vertex from) {
+	public void deleteAllRelationship(Vertex from) {
 		relationshipDocumentRepository.deleteAllByFromIdEquals(from.getIdentifier());
 		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
-	}*/
+	}
 
 
 	public void deleteAllDataSourceRelationship(String dataSourceId) {

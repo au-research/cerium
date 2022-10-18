@@ -105,6 +105,7 @@ public class RelationLookupService {
 			RelationLookupEntry entry = lookupTable.get(relationType);
 			return entry.getReverseRelationType();
 		}
+		log.warn("Missing reverse relationType for:{}", relationType);
 		return null;
 	}
 

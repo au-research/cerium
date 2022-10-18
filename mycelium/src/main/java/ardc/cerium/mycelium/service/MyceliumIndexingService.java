@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.solr.EdgeDocument;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
+import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.RelationUtil;
@@ -73,17 +74,18 @@ public class MyceliumIndexingService {
 
 		// index all direct (1 step away) relationships, source duplicates and target
 		// duplicates included
-		if(!allowSuperNode) {
-			Collection<Relationship> relationshipsWithReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
-					from.getIdentifierType(), true, PageRequest.of(0, superNodeRelationshipStart + 1));
-			if (relationshipsWithReverse.size() > superNodeRelationshipStart) {
-				log.warn("SuperNode {}", from.getIdentifier());
-				throw new SuperNodeException(from.getIdentifier());
-			}
-		}
-		deleteAllRelationship(from);
+
+		deleteDirectRelationship(from);
 		indexDirectRelationships(from);
-		indexGrantsNetworkRelationships(from);
+
+		Collection<Relationship> relationshipsWithReverse = graphService.getMyDuplicateRelationships(from.getIdentifier(),
+					from.getIdentifierType(), true, PageRequest.of(0, superNodeRelationshipStart + 1));
+		if (relationshipsWithReverse.size() > superNodeRelationshipStart) {
+				log.warn("SuperNode {} Will not index Grants Network From", from.getIdentifier());
+		}else{
+			log.info("Indexing Grants Network From {}", from.getIdentifier());
+			indexGrantsNetworkRelationships(from);
+		}
 	}
 
 	/**
@@ -107,14 +109,73 @@ public class MyceliumIndexingService {
 		}
 	}
 
-	public void deleteAllRelationship(Vertex from) {
+/*	public void deleteAllRelationship(Vertex from) {
 		relationshipDocumentRepository.deleteAllByFromIdEquals(from.getIdentifier());
 		relationshipDocumentRepository.deleteAllByToIdentifierEquals(from.getIdentifier());
-	}
+	}*/
+
 
 	public void deleteAllDataSourceRelationship(String dataSourceId) {
 		relationshipDocumentRepository.deleteAllByFromDataSourceId(dataSourceId);
 		relationshipDocumentRepository.deleteAllByToDataSourceId(dataSourceId);
+	}
+
+
+	public void deleteDirectRelationship(Vertex from) {
+		log.debug("Deleting Direct Edges from Vertex[id={}]", from.getIdentifier());
+		Cursor<RelationshipDocument> cursor;
+		cursor = cursorFor(new Criteria("from_id").is(from.getIdentifier()));
+		while (cursor.hasNext()) {
+			RelationshipDocument doc = cursor.next();
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
+				relationshipDocumentRepository.delete(doc);
+				continue;
+			}
+			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
+					.filter(relation -> relation.getFromId() != null)
+					.filter(relation -> relation.getFromId().equals(from.getIdentifier()))
+					.filter(relation -> relation.getRelationSourceId() != null)
+					.filter(relation -> !relation.getRelationSourceId().equals(from.getIdentifier()))
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT))
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO))
+					.collect(Collectors.toList());
+			if (updatedEdges.size() > 0) {
+				doc.setRelations(updatedEdges);
+				relationshipDocumentRepository.save(doc);
+			}
+			else {
+				relationshipDocumentRepository.delete(doc);
+			}
+		}
+		solrTemplate.commit("relationships");
+
+		log.debug("Deleting Direct Edges to Vertex[id={}]", from.getIdentifier());
+		Cursor<RelationshipDocument> toCursor = cursorFor(new Criteria("to_identifier").is(from.getIdentifier()));
+		while (toCursor.hasNext()) {
+			RelationshipDocument doc = toCursor.next();
+			if (doc.getRelations() == null || doc.getRelations().size() == 0) {
+				relationshipDocumentRepository.delete(doc);
+				continue;
+			}
+			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
+					.filter(relation -> relation.getRelationSourceId() != null)
+					.filter(relation -> !relation.getRelationSourceId().equals(from.getIdentifier()))
+					.filter(relation -> relation.getToIdentifier() != null)
+					.filter(relation -> relation.getToIdentifier().equals(from.getIdentifier()))
+					.filter(relation -> relation.getRelationOrigin() != null)
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT))
+					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO))
+					.collect(Collectors.toList());
+			if (updatedEdges.size() > 0) {
+				doc.setRelations(updatedEdges);
+				relationshipDocumentRepository.save(doc);
+			}
+			else {
+				relationshipDocumentRepository.delete(doc);
+			}
+		}
+		solrTemplate.commit("relationships");
 	}
 
 	public void deleteGrantsNetworkEdges(Vertex from) {
@@ -251,7 +312,7 @@ public class MyceliumIndexingService {
 	 */
 	public void indexDirectRelationships(Vertex from) {
 		log.debug("Indexing Direct Relationships Vertex[id={}]", from.getIdentifier());
-		boolean includeReverse = true;
+		boolean includeReverse = false;
 		Collection<Relationship> relationships = null;
 		// todo convert the GraphService#getDuplicateRelationships function to use direct
 		// repository interface & improve pagination
@@ -393,6 +454,11 @@ public class MyceliumIndexingService {
 			edge.setFromId(from.getIdentifier());
 			edge.setToIdentifier(to.getIdentifier());
 			edge.setRelationOrigin(relation.getOrigin());
+			if(relation.isReverse()){
+				edge.setRelationSourceId(to.getIdentifier());
+			}else{
+				edge.setRelationSourceId(from.getIdentifier());
+			}
 			edge.setRelationInternal(RelationUtil.isInternal(from, to));
 			edge.setRelationReverse(relation.isReverse());
 			edge.setRelationDescription(relation.getDescription());

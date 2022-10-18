@@ -32,7 +32,7 @@ isCollectorOf,hasCollector,Collector of,,Collector of,,
 isCreatorOf,hasCreator,Creator of,,,,
 isDerivedFrom,hasDerivedCollection,Derived from,Derived from,,,
 isDescribedBy,describes,Described by,Described by,,,
-isDistributedBy,distributer,Distributer of,Distributed by,,,
+isDistributedBy,distributor,Distributer of,Distributed by,,,
 isDocumentedBy,documents,Documented by,Documented by,,,
 isEnrichedBy,enriches,Enriched by,Enriched by,,,
 isFundedBy,isFunderOf,Funded by,Funded by,Funded by,,Funded by

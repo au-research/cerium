@@ -68,7 +68,7 @@ import java.util.List;
                         relatedRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);
             }
             // remove existing title from portal index
-            else{
+            if(action.equals("delete")){
                 log.debug("DirectRelationshipChangedExecutor remove from {} ;title {} ", relatedRegistryObjectId, recordTitle);
                 getMyceliumService().getMyceliumIndexingService().deleteRelatedTitleFromPortalIndex(
                         relatedRegistryObjectId, recordClass, recordType, recordTitle, relationshipType);

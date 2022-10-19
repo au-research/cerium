@@ -84,6 +84,7 @@ public class MyceliumIndexingService {
 				log.warn("SuperNode {} Will not index Grants Network From", from.getIdentifier());
 		}else{
 			log.info("Indexing Grants Network From {}", from.getIdentifier());
+			deleteGrantsNetworkEdges(from);
 			indexGrantsNetworkRelationships(from);
 		}
 	}
@@ -132,13 +133,11 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getFromId() != null)
-					.filter(relation -> relation.getFromId().equals(from.getIdentifier()))
-					.filter(relation -> relation.getRelationSourceId() != null)
-					.filter(relation -> !relation.getRelationSourceId().equals(from.getIdentifier()))
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT))
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO))
+					.filter(relation -> relation.getRelationSourceId() == null
+							|| !relation.getRelationSourceId().equals(from.getIdentifier())
+					&& relation.getRelationOrigin() == null
+							|| (!relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT)
+							&& !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO)))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
@@ -159,13 +158,11 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getRelationSourceId() != null)
-					.filter(relation -> !relation.getRelationSourceId().equals(from.getIdentifier()))
-					.filter(relation -> relation.getToIdentifier() != null)
-					.filter(relation -> relation.getToIdentifier().equals(from.getIdentifier()))
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT))
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO))
+					.filter(relation -> relation.getRelationSourceId() == null
+							|| !relation.getRelationSourceId().equals(from.getIdentifier())
+							&& relation.getRelationOrigin() == null
+							|| (!relation.getRelationOrigin().equals(ORIGIN_RELATED_OBJECT)
+							&& !relation.getRelationOrigin().equals(ORIGIN_RELATED_INFO)))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
@@ -189,10 +186,9 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK))
-					.filter(relation -> relation.getFromId() != null)
-					.filter(relation -> relation.getFromId().equals(from.getIdentifier())).collect(Collectors.toList());
+					.filter(relation -> relation.getRelationSourceId() == null || !relation.getRelationSourceId().equals(from.getIdentifier())
+					&& 	relation.getRelationOrigin() == null || !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK))
+					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
 				relationshipDocumentRepository.save(doc);
@@ -203,7 +199,7 @@ public class MyceliumIndexingService {
 		}
 		solrTemplate.commit("relationships");
 
-		log.debug("Deleting Grants Network Edges to Vertex[id={}, type={}]", from.getIdentifier(),
+		log.info("Deleting Grants Network Edges to Vertex[id={}, type={}]", from.getIdentifier(),
 				from.getIdentifierType());
 		Cursor<RelationshipDocument> toCursor = cursorFor(new Criteria("to_identifier").is(from.getIdentifier()));
 		while (toCursor.hasNext()) {
@@ -213,10 +209,8 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> relation.getToIdentifier() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK)
-							&& relation.getToIdentifier().equals(from.getIdentifier()))
+					.filter(relation -> relation.getRelationSourceId() == null || !relation.getRelationSourceId().equals(from.getIdentifier())
+							&& 	relation.getRelationOrigin() == null || !relation.getRelationOrigin().equals(ORIGIN_GRANTS_NETWORK))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
@@ -239,10 +233,9 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK))
-					.filter(relation -> relation.getFromId() != null)
-					.filter(relation -> relation.getFromId().equals(registryObjectId)).collect(Collectors.toList());
+					.filter(relation -> relation.getRelationOrigin() != null
+							|| !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK))
+					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
 				relationshipDocumentRepository.save(doc);
@@ -262,10 +255,8 @@ public class MyceliumIndexingService {
 				continue;
 			}
 			List<EdgeDocument> updatedEdges = doc.getRelations().stream()
-					.filter(relation -> relation.getRelationOrigin() != null)
-					.filter(relation -> relation.getToIdentifier() != null)
-					.filter(relation -> !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK)
-							&& relation.getToIdentifier().equals(registryObjectId))
+					.filter(relation -> relation.getRelationOrigin() != null
+							|| !relation.getRelationOrigin().equals(ORIGIN_PRIMARY_LINK))
 					.collect(Collectors.toList());
 			if (updatedEdges.size() > 0) {
 				doc.setRelations(updatedEdges);
@@ -678,7 +669,8 @@ public class MyceliumIndexingService {
 		EdgeDTO edge = new EdgeDTO();
 		edge.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
 		edge.setType(relation);
-		edge.setReverse(!grantsNetworkIsTopDown(from.getObjectClass(), to.getObjectClass(), relation));
+		edge.setReverse(false);
+		//edge.setReverse(!grantsNetworkIsTopDown(from.getObjectClass(), to.getObjectClass(), relation));
 		indexRelation(from, to, new ArrayList<>(List.of(edge)));
 		log.debug("Indexed GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
 				to.getIdentifier(), edge.getType());
@@ -690,7 +682,8 @@ public class MyceliumIndexingService {
 			reversed.setOrigin(MyceliumIndexingService.ORIGIN_GRANTS_NETWORK);
 			String reversedRelationType = RelationLookupService.getReverse(relation, RELATION_RELATED_TO);
 			reversed.setType(reversedRelationType);
-			reversed.setReverse(!grantsNetworkIsTopDown(to.getObjectClass(), from.getObjectClass(), reversedRelationType));
+			//reversed.setReverse(!grantsNetworkIsTopDown(to.getObjectClass(), from.getObjectClass(), reversedRelationType));
+			reversed.setReverse(true);
 			log.debug("Indexed (reversed) GrantsNetwork Relation[from_id={}, to_id={}, relation={}]", from.getIdentifier(),
 					to.getIdentifier(), reversed.getType());
 

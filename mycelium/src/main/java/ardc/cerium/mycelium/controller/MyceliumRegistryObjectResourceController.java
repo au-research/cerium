@@ -60,35 +60,44 @@ public class MyceliumRegistryObjectResourceController {
 	@PostMapping(path = "")
 	public ResponseEntity<?> importRegistryObject(@RequestBody String json,
 			@RequestParam(required = false) String requestId){
-		log.info("Importing Record requestId={}", requestId);
+
 
 		Request request = requestId != null ? myceliumService.getMyceliumRequestService().findById(requestId) : null;
 
 		// create the import task and run it immediately
-		// 10 minutes should be enough
-		int sleepMillies = 3000; // 3 second
-		int retryCount = 200; // x20
 		try {
-			myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
+			log.info("Importing Record requestId={}", requestId);
 			myceliumService.runImportTask(json, request);
-		}catch(Neo4JUnavailableException ne){
-			return ResponseEntity.badRequest().body(String.format("Error importing %s", ne.getMessage()));
-		}
-		catch(Exception e){
-			log.error("Error importing={}", e.getMessage());
+			if(request == null){
+				return ResponseEntity.ok("OK");
+			}
+			return ResponseEntity.ok(request);
+		}catch(Exception e){
+			log.warn("There was an Error while importing={}", e.getMessage());
+			// check if it was a parsing error
 			try {
 				RegistryObject registryObject = myceliumService.parsePayloadToRegistryObject(json);
-				return ResponseEntity.badRequest()
-						.body(String.format("Error importing registryObject id::%d error:%s", registryObject.getRegistryObjectId(), e.getMessage()));
 			}catch(JsonProcessingException ee){
 				return ResponseEntity.badRequest()
 						.body(String.format("Error importing content error:%s", ee.getMessage()));
 			}
+			// check if neo4j went away
+			try {
+				// check if neo4j was unavailable by
+				int sleepMillies = 3000; // 3 second
+				int retryCount = 200; // x20
+				myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
+				log.warn("Neo4j is available so try ti Import Record 2nd time={}", e.getMessage());
+				myceliumService.runImportTask(json, request);
+				if(request == null){
+					return ResponseEntity.ok("OK");
+				}
+				return ResponseEntity.ok(request);
+			}catch(Exception f) {
+				return ResponseEntity.badRequest().body(String.format("Error importing %s", f.getMessage()));
+			}
 		}
-		if(request == null){
-			return ResponseEntity.ok("OK");
-		}
-		return ResponseEntity.ok(request);
+
 	}
 
 	/**

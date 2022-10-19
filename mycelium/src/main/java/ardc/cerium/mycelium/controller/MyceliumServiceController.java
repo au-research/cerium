@@ -2,12 +2,14 @@ package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.exception.RecordNotFoundException;
+import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.MyceliumService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Converter;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -39,29 +41,34 @@ public class MyceliumServiceController {
 	@PostMapping("/index-record")
 	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId,
 										 @RequestParam(required = false, defaultValue = "false") boolean allowSuperNodes) {
-		log.info("Indexing RegistryObject[id={}]", registryObjectId);
-		// 10 minutes should be enough
-		int sleepMillies = 3000; // 3 second
-		int retryCount = 200; // x20
-		try{
-			myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
-			Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+		try {
 			if (from == null) {
 				log.error("Vertex with registryObjectId {} doesn't exist", registryObjectId);
 				return ResponseEntity.badRequest()
 						.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
 			}
+			log.info("Indexing RegistryObject[id={}]", registryObjectId);
 			myceliumService.indexVertex(from, allowSuperNodes);
 			log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
-
-			// todo formulate a formal response, Request?
 			return ResponseEntity.ok("Done!");
-		}catch (Exception e){
-			return ResponseEntity.badRequest().body(String.format(e.getMessage()));
+		}catch(Exception e){
+			log.warn("There was an Error while indexing m={} trying if Neo4j is unavailable", e.getMessage());
+
+			try {
+				int sleepMillies = 3000; // 3 second
+				int retryCount = 200; // x20
+				// check if neo4j went away
+				myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
+				myceliumService.indexVertex(from, allowSuperNodes);
+				log.debug("Index completed Vertex[identifier={}]", registryObjectId);
+
+				// todo formulate a formal response, Request?
+				return ResponseEntity.ok("Done!");
+			}catch(Exception f) {
+				return ResponseEntity.badRequest().body(String.format("Error Indexing record wirh ro_id=%s error=%s",registryObjectId, f.getMessage()));
+			}
 		}
-
-
-
 	}
 
 	/**

@@ -486,12 +486,21 @@ public class MyceliumRegistryObjectResourceController {
 				return treeNodeDTOMapper.getConverter().convert(target);
 			}).collect(Collectors.toList());
 
-			// set children count
-			children.forEach(entry -> {
+			// set children count, while removing duplicates
+			List<String> uniqueList = new ArrayList<>();
+			Iterator<TreeNodeDTO> iterator = children.iterator();
+			while(iterator.hasNext()){
+				TreeNodeDTO entry = iterator.next();
 				String id = entry.getIdentifier();
-				entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
-			});
-
+				if(!uniqueList.contains(id)){
+					uniqueList.add(id);
+					entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
+				}else{
+					iterator.remove();
+				}
+			}
+			//sort them by title
+			children.sort(Comparator.comparing(TreeNodeDTO::getTitle));
 			return ResponseEntity.ok().body(children);
 		}catch(Exception e){
 			return ResponseEntity.badRequest().body("Error retrieving nested-collection-children");

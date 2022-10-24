@@ -1417,8 +1417,7 @@ public class GraphService {
 	public int getNestedCollectionChildrenCount(String registryObjectId, List<String> excludeIDs) {
 		String cypherQuery = "MATCH (origin:Vertex {identifier: $identifier, identifierType: $identifierType}) OPTIONAL MATCH (origin)-[:isSameAs*1..5]-(duplicates)\n" +
 				"WITH collect(origin) + collect(duplicates) as identical UNWIND identical as from\n" +
-				"WITH distinct from MATCH (from)-[r:hasPart]->(to) WHERE (to.identifierType = \"ro:id\"" +
-		        "OR EXISTS((to)-[:isSameAs]-({identifierType:\"ro:id\", objectClass:\"collection\"})))\n";
+				"WITH distinct from MATCH (from)-[r:hasPart]->(key)-[r2:isSameAs]-(to) WHERE (to.identifierType = \"ro:id\" AND to.objectClass =\"collection\")\n";
 
 		if (excludeIDs.size() > 0) {
 			String notIn = excludeIDs.stream().map(id -> {
@@ -1427,7 +1426,8 @@ public class GraphService {
 			cypherQuery += "AND NOT to.identifier IN "+notIn+"\n";
 		}
 
-		cypherQuery += "RETURN count(r) as count;";
+		cypherQuery += "RETURN count(to) as count;";
+		log.warn(cypherQuery);
 		return neo4jClient.query(cypherQuery).bind(registryObjectId).to("identifier").bind("ro:id")
 				.to("identifierType").fetchAs(Integer.class).one().get();
 	}

@@ -404,9 +404,35 @@ public class MyceliumRegistryObjectResourceController {
 					// filter out siblings that is the same as the original node or non existence
 					return dto != null && !dto.getIdentifier().equals(originNode.getIdentifier());
 				}).map(dto -> {
-					Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(dto.getIdentifier(), new ArrayList<>());
-					dto.setChildrenCount(childrenCount);
-					log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), childrenCount);
+					Vertex child = myceliumService.getVertexFromRegistryObjectId(dto.getIdentifier());
+
+					// get children count by removing keys and duplicates
+					Collection<Relationship> childrenRelationships = myceliumService.getGraphService().getNestedCollectionChildren(child, siblingSizeLimit,
+							0, new ArrayList<>());
+
+					List<TreeNodeDTO> grandchildren = childrenRelationships.stream().map(relationship -> {
+						Vertex target = relationship.getTo();
+						if (target.getIdentifierType().equals("ro:key")) {
+							target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
+						}
+						return treeNodeDTOMapper.getConverter().convert(target);
+					}).collect(Collectors.toList());
+
+
+					Iterator<TreeNodeDTO> grandchildIterator = grandchildren.iterator();
+					List<String> gUniqueList = new ArrayList<>();
+					while(grandchildIterator.hasNext()){
+						TreeNodeDTO gEntry = grandchildIterator.next();
+						String gId = gEntry.getIdentifier();
+						if(!gUniqueList.contains(gId)){
+							gUniqueList.add(gId);
+						}else{
+							grandchildIterator.remove();
+						}
+					}
+
+					dto.setChildrenCount(grandchildren.size());
+					log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), grandchildren.size());
 					return dto;
 				}).collect(Collectors.toList());
 
@@ -494,34 +520,8 @@ public class MyceliumRegistryObjectResourceController {
 				String id = entry.getIdentifier();
 				if(!uniqueList.contains(id)){
 					uniqueList.add(id);
-
-					Vertex child = myceliumService.getVertexFromRegistryObjectId(id);
-					excludeIDs.add(id);
-  // get children count by removing keys and duplicates
-					Collection<Relationship> childrenRelationships = graphService.getNestedCollectionChildren(child, Integer.parseInt(limit),
-							iOffSet, excludeIDs);
-
-					List<TreeNodeDTO> grandchildren = childrenRelationships.stream().map(relationship -> {
-						Vertex target = relationship.getTo();
-						if (target.getIdentifierType().equals("ro:key")) {
-							target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
-						}
-						return treeNodeDTOMapper.getConverter().convert(target);
-					}).collect(Collectors.toList());
-
-
-					Iterator<TreeNodeDTO> grandchildIterator = grandchildren.iterator();
-					List<String> gUniqueList = new ArrayList<>();
-					while(grandchildIterator.hasNext()){
-						TreeNodeDTO gEntry = grandchildIterator.next();
-						String gId = gEntry.getIdentifier();
-						if(!gUniqueList.contains(gId)){
-							gUniqueList.add(gId);
-						}else{
-							grandchildIterator.remove();
-						}
-					}
-					entry.setChildrenCount(grandchildren.size());
+					Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>());
+					entry.setChildrenCount(childrenCount);
 				}else{
 					iterator.remove();
 				}

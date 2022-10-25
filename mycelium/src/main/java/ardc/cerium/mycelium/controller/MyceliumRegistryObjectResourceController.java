@@ -234,13 +234,17 @@ public class MyceliumRegistryObjectResourceController {
 					.collect(Collectors.toList());
 
 			List<String> uniqueList = new ArrayList<>();
-			// remove duplicate relation types
 			Iterator<RelationTypeGroup> iterator = overLimitGroups.iterator();
 			while(iterator.hasNext()){
 				RelationTypeGroup g = iterator.next();
-				String relation = g.getRelation();
-				if(!uniqueList.contains(relation)){
-					uniqueList.add(relation);
+				String groupID = g.getRelation()+":"+g.getObjectClass()+":"+g.getObjectType();
+				// null as string not null null
+				if(groupID.contains("null"))
+				{
+					iterator.remove();
+				}
+				else if(!uniqueList.contains(groupID)){
+					uniqueList.add(groupID);
 				}else{
 					iterator.remove();
 				}

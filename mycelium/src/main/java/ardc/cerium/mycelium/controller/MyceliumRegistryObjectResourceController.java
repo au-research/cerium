@@ -233,6 +233,19 @@ public class MyceliumRegistryObjectResourceController {
 			List<RelationTypeGroup> overLimitGroups = relationTypeGroups.stream().filter(g -> g.getCount() >= 20)
 					.collect(Collectors.toList());
 
+			List<String> uniqueList = new ArrayList<>();
+			// remove duplicate relation types
+			Iterator<RelationTypeGroup> iterator = overLimitGroups.iterator();
+			while(iterator.hasNext()){
+				RelationTypeGroup g = iterator.next();
+				String relation = g.getRelation();
+				if(!uniqueList.contains(relation)){
+					uniqueList.add(relation);
+				}else{
+					iterator.remove();
+				}
+			}
+
 			List<String> overLimitRelationType = new ArrayList<>();
 			if (includeCluster) {
 				overLimitGroups.forEach(group -> {

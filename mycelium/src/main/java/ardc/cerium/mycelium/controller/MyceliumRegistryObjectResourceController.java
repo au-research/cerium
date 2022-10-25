@@ -316,15 +316,15 @@ public class MyceliumRegistryObjectResourceController {
 		}
 
 	}
-
 	@GetMapping(path = "/{registryObjectId}/nested-collection-parents")
 	public ResponseEntity<?> getNestedCollectionParents(@PathVariable("registryObjectId") String registryObjectId,
-			@RequestParam(required = false, defaultValue = "100") String limitChildrenCount,
-			@RequestParam(required = false, defaultValue = "100") String limitSiblingCount) {
+														@RequestParam(required = false, defaultValue = "100") String limitChildrenCount,
+														@RequestParam(required = false, defaultValue = "100") String limitSiblingCount) {
 		Integer childrenSizeLimit = Integer.parseInt(limitChildrenCount);
 		Integer siblingSizeLimit = Integer.parseInt(limitSiblingCount);
 		try {
 			Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
+			List<String> uniqueList = new ArrayList<>();
 			if (from == null) {
 				throw new NotFoundException(String.format("Record ID: {} is not found", registryObjectId));
 			}
@@ -377,15 +377,27 @@ public class MyceliumRegistryObjectResourceController {
 					target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
 				}
 				return treeNodeDTOMapper.getConverter().convert(target);
-			}).map(dto -> {
-				Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(dto.getIdentifier(), new ArrayList<>());
-				dto.setChildrenCount(childrenCount);
-				log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), childrenCount);
-				return dto;
 			}).collect(Collectors.toList());
-			nodes.get(from.getIdentifier().toString()).setChildren(children);
 
-			TreeNodeDTO originNode = nodes.get(from.getIdentifier().toString());
+			uniqueList = new ArrayList<>();
+			Iterator<TreeNodeDTO> iterator = children.iterator();
+			while(iterator.hasNext()){
+				TreeNodeDTO entry = iterator.next();
+				String id = entry.getIdentifier();
+				if(!uniqueList.contains(id)){
+					uniqueList.add(id);
+					entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
+				}else{
+					iterator.remove();
+				}
+			}
+			//sort them by title
+			children.sort(Comparator.comparing(TreeNodeDTO::getTitle));
+
+
+			nodes.get(from.getIdentifier()).setChildren(children);
+
+			TreeNodeDTO originNode = nodes.get(from.getIdentifier());
 
 			// direct parent
 			Vertex directParentVertex = myceliumService.getVertexFromRegistryObjectId(originNode.getParentId());
@@ -403,39 +415,20 @@ public class MyceliumRegistryObjectResourceController {
 				}).filter(dto -> {
 					// filter out siblings that is the same as the original node or non existence
 					return dto != null && !dto.getIdentifier().equals(originNode.getIdentifier());
-				}).map(dto -> {
-					Vertex child = myceliumService.getVertexFromRegistryObjectId(dto.getIdentifier());
-
-					// get children count by removing keys and duplicates
-					Collection<Relationship> childrenRelationships = myceliumService.getGraphService().getNestedCollectionChildren(child, siblingSizeLimit,
-							0, new ArrayList<>());
-
-					List<TreeNodeDTO> grandchildren = childrenRelationships.stream().map(relationship -> {
-						Vertex target = relationship.getTo();
-						if (target.getIdentifierType().equals("ro:key")) {
-							target = myceliumService.getRegistryObjectVertexFromKey(target.getIdentifier());
-						}
-						return treeNodeDTOMapper.getConverter().convert(target);
-					}).collect(Collectors.toList());
-
-
-					Iterator<TreeNodeDTO> grandchildIterator = grandchildren.iterator();
-					List<String> gUniqueList = new ArrayList<>();
-					while(grandchildIterator.hasNext()){
-						TreeNodeDTO gEntry = grandchildIterator.next();
-						String gId = gEntry.getIdentifier();
-						if(!gUniqueList.contains(gId)){
-							gUniqueList.add(gId);
-						}else{
-							grandchildIterator.remove();
-						}
-					}
-
-					dto.setChildrenCount(grandchildren.size());
-					log.debug("Children Count of RegistryObjectId[id={}] is {}", dto.getIdentifier(), grandchildren.size());
-					return dto;
 				}).collect(Collectors.toList());
-
+				uniqueList = new ArrayList<>();
+				Iterator<TreeNodeDTO> sIterator = siblings.iterator();
+				while(sIterator.hasNext()){
+					TreeNodeDTO entry = sIterator.next();
+					String id = entry.getIdentifier();
+					if(!uniqueList.contains(id)){
+						uniqueList.add(id);
+						entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
+					}else{
+						sIterator.remove();
+					}
+				}
+				siblings.sort(Comparator.comparing(TreeNodeDTO::getTitle));
 				nodes.get(originNode.getParentId()).getChildren().addAll(siblings);
 			}
 
@@ -471,9 +464,9 @@ public class MyceliumRegistryObjectResourceController {
 
 	@GetMapping(path = "/{registryObjectId}/nested-collection-children")
 	public ResponseEntity<?> getNestedCollectionChildren(@PathVariable("registryObjectId") String registryObjectId,
-			@RequestParam(required = false, defaultValue = "100") String limit,
-			@RequestParam(required = false, defaultValue = "0") String offset,
-			@RequestParam(required = false, defaultValue = "") String excludeIdentifiers) {
+														 @RequestParam(required = false, defaultValue = "100") String limit,
+														 @RequestParam(required = false, defaultValue = "0") String offset,
+														 @RequestParam(required = false, defaultValue = "") String excludeIdentifiers) {
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		int iOffSet = Integer.parseInt(offset);
 		/*
@@ -520,17 +513,16 @@ public class MyceliumRegistryObjectResourceController {
 				String id = entry.getIdentifier();
 				if(!uniqueList.contains(id)){
 					uniqueList.add(id);
-					Integer childrenCount = myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>());
-					entry.setChildrenCount(childrenCount);
+					entry.setChildrenCount(myceliumService.getGraphService().getNestedCollectionChildrenCount(id, new ArrayList<>()));
 				}else{
 					iterator.remove();
 				}
 			}
 			//sort them by title
 			children.sort(Comparator.comparing(TreeNodeDTO::getTitle));
+
 			return ResponseEntity.ok().body(children);
 		}catch(Exception e){
-			log.error(e.toString());
 			return ResponseEntity.badRequest().body("Error retrieving nested-collection-children");
 		}
 

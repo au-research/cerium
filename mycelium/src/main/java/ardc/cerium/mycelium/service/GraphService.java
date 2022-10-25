@@ -1427,7 +1427,6 @@ public class GraphService {
 		}
 
 		cypherQuery += "RETURN count(to) as count;";
-		log.warn(cypherQuery);
 		return neo4jClient.query(cypherQuery).bind(registryObjectId).to("identifier").bind("ro:id")
 				.to("identifierType").fetchAs(Integer.class).one().get();
 	}

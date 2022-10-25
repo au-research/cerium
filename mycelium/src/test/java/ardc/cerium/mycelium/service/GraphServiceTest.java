@@ -696,13 +696,18 @@ class GraphServiceTest {
 		a.setObjectClass("collection");
 		Vertex b = new Vertex("b", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
 		b.setObjectClass("collection");
+
 		Vertex c = new Vertex("c", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
 		c.setObjectClass("collection");
+		Vertex bKey = new Vertex("bKey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
+		Vertex cKey = new Vertex("cKey", RIFCSGraphProvider.RIFCS_KEY_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
 		Vertex d = new Vertex("d", RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE, Vertex.Status.PUBLISHED);
 		d.setObjectClass("collection");
-		graph.addVertex(a, b, c, d);
-		graph.addEdge(new Edge(a, b, "hasPart"));
-		graph.addEdge(new Edge(a, c, "hasPart"));
+		graph.addVertex(a, b, c, d, bKey, cKey);
+		graph.addEdge(new Edge(a, bKey, "hasPart"));
+		graph.addEdge(new Edge(a, cKey, "hasPart"));
+		graph.addEdge(new Edge(b, bKey, "isSameAs"));
+		graph.addEdge(new Edge(c, cKey, "isSameAs"));
 		graph.addEdge(new Edge(a, d, "hasAssociationWith"));
 		graphService.ingestGraph(graph);
 

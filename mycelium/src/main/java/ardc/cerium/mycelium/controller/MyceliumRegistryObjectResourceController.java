@@ -185,6 +185,36 @@ public class MyceliumRegistryObjectResourceController {
 	}
 
 	/**
+	 * Get RegistryObject duplicates or Identical Records
+	 *
+	 * Handles GET /api/resources/mycelium-registry-objects/find_by_identifier
+	 * @param identifier the identifier of the Registry Object
+	 * @param identifier_type the identifier of the Registry Object
+	 * @return a {@link Collection} of Vertices
+	 */
+	@GetMapping(path = "/find_by_identifier")
+	public ResponseEntity<?> getRegistryObjectDuplicates(@RequestParam() String identifier,
+														 @RequestParam() String identifier_type) {
+		log.info("find registry object by identifier:{}, identifier_type{}", identifier, identifier_type);
+
+		try {
+			Vertex vIdentifier = myceliumService.getIdentifierVertex(identifier, identifier_type);
+			if (vIdentifier == null) {
+				log.error("No Vertex with identifier:{}, identifier_type{}", identifier, identifier_type);
+				return ResponseEntity.badRequest()
+						.body(String.format("No Vertex with identifier:%s, identifier_type%s", identifier, identifier_type));
+			}
+			Collection<Vertex> duplicates = myceliumService.getGraphService().getDuplicateRegistryObject(vIdentifier);
+			log.debug("getDuplicates completed Vertex[identifier={}]", vIdentifier.getIdentifier());
+			return ResponseEntity.ok().body(duplicates);
+		}catch (Exception e){
+			return ResponseEntity.badRequest().body("Error retrieving Duplicate records");
+		}
+	}
+
+
+
+	/**
 	 * Obtain a Graph of the RegistryObject
 	 *
 	 * Handles GET /api/resources/mycelium-registry-objects/{registryObjectId}/graphs

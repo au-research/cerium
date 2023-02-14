@@ -7,13 +7,11 @@ import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.service.GraphService;
 import ardc.cerium.mycelium.service.MyceliumService;
+import ardc.cerium.mycelium.util.VertexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -146,4 +144,29 @@ public class MyceliumIdentifierResourceController {
             return ResponseEntity.ok(graph);
 
         }
+
+
+    @PostMapping(path = "/update-title")
+    public ResponseEntity<?> UpdateTitle(
+            @RequestParam("identifier_value") String identifier_value,
+            @RequestParam("identifier_type") String identifier_type,
+            @RequestParam("title") String title){
+        log.info("OUpdating title for [identifier={},type={},title{}]", identifier_value, identifier_type, title);
+
+
+        String normalisedType = VertexUtil.getNormalisedIdentifierType(identifier_value, identifier_type);
+        String normalisedValue = VertexUtil.getNormalisedIdentifierValue(identifier_value, normalisedType);
+
+        Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(normalisedValue, normalisedType);
+
+        if (vertex == null) {
+            log.error("Vertex with identifier {} type {} doesn't exist", identifier_value, identifier_type);
+            return ResponseEntity.badRequest()
+                    .body(String.format("Vertex with identifier_value%s, identifier_type %s doesn't exist", identifier_value, identifier_type));
+        }
+        vertex.setTitle(title);
+        vertex.setListTitle(title);
+        myceliumService.getGraphService().ingestVertex(vertex);
+        return ResponseEntity.ok("Title updated");
+    }
 }

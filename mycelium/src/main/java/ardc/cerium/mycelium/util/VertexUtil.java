@@ -50,7 +50,7 @@ public class VertexUtil {
 	 * @param type the type of the identifier
 	 * @return the normalised identifier value
 	 */
-	private static String getNormalisedIdentifierValue(String value, String type) {
+	public static String getNormalisedIdentifierValue(String value, String type) {
 		switch (type) {
 		case "doi":
 			// if it's a valid DOI eg there is a string that starts with 10.

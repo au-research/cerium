@@ -164,7 +164,7 @@ class VertexUtilTest {
             "hdl.handle.net/10273/AU1243, handle, AU1243, igsn",
             "10273/AU1243, igsn, AU1243, igsn",
             "au1243, igsn, AU1243, igsn",
-            "https://igsn.org/AU1243, uri, igsn.org/AU1243, uri",
+            "https://igsn.org/AU1243, uri, AU1243, igsn",
 
             // removal https protocol
             "http://geoserver-123.aodn.org.au/geoserver/ncwms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities, url, geoserver-123.aodn.org.au/geoserver/ncwms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities, url",

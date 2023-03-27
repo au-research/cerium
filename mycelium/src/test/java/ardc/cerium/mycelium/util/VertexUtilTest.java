@@ -182,29 +182,4 @@ class VertexUtilTest {
         assertThat(vertex.getMetaAttribute("rawIdentifierValue")).isEqualTo(preValue);
         assertThat(vertex.getMetaAttribute("rawIdentifierType")).isEqualTo(preType);
     }
-
-    @ParameterizedTest
-    @CsvSource({
-            "http://nla.gov.au/nla.party-1692395, uri, AU-ANL:PEAU"
-    })
-    void testgetNormalisedIdentifierType(String value, String type, String expectedType){
-        assertThat(VertexUtil.getNormalisedIdentifierType(value, type)).isEqualTo(expectedType);
-    }
-
-
-    @ParameterizedTest
-    @CsvSource({
-            ", uri, AU-ANL:PEAU"
-    })
-    void testEmptyValues(String value, String type, String expectedType){
-        Assert.assertThrows(ContentNotSupportedException.class, () -> VertexUtil.getNormalisedIdentifierType(value, type));
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "1111,, AU-ANL:PEAU"
-    })
-    void testEmptyType(String value, String type, String expectedType){
-        Assert.assertThrows(ContentNotSupportedException.class, () -> VertexUtil.getNormalisedIdentifierType(value, type));
-    }
 }

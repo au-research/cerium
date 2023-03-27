@@ -5,7 +5,9 @@ import ardc.cerium.mycelium.model.Graph;
 import ardc.cerium.mycelium.model.RelationTypeGroup;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.model.Identifier;
 import ardc.cerium.mycelium.service.GraphService;
+import ardc.cerium.mycelium.service.IdentifierNormalisationService;
 import ardc.cerium.mycelium.service.MyceliumService;
 import ardc.cerium.mycelium.util.VertexUtil;
 import lombok.RequiredArgsConstructor;
@@ -153,11 +155,11 @@ public class MyceliumIdentifierResourceController {
             @RequestParam("title") String title){
         log.info("OUpdating title for [identifier={},type={},title{}]", identifier_value, identifier_type, title);
 
-
-        String normalisedType = VertexUtil.getNormalisedIdentifierType(identifier_value, identifier_type);
-        String normalisedValue = VertexUtil.getNormalisedIdentifierValue(identifier_value, normalisedType);
-
-        Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(normalisedValue, normalisedType);
+        Identifier identifier = new Identifier();
+        identifier.setValue(identifier_value);
+        identifier.setType(identifier_type);
+        identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
+        Vertex vertex = myceliumService.getGraphService().getVertexByIdentifier(identifier.getValue(), identifier.getType());
 
         if (vertex == null) {
             log.error("Vertex with identifier {} type {} doesn't exist", identifier_value, identifier_type);

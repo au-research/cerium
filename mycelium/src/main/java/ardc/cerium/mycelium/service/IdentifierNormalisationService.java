@@ -1,9 +1,11 @@
-package ardc.cerium.mycelium.rifcs;
+package ardc.cerium.mycelium.service;
 
 
 import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.mycelium.rifcs.model.Identifier;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -29,78 +31,87 @@ public class IdentifierNormalisationService {
      * @param identifier (@link Identifier)
      * @return a normalised Identifier (@link Identifier)
      */
+    @NotNull
+    @Contract("null -> fail")
     public static Identifier getNormalisedIdentifier(Identifier identifier) throws ContentNotSupportedException {
 
         if(identifier == null || identifier.getValue() == null || identifier.getValue().isEmpty()){
             throw new ContentNotSupportedException("Identifier must have a value");
         }
         String type = getNormalisedIdentifierType(identifier);
+        identifier.setType(type);
         String value = identifier.getValue().trim();
-        switch (type)
-        {
+        switch (type) {
             case "doi":
-                // if it's a valid DOI eg there is a string that starts with 10.
-                if(value.contains("10.")){
-                    // upper case DOI values they are case insensitive
+                // if it's a valid DOI eg. there is a string that starts with 10.
+                if (value.contains("10.")) {
+                    // upper case DOI values they are case-insensitive
                     value = value.toUpperCase(Locale.ROOT);
                     value = value.substring(value.indexOf("10."));
                 }
-            break;
+                break;
             case "orcid":
-                // ORCID is 19 character long with 4 sets of 4 digit numbers
-                if(StringUtils.countMatches(value, "-") == 3 ){
+                // ORCID is 19 character long with 4 sets of 4-digit numbers
+                if (StringUtils.countMatches(value, "-") == 3) {
                     value = value.substring(value.indexOf("-") - 4, value.indexOf("-") + 15);
                 }
-            break;
+                break;
+
             case "raid":
             case "handle":
                 value = value.toLowerCase(Locale.ROOT);
-                if(value.contains("hdl:")){
+                if (value.contains("hdl:")) {
                     value = value.substring(value.indexOf("hdl:") + 4);
                 }
-                else if(value.contains("http")){
+                else if (value.contains("http")) {
                     try {
                         URL url = new URL(value);
                         value = url.getPath().substring(1);
-                    }catch(MalformedURLException ignored){
+                    }
+                    catch (MalformedURLException ignored) {
 
                     }
                 }
-                else if(value.contains("handle.")){
+                else if (value.contains("handle.")) {
                     try {
                         URL url = new URL("https://" + value);
                         value = url.getPath().substring(1);
-                    }catch(MalformedURLException ignored){
+                    }
+                    catch (MalformedURLException ignored) {
 
                     }
                 }
-            break;
+                break;
             case "purl":
-                if(value.contains("purl.org")){
+                if (value.contains("purl.org")) {
                     value = "https://" + value.substring(value.indexOf("purl.org"));
                 }
-            break;
+                break;
+            case "ror":
+                if (value.contains("ror.org")) {
+                    value = value.substring(value.indexOf("ror.org/") + 8);
+                }
+                break;
             case "AU-ANL:PEAU":
-                if(value.contains("nla.party-")){
+                if (value.contains("nla.party-")) {
                     value = value.substring(value.indexOf("nla.party-"));
-                }else{
+                }else if(!value.startsWith("https://") && !value.startsWith("http://")){
                     value = "nla.party-" + value;
                 }
-            break;
+                break;
             case "igsn":
-                // upper case IGSN values they are case insensitive
+                // upper case IGSN values they are case-insensitive
                 value = value.toUpperCase(Locale.ROOT);
-                if(value.contains("10273/")){
+                if (value.contains("10273/")) {
                     value = value.substring(value.indexOf("10273/") + 6);
                 }
-                else if(value.contains("IGSN.ORG/")){
+                else if (value.contains("IGSN.ORG/")) {
                     value = value.substring(value.indexOf("IGSN.ORG/") + 9);
                 }
-            break;
+                break;
             default:
                 value = value.replaceFirst("(^https?://)", "");
         }
-        identifier.setType(type);
         identifier.setValue(value);
         return identifier;
     }
@@ -110,42 +121,53 @@ public class IdentifierNormalisationService {
      * trying to best guess the more specific IdentifierType based on the Identifier value
      * or a regular missmatch from
      * eg: uri with value http://doi.org/10.5412 should be changed to doi
+     * every identifier type is lowercased with one exception
+     * AU-ANL:PEAU (too many business logic for NLA pull-back
+     * need more testing before converting all identifier types to either lower or upper case
      * @param identifier (@link Identifier)
      * @return string the assumed type of the given Identifier
      */
-    private static String getNormalisedIdentifierType(Identifier identifier) throws ContentNotSupportedException{
+    public static String getNormalisedIdentifierType(Identifier identifier) throws ContentNotSupportedException{
         if(identifier.getType() == null || identifier.getType().isEmpty()){
             throw new ContentNotSupportedException("Identifier must have a value");
         }
         String type = identifier.getType().trim();
         String value = identifier.getValue().toUpperCase(Locale.ROOT);
-        if(type.toLowerCase(Locale.ROOT).equals("nla.party")){
+
+        if (value.contains("NLA.PARTY-") ||
+                type.toLowerCase(Locale.ROOT).equals("nla.party") ||
+                type.toUpperCase(Locale.ROOT).equals("AU-ANL:PEAU")) {
             return "AU-ANL:PEAU";
         }
-        if(value.contains("HDL.HANDLE.NET/10273/")){
+
+        if (value.contains("HDL.HANDLE.NET/10273/") || value.contains("10273/") || value.contains("IGSN.ORG")) {
             return "igsn";
         }
-        if(value.contains("10.")  && value.contains("DOI")){
+
+        if (value.contains("10.") && value.contains("DOI")) {
             return "doi";
         }
-        if(value.contains("ORCID.ORG") && StringUtils.countMatches(value, "-") == 3){
+
+        if (value.contains("ORCID.ORG") && StringUtils.countMatches(value, "-") == 3) {
             return "orcid";
         }
-        if(value.contains("HANDLE.")  || value.contains("HDL:")){
-            if(StringUtils.countMatches(value, "HTTP:") > 1 || type.contains("raid")){
+        if (value.contains("ROR.ORG")) {
+            return "ror";
+        }
+        if (value.contains("HANDLE.") || value.contains("HDL:")) {
+            if (StringUtils.countMatches(value, "HTTP:") > 1 || type.contains("raid")) {
                 // unable to confirm it's a handle
                 return type;
             }
             return "handle";
         }
-        if(value.contains( "PURL.ORG")){
+
+        if (value.contains("PURL.ORG")) {
             return "purl";
         }
-        if(value.contains("NLA.PARTY-")){
-            return "AU-ANL:PEAU";
-        }
 
-        return type;
+
+        return type.toLowerCase(Locale.ROOT);
     }
 
 }

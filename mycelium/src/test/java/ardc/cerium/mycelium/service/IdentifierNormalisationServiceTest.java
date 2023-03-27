@@ -1,7 +1,6 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.exception.ContentNotSupportedException;
-import ardc.cerium.mycelium.rifcs.IdentifierNormalisationService;
 import ardc.cerium.mycelium.rifcs.model.Identifier;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -165,14 +164,14 @@ class IdentifierNormalisationServiceTest {
     void testNLAParties(){
         Collection tests = Arrays.asList(new String[][]{
                 {"http://nla.gov.au/nla.party-1692395","uri","nla.party-1692395","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692395","nla-party","nla.party-1692395","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692395","AU-VANDS","nla.party-1692395","AU-ANL:PEAU"},
-                {"nla.gov.au/nla.party-1692395","AU-QGU","nla.party-1692395","AU-ANL:PEAU"},
-                {"https://nla.gov.au/nla.party-1692395","AU-QUT","nla.party-1692395","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692395","nla.party","nla.party-1692395","AU-ANL:PEAU"},
-                {"nla.party-1692395","AU-ANL:PEAU","nla.party-1692395","AU-ANL:PEAU"},
-                {"nla.party-1692395","AU-QGU","nla.party-1692395","AU-ANL:PEAU"},
-                {"1692395","NLA.PARTY","nla.party-1692395","AU-ANL:PEAU"}
+                {"http://nla.gov.au/nla.party-1692394","nla-party","nla.party-1692394","AU-ANL:PEAU"},
+                {"http://nla.gov.au/nla.party-1692393","AU-VANDS","nla.party-1692393","AU-ANL:PEAU"},
+                {"nla.gov.au/nla.party-1692396","AU-QGU","nla.party-1692396","AU-ANL:PEAU"},
+                {"https://nla.gov.au/nla.party-1692397","AU-QUT","nla.party-1692397","AU-ANL:PEAU"},
+                {"http://nla.gov.au/nla.party-1692398","nla.party","nla.party-1692398","AU-ANL:PEAU"},
+                {"nla.party-1692399","AU-ANL:PEAU","nla.party-1692399","AU-ANL:PEAU"},
+                {"nla.party-1692390","AU-QGU","nla.party-1692390","AU-ANL:PEAU"},
+                {"16923952","NLA.PARTY","nla.party-16923952","AU-ANL:PEAU"}
        });
         Identifier identifier = new Identifier();
         for (Object test : tests) {
@@ -190,11 +189,11 @@ class IdentifierNormalisationServiceTest {
     void testIGSN(){
         Collection tests = Arrays.asList(new String[][] {
                 {"http://igsn.org/AU1243", "igsn", "AU1243", "igsn"},
-                {"https://igsn.org/AU1243", "igsn", "AU1243", "igsn"},
-                {"hdl.handle.net/10273/AU1243", "handle", "AU1243", "igsn"},
-                {"10273/AU1243", "igsn", "AU1243", "igsn"},
-                {"au1243", "igsn", "AU1243", "igsn"},
-                {"https://igsn.org/AU1243", "uri", "igsn.org/AU1243", "uri"}
+                {"https://igsn.org/AU1244", "url", "AU1244", "igsn"},
+                {"hdl.handle.net/10273/AU1245", "handle", "AU1245", "igsn"},
+                {"10273/AU1246", "igsn", "AU1246", "igsn"},
+                {"au1247", "igsn", "AU1247", "igsn"},
+                {"https://igsn.org/AU1248", "uri", "AU1248", "igsn"}
         });
         Identifier identifier = new Identifier();
         for(Object test:tests){
@@ -207,6 +206,25 @@ class IdentifierNormalisationServiceTest {
         }
     }
 
+
+    @Test
+    void testROR(){
+        Collection tests = Arrays.asList(new String[][] {
+                {"0402tt118", "ROR", "0402tt118", "ror"},
+                {"ror.org/0402tt118", "ror", "0402tt118", "ror"},
+                {"ror.org/0402tt118", "url", "0402tt118", "ror"},
+                {"https://ror.org/0402tt118", "ROR", "0402tt118", "ror"}
+        });
+        Identifier identifier = new Identifier();
+        for(Object test:tests){
+            String[] testcase = (String[]) test;
+            identifier.setValue(testcase[0]);
+            identifier.setType(testcase[1]);
+            identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
+            assertThat(identifier.getValue()).isEqualTo(testcase[2]);
+            assertThat(identifier.getType()).isEqualTo(testcase[3]);
+        }
+    }
     @Test
     void testRemovalOfhttpprotocol(){
         Collection tests = Arrays.asList(new String[][] {

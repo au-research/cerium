@@ -4,6 +4,8 @@ import ardc.cerium.core.exception.ContentNotSupportedException;
 import ardc.cerium.doi.ContentNegotiationClient;
 import ardc.cerium.doi.schema.citeproc.json.CiteProcJson;
 import ardc.cerium.mycelium.model.Vertex;
+import ardc.cerium.mycelium.rifcs.model.Identifier;
+import ardc.cerium.mycelium.service.IdentifierNormalisationService;
 import ardc.cerium.orcid.PublicOrcidClient;
 import ardc.cerium.orcid.schema.orcid.json.Biography;
 import ardc.cerium.orcid.schema.orcid.json.OrcidRecord;
@@ -28,158 +30,21 @@ public class VertexUtil {
 	 * @param vertex the {@link Vertex} to normalise
 	 */
 	public static void normalise(Vertex vertex) {
-
-		String value = vertex.getIdentifier();
-		String type = vertex.getIdentifierType();
-		vertex.setMetaAttribute("rawIdentifierValue", value);
-		vertex.setMetaAttribute("rawIdentifierType", type);
-
-		// normalise the type first and use that to normalise the value
-		String normalisedType = getNormalisedIdentifierType(value, type);
-		String normalisedValue = getNormalisedIdentifierValue(value, normalisedType);
-
+		Identifier identifier = new Identifier();
+		identifier.setValue(vertex.getIdentifier());
+		identifier.setType(vertex.getIdentifierType());
+		vertex.setMetaAttribute("rawIdentifierValue", identifier.getValue());
+		vertex.setMetaAttribute("rawIdentifierType", identifier.getType());
+		// normalise Identifier
+		identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
 		// sets the normalised value and type to the vertex
-		vertex.setIdentifier(normalisedValue);
-		vertex.setIdentifierType(normalisedType);
+		vertex.setIdentifier(identifier.getValue());
+		vertex.setIdentifierType(identifier.getType());
 	}
 
-	/**
-	 * Obtain the normalised value of an identifier given the original value and the (normalised) type
-	 *
-	 * @param value the value of the identifier
-	 * @param type the type of the identifier
-	 * @return the normalised identifier value
-	 */
-	public static String getNormalisedIdentifierValue(String value, String type) {
-		switch (type) {
-		case "doi":
-			// if it's a valid DOI eg there is a string that starts with 10.
-			if (value.contains("10.")) {
-				// upper case DOI values they are case insensitive
-				value = value.toUpperCase(Locale.ROOT);
-				value = value.substring(value.indexOf("10."));
-			}
-			return value;
-		case "orcid":
-			// ORCID is 19 character long with 4 sets of 4 digit numbers
-			if (StringUtils.countMatches(value, "-") == 3) {
-				value = value.substring(value.indexOf("-") - 4, value.indexOf("-") + 15);
-			}
-			return value;
-		case "raid":
-		case "handle":
-			value = value.toLowerCase(Locale.ROOT);
-			if (value.contains("hdl:")) {
-				value = value.substring(value.indexOf("hdl:") + 4);
-			}
-			else if (value.contains("http")) {
-				try {
-					URL url = new URL(value);
-					value = url.getPath().substring(1);
-				}
-				catch (MalformedURLException ignored) {
-
-				}
-			}
-			else if (value.contains("handle.")) {
-				try {
-					URL url = new URL("https://" + value);
-					value = url.getPath().substring(1);
-				}
-				catch (MalformedURLException ignored) {
-
-				}
-			}
-			return value;
-		case "purl":
-			if (value.contains("purl.org")) {
-				value = "https://" + value.substring(value.indexOf("purl.org"));
-			}
-			return value;
-		case "ror":
-			if (value.contains("ror.org")) {
-				value = value.substring(value.indexOf("ror.org/") + 8);
-			}
-			return value;
-		case "AU-ANL:PEAU":
-			if (value.contains("nla.party-")) {
-				value = value.substring(value.indexOf("nla.party-"));
-			}else if(!value.startsWith("https://") && !value.startsWith("http://")){
-				value = "nla.party-" + value;
-			}
-			return value;
-		case "igsn":
-			// upper case IGSN values they are case insensitive
-			value = value.toUpperCase(Locale.ROOT);
-			if (value.contains("10273/")) {
-				value = value.substring(value.indexOf("10273/") + 6);
-			}
-			else if (value.contains("IGSN.ORG/")) {
-				value = value.substring(value.indexOf("IGSN.ORG/") + 9);
-			}
-			return value;
-		default:
-			return value.replaceFirst("(^https?://)", "");
-		}
-	}
-
-	/**
-	 * Obtain the normalised type given the original value and the type
-	 *
-	 * Business rule applied to recognised supported identifiers
-	 * @param identifierValue the value of the identifier
-	 * @param identifierType the type of the identifier
-	 * @return the normalised type of the identifier
-	 */
-	public static String getNormalisedIdentifierType(String identifierValue, String identifierType) {
-
-		// uppercase the value for easy sub-string comparison
 
 
-		if (identifierType == null || identifierType.isEmpty()) {
-			throw new ContentNotSupportedException("Identifier Type must have a value");
-		}
 
-		if (identifierValue == null || identifierValue.isEmpty()) {
-			throw new ContentNotSupportedException("Identifier must have a value");
-		}
-
-		String value = identifierValue.toUpperCase(Locale.ROOT);
-
-		if (identifierType.toLowerCase(Locale.ROOT).equals("nla.party")) {
-			return "AU-ANL:PEAU";
-		}
-
-		if (value.contains("HDL.HANDLE.NET/10273/")) {
-			return "igsn";
-		}
-
-		if (value.contains("10.") && value.contains("DOI")) {
-			return "doi";
-		}
-
-		if (value.contains("ORCID.ORG") && StringUtils.countMatches(value, "-") == 3) {
-			return "orcid";
-		}
-
-		if (value.contains("HANDLE.") || value.contains("HDL:")) {
-			if (StringUtils.countMatches(value, "HTTP:") > 1 || identifierType.contains("raid")) {
-				// unable to confirm it's a handle
-				return identifierType;
-			}
-			return "handle";
-		}
-
-		if (value.contains("PURL.ORG")) {
-			return "purl";
-		}
-
-		if (value.contains("NLA.PARTY-")) {
-			return "AU-ANL:PEAU";
-		}
-
-		return identifierType;
-	}
 
 	/**
 	 * Resolve a Vertex based on the supported identifier types

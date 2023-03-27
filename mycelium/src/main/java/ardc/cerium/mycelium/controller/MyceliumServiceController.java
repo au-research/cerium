@@ -2,14 +2,13 @@ package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.exception.RecordNotFoundException;
-import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.Vertex;
-import ardc.cerium.mycelium.model.mapper.TreeNodeDTOMapper;
 import ardc.cerium.mycelium.model.mapper.VertexDTOMapper;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
 import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
+import ardc.cerium.mycelium.rifcs.model.Identifier;
+import ardc.cerium.mycelium.service.IdentifierNormalisationService;
 import ardc.cerium.mycelium.service.MyceliumService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Converter;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,7 @@ public class MyceliumServiceController {
 	private final MyceliumService myceliumService;
 	private final VertexDTOMapper vertexMapper;
 
-	private final TreeNodeDTOMapper treeNodeDTOMapper;
+	private final IdentifierNormalisationService identifierNormalisationService;
 
 	/**
 	 * Index a RegistryObject by ID
@@ -151,6 +150,26 @@ public class MyceliumServiceController {
 		Vertex result = myceliumService.getGraphService().getVertexByIdentifier(value,type);
 		Converter converter = vertexMapper.getConverter();
 		return ResponseEntity.ok().body(converter.convert(result));
+	}
+
+	/**
+	 * API to return the resolved identifier VertexDTO
+	 *
+	 * @param value the value of the identifier
+	 * @param type the type of the identifier
+	 * @return a string response
+	 */
+	@GetMapping(path = "/normalise-identifiers")
+	public ResponseEntity<?> getNormalisedIdentifier(
+			@RequestParam("value") String value,
+			@RequestParam(required = false, defaultValue = "url") String type) {
+		Identifier identifier = new Identifier();
+		identifier.setType(type);
+		identifier.setValue(value);
+		log.debug("Raw Identifier[value={}, type={}]", identifier.getValue(), identifier.getType());
+		identifier = IdentifierNormalisationService.getNormalisedIdentifier(identifier);
+		log.debug("Normalised Identifier[value={}, type={}]", identifier.getValue(), identifier.getType());
+		return ResponseEntity.ok().body(identifier);
 	}
 
 }

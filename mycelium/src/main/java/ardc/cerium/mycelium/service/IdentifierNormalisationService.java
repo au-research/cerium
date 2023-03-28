@@ -78,7 +78,6 @@ public class IdentifierNormalisationService {
                         value = url.getPath().substring(1);
                     }
                     catch (MalformedURLException ignored) {
-
                     }
                 }
                 break;
@@ -92,7 +91,7 @@ public class IdentifierNormalisationService {
                     value = value.substring(value.indexOf("ror.org/") + 8);
                 }
                 break;
-            case "AU-ANL:PEAU":
+            case "au-anl:peau":
                 if (value.contains("nla.party-")) {
                     value = value.substring(value.indexOf("nla.party-"));
                 }else if(!value.startsWith("https://") && !value.startsWith("http://")){
@@ -121,9 +120,7 @@ public class IdentifierNormalisationService {
      * trying to best guess the more specific IdentifierType based on the Identifier value
      * or a regular missmatch from
      * eg: uri with value http://doi.org/10.5412 should be changed to doi
-     * every identifier type is lowercased with one exception
-     * AU-ANL:PEAU (too many business logic for NLA pull-back
-     * need more testing before converting all identifier types to either lower or upper case
+     * every identifier type is lower-cased 
      * @param identifier (@link Identifier)
      * @return string the assumed type of the given Identifier
      */
@@ -131,13 +128,11 @@ public class IdentifierNormalisationService {
         if(identifier.getType() == null || identifier.getType().isEmpty()){
             throw new ContentNotSupportedException("Identifier must have a value");
         }
-        String type = identifier.getType().trim();
+        String type = identifier.getType().trim().toLowerCase(Locale.ROOT);
         String value = identifier.getValue().toUpperCase(Locale.ROOT);
 
-        if (value.contains("NLA.PARTY-") ||
-                type.toLowerCase(Locale.ROOT).equals("nla.party") ||
-                type.toUpperCase(Locale.ROOT).equals("AU-ANL:PEAU")) {
-            return "AU-ANL:PEAU";
+        if (value.contains("NLA.PARTY-") || type.equals("nla.party")){
+            return "au-anl:peau";
         }
 
         if (value.contains("HDL.HANDLE.NET/10273/") || value.contains("10273/") || value.contains("IGSN.ORG")) {
@@ -167,7 +162,7 @@ public class IdentifierNormalisationService {
         }
 
 
-        return type.toLowerCase(Locale.ROOT);
+        return type;
     }
 
 }

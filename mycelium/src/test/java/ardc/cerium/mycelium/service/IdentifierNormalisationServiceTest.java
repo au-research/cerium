@@ -163,15 +163,15 @@ class IdentifierNormalisationServiceTest {
     @Test
     void testNLAParties(){
         Collection tests = Arrays.asList(new String[][]{
-                {"http://nla.gov.au/nla.party-1692395","uri","nla.party-1692395","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692394","nla-party","nla.party-1692394","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692393","AU-VANDS","nla.party-1692393","AU-ANL:PEAU"},
-                {"nla.gov.au/nla.party-1692396","AU-QGU","nla.party-1692396","AU-ANL:PEAU"},
-                {"https://nla.gov.au/nla.party-1692397","AU-QUT","nla.party-1692397","AU-ANL:PEAU"},
-                {"http://nla.gov.au/nla.party-1692398","nla.party","nla.party-1692398","AU-ANL:PEAU"},
-                {"nla.party-1692399","AU-ANL:PEAU","nla.party-1692399","AU-ANL:PEAU"},
-                {"nla.party-1692390","AU-QGU","nla.party-1692390","AU-ANL:PEAU"},
-                {"16923952","NLA.PARTY","nla.party-16923952","AU-ANL:PEAU"}
+                {"http://nla.gov.au/nla.party-1692395","uri","nla.party-1692395","au-anl:peau"},
+                {"http://nla.gov.au/nla.party-1692394","nla-party","nla.party-1692394","au-anl:peau"},
+                {"http://nla.gov.au/nla.party-1692393","AU-VANDS","nla.party-1692393","au-anl:peau"},
+                {"nla.gov.au/nla.party-1692396","AU-QGU","nla.party-1692396","au-anl:peau"},
+                {"https://nla.gov.au/nla.party-1692397","AU-QUT","nla.party-1692397","au-anl:peau"},
+                {"http://nla.gov.au/nla.party-1692398","nla.party","nla.party-1692398","au-anl:peau"},
+                {"nla.party-1692399","AU-ANL:PEAU","nla.party-1692399","au-anl:peau"},
+                {"nla.party-1692390","AU-QGU","nla.party-1692390","au-anl:peau"},
+                {"16923952","NLA.PARTY","nla.party-16923952","au-anl:peau"}
        });
         Identifier identifier = new Identifier();
         for (Object test : tests) {
@@ -188,7 +188,7 @@ class IdentifierNormalisationServiceTest {
     @Test
     void testIGSN(){
         Collection tests = Arrays.asList(new String[][] {
-                {"http://igsn.org/AU1243", "igsn", "AU1243", "igsn"},
+                {"http://igsn.org/AU1243", "IGSN", "AU1243", "igsn"},
                 {"https://igsn.org/AU1244", "url", "AU1244", "igsn"},
                 {"hdl.handle.net/10273/AU1245", "handle", "AU1245", "igsn"},
                 {"10273/AU1246", "igsn", "AU1246", "igsn"},

@@ -103,15 +103,15 @@ class VertexUtilTest {
     @ParameterizedTest
     @CsvSource({
             // nla
-            "http://nla.gov.au/nla.party-1692395,uri,nla.party-1692395,AU-ANL:PEAU",
-            "http://nla.gov.au/nla.party-1692395,nla-party,nla.party-1692395,AU-ANL:PEAU",
-            "http://nla.gov.au/nla.party-1692395,AU-VANDS,nla.party-1692395,AU-ANL:PEAU",
-            "nla.gov.au/nla.party-1692395,AU-QGU,nla.party-1692395,AU-ANL:PEAU",
-            "https://nla.gov.au/nla.party-1692395,AU-QUT,nla.party-1692395,AU-ANL:PEAU",
-            "http://nla.gov.au/nla.party-1692395,nla.party,nla.party-1692395,AU-ANL:PEAU",
-            "nla.party-1692395,AU-ANL:PEAU,nla.party-1692395,AU-ANL:PEAU",
-            "nla.party-1692395,AU-QGU,nla.party-1692395,AU-ANL:PEAU",
-            "1692395,NLA.PARTY,nla.party-1692395,AU-ANL:PEAU",
+            "http://nla.gov.au/nla.party-1692395,uri,nla.party-1692395,au-anl:peau",
+            "http://nla.gov.au/nla.party-1692395,nla-party,nla.party-1692395,au-anl:peau",
+            "http://nla.gov.au/nla.party-1692395,AU-VANDS,nla.party-1692395,au-anl:peau",
+            "nla.gov.au/nla.party-1692395,AU-QGU,nla.party-1692395,au-anl:peau",
+            "https://nla.gov.au/nla.party-1692395,AU-QUT,nla.party-1692395,au-anl:peau",
+            "http://nla.gov.au/nla.party-1692395,nla.party,nla.party-1692395,au-anl:peau",
+            "nla.party-1692395,AU-ANL:PEAU,nla.party-1692395,au-anl:peau",
+            "nla.party-1692395,AU-QGU,nla.party-1692395,au-anl:peau",
+            "1692395,NLA.PARTY,nla.party-1692395,au-anl:peau",
 
             // doi
             "DOI:10.234/455, doi, 10.234/455, doi",
@@ -121,8 +121,8 @@ class VertexUtilTest {
             "10.234/455, doi, 10.234/455, doi",
 
             // ror
-            "https://ror.org/01pmm8272, ror, 01pmm8272, ror",
-            "01pmm8272, ror, 01pmm8272, ror",
+            "https://ror.org/01pmm8272, ror, ror.org/01pmm8272, ror",
+            "01pmm8272, ror, ror.org/01pmm8272, ror",
 
             // random
             "1.234/455, fish, 1.234/455, fish",

@@ -88,7 +88,9 @@ public class IdentifierNormalisationService {
                 break;
             case "ror":
                 if (value.contains("ror.org")) {
-                    value = value.substring(value.indexOf("ror.org/") + 8);
+                    value = value.substring(value.indexOf("ror.org/"));
+                }else{
+                    value = String.format("ror.org/%s", value);
                 }
                 break;
             case "au-anl:peau":
@@ -120,7 +122,7 @@ public class IdentifierNormalisationService {
      * trying to best guess the more specific IdentifierType based on the Identifier value
      * or a regular missmatch from
      * eg: uri with value http://doi.org/10.5412 should be changed to doi
-     * every identifier type is lower-cased 
+     * every identifier type is lower-cased
      * @param identifier (@link Identifier)
      * @return string the assumed type of the given Identifier
      */

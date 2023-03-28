@@ -210,10 +210,10 @@ class IdentifierNormalisationServiceTest {
     @Test
     void testROR(){
         Collection tests = Arrays.asList(new String[][] {
-                {"0402tt118", "ROR", "0402tt118", "ror"},
-                {"ror.org/0402tt118", "ror", "0402tt118", "ror"},
-                {"ror.org/0402tt118", "url", "0402tt118", "ror"},
-                {"https://ror.org/0402tt118", "ROR", "0402tt118", "ror"}
+                {"0402tt118", "ROR", "ror.org/0402tt118", "ror"},
+                {"ror.org/0402tt118", "ror", "ror.org/0402tt118", "ror"},
+                {"http://ror.org/0402tt118", "url", "ror.org/0402tt118", "ror"},
+                {"https://ror.org/0402tt118", "ROR", "ror.org/0402tt118", "ror"}
         });
         Identifier identifier = new Identifier();
         for(Object test:tests){

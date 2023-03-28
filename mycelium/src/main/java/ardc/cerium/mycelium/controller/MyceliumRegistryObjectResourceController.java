@@ -146,7 +146,7 @@ public class MyceliumRegistryObjectResourceController {
 	 */
 	@GetMapping(path = "/{registryObjectId}/identifiers")
 	public ResponseEntity<?> getIdentifiers(@PathVariable("registryObjectId") String registryObjectId) {
-
+		log.info("Obtaining all Vertex that the registryObject isSameAs [id={}]", registryObjectId);
 		// obtaining all Vertex that the registryObject "isSameAs"
 		Collection<Vertex> identifiers = myceliumService.getGraphService().getSameAs(registryObjectId, "ro:id");
 

@@ -10,9 +10,10 @@ import ardc.cerium.mycelium.rifcs.executor.*;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.util.DataSourceUtil;
+import ardc.cerium.mycelium.util.FormUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;  
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
@@ -71,11 +72,12 @@ public class MyceliumSideEffectService {
 		});
 	}
 
-	public void workQueue(String queueID, Request request) {
+	public void workQueue(String queueID, Request request, String importedRecordIds) {
 
 		request.setStatus(Request.Status.RUNNING);
 		myceliumRequestService.save(request);
-
+		List<String> idList = FormUtils.getListfromString(importedRecordIds);
+		log.debug(String.format("idlist size is : %s", idList.size()));
 		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
@@ -85,6 +87,11 @@ public class MyceliumSideEffectService {
 		while (!queue.isEmpty()) {
 
 			SideEffect sideEffect = queue.poll();
+			if(sideEffect.getAffectedRegistryObjectId() != null && idList.contains(sideEffect.getAffectedRegistryObjectId())){
+				log.debug("No need to process record [ro_id={}]", sideEffect.getAffectedRegistryObjectId());
+				continue;
+			}
+
 			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
 
 			if (executor == null) {
@@ -119,13 +126,14 @@ public class MyceliumSideEffectService {
 	}
 
 	@Async
-	public void workQueueAsync(String queueID, Request request) {
-		this.workQueue(queueID, request);
+	public void workQueueAsync(String queueID, Request request, String importedRecordIds) {
+		this.workQueue(queueID, request, importedRecordIds);
 	}
+
 
 	@Async
 	public void workQueueAsync(String queueID, Request request, ApplicationEvent event) {
-		workQueue(queueID, request);
+		workQueue(queueID, request, null);
 		myceliumService.publishEvent(event);
 	}
 
@@ -365,7 +373,7 @@ public class MyceliumSideEffectService {
 							before.getRegistryObjectClass(), before.getRegistryObjectType(),
 							before.getTitle(), after.getTitle(), null));
 		}
-		
+
 		return sideEffects;
 	}
 

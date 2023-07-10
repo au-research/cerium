@@ -44,7 +44,7 @@ public class TitleChangeExecutor extends Executor {
 	@Override
 	public void handle() {
 		log.debug("Handling SideEffect {}", sideEffect);
-		myceliumIndexingService.updateTitle(sideEffect.getRegistryObjectId(), sideEffect.getNewTitle());
+		myceliumIndexingService.updateTitle(sideEffect.getAffectedRegistryObjectId(), sideEffect.getNewTitle());
 		if(!sideEffect.getObjectClass().equals("collection")) {
 			myceliumIndexingService.updateRelatedTitlesInPortalIndex(sideEffect.getObjectClass(), sideEffect.getObjectType(),
 					sideEffect.getOldTitle(), sideEffect.getNewTitle(), sideEffect.getRelationshipType());

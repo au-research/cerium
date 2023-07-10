@@ -1,14 +1,12 @@
 package ardc.cerium.mycelium.service;
 
 import ardc.cerium.mycelium.event.PortalIndexUpdateEvent;
-import ardc.cerium.mycelium.exception.SuperNodeException;
 import ardc.cerium.mycelium.model.RelationLookupEntry;
 import ardc.cerium.mycelium.model.Relationship;
 import ardc.cerium.mycelium.model.Vertex;
 import ardc.cerium.mycelium.model.dto.EdgeDTO;
 import ardc.cerium.mycelium.model.solr.EdgeDocument;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
-import ardc.cerium.mycelium.provider.RIFCSGraphProvider;
 import ardc.cerium.mycelium.repository.RelationshipDocumentRepository;
 import ardc.cerium.mycelium.repository.VertexRepository;
 import ardc.cerium.mycelium.util.RelationUtil;
@@ -56,10 +54,6 @@ public class MyceliumIndexingService {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void indexVertex(Vertex from) throws SuperNodeException
-	{
-		indexVertex(from, false);
-	}
 
 	/**
 	 * Index a {@link Vertex} by taking the data available in the Graph Service and index
@@ -69,7 +63,7 @@ public class MyceliumIndexingService {
 	 * Source Duplicates and Target Duplicates
 	 * @param from the {@link Vertex} to index
 	 */
-	public void indexVertex(Vertex from, boolean allowSuperNode){
+	public void indexVertex(Vertex from){
 
 
 		// index all direct (1 step away) relationships, source duplicates and target

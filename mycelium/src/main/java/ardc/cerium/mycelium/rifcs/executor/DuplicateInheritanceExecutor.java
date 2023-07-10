@@ -69,7 +69,7 @@ public class DuplicateInheritanceExecutor extends Executor {
 
 	@Override
 	public void handle() {
-		String registryObjectId = sideEffect.getRegistryObjectId();
+		String registryObjectId = sideEffect.getAffectedRegistryObjectId();
 
 		Vertex origin = graphService.getVertexByIdentifier(registryObjectId,
 				RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);

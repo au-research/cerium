@@ -159,8 +159,8 @@ public class MyceliumService {
 		log.debug("Deleted Relationship for recordId:{}", recordId);
 	}
 
-	public void indexVertex(Vertex vertex, boolean allowSuperNodes) throws SuperNodeException {
-		indexingService.indexVertex(vertex, allowSuperNodes);
+	public void indexVertex(Vertex vertex) throws SuperNodeException {
+		indexingService.indexVertex(vertex);
 	}
 
 	/**

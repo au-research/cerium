@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Getter
 public class IdentifierForgoSideEffect extends SideEffect implements Serializable {
 
-    private final String registryObjectId;
+    private final String affectedRegistryObjectId;
     // The Identifier that relationships to be removed from
     private final String deletedIdentifier;
     // The Identifier Type that relationships to be removed from

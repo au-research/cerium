@@ -11,7 +11,7 @@ public class PrimaryKeyDeletionSideEffect extends SideEffect {
 
 	private final String key;
 
-	private final String registryObjectId;
+	private final String affectedRegistryObjectId;
 
 	private final String registryObjectClass;
 

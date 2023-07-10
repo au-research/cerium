@@ -6,6 +6,9 @@ import ardc.cerium.core.common.util.Helpers;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.service.MyceliumRequestService;
 import ardc.cerium.mycelium.service.MyceliumSideEffectService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.core.Logger;
 import org.redisson.api.RQueue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/resources/mycelium-requests",
@@ -72,6 +77,17 @@ public class MyceliumRequestResourceController {
 		RQueue<SideEffect> sideEffectRQueue = myceliumSideEffectService.getQueue(queueID);
 
 		return ResponseEntity.ok().body(sideEffectRQueue);
+	}
+
+	private List<String> getImportedIdsfromString(String importedRecordIds){
+		List<String> idList = new ArrayList<String>();
+		ObjectMapper mapper = new ObjectMapper();
+		try{
+			idList = mapper.readValue(importedRecordIds, new TypeReference<List<String>>(){});
+			return idList;
+		}catch (JsonProcessingException e){
+			return idList;
+		}
 	}
 
 }

@@ -1,13 +1,10 @@
 package ardc.cerium.mycelium.util;
+
 import ardc.cerium.core.common.dto.RequestDTO;
 import ardc.cerium.mycelium.model.AdditionalRelation;
 import ardc.cerium.mycelium.model.DataSource;
 import ardc.cerium.mycelium.model.RegistryObject;
 import ardc.cerium.mycelium.model.solr.RelationshipDocument;
-import ardc.cerium.mycelium.rifcs.RIFCSParser;
-import ardc.cerium.mycelium.rifcs.model.BaseRegistryObjectClass;
-import ardc.cerium.mycelium.rifcs.model.RegistryObjects;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.solr.core.query.result.Cursor;
 import org.w3c.dom.Document;
@@ -20,15 +17,19 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.*;
-
-import static ardc.cerium.mycelium.service.MyceliumRequestService.IMPORT_REQUEST_TYPE;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Set;
 
 /**
 creates a List containing Json payload from any set of XML containing registryObject[s]

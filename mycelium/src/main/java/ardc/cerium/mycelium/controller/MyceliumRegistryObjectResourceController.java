@@ -2,7 +2,6 @@ package ardc.cerium.mycelium.controller;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.exception.NotFoundException;
-import ardc.cerium.mycelium.exception.Neo4JUnavailableException;
 import ardc.cerium.mycelium.model.*;
 import ardc.cerium.mycelium.model.dto.TreeNodeDTO;
 import ardc.cerium.mycelium.model.mapper.RegistryObjectVertexDTOMapper;

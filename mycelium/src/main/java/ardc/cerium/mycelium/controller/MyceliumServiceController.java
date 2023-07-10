@@ -38,8 +38,7 @@ public class MyceliumServiceController {
 	 * @return a String response
 	 */
 	@PostMapping("/index-record")
-	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId,
-										 @RequestParam(required = false, defaultValue = "false") boolean allowSuperNodes) {
+	public ResponseEntity<?> indexRecord(@RequestParam String registryObjectId) {
 		Vertex from = myceliumService.getVertexFromRegistryObjectId(registryObjectId);
 		try {
 			if (from == null) {
@@ -48,7 +47,7 @@ public class MyceliumServiceController {
 						.body(String.format("Vertex with registryObjectId %s doesn't exist", registryObjectId));
 			}
 			log.info("Indexing RegistryObject[id={}]", registryObjectId);
-			myceliumService.indexVertex(from, allowSuperNodes);
+			myceliumService.indexVertex(from);
 			log.debug("Index completed Vertex[identifier={}]", from.getIdentifier());
 			return ResponseEntity.ok("Done!");
 		}catch(Exception e){
@@ -59,7 +58,7 @@ public class MyceliumServiceController {
 				int retryCount = 200; // x20
 				// check if neo4j went away
 				myceliumService.getGraphService().verifyConnectivity(sleepMillies,retryCount);
-				myceliumService.indexVertex(from, allowSuperNodes);
+				myceliumService.indexVertex(from);
 				log.debug("Index completed Vertex[identifier={}]", registryObjectId);
 
 				// todo formulate a formal response, Request?
@@ -79,7 +78,7 @@ public class MyceliumServiceController {
 	 * @return the {@link Request} with the current status updated to RUNNING
 	 */
 	@PostMapping("/start-queue-processing")
-	public ResponseEntity<Request> startQueueProcessing(
+	public ResponseEntity<Request> startQueueProcessing(@RequestBody String importedRecordIds,
 			@Parameter(name = "requestId", description = "Request ID of the RequestID") String requestId) {
 
 		log.info("Start Queue Processing Request[requestId={}]", requestId);
@@ -94,7 +93,7 @@ public class MyceliumServiceController {
 
 		// workQueue is an Async method that would set Request to COMPLETED after it has
 		// finished
-		myceliumService.getMyceliumSideEffectService().workQueueAsync(queueID, request);
+		myceliumService.getMyceliumSideEffectService().workQueueAsync(queueID, request, importedRecordIds);
 
 		return ResponseEntity.ok().body(request);
 	}

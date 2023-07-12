@@ -76,8 +76,9 @@ public class MyceliumSideEffectService {
 
 		request.setStatus(Request.Status.RUNNING);
 		myceliumRequestService.save(request);
-		List<String> idList = FormUtils.getListfromString(importedRecordIds);
-		log.debug(String.format("idlist size is : %s", idList.size()));
+		List<String> importedRecordIdList = FormUtils.getListFromString(importedRecordIds);
+		List<String> processedRecordIdList = new ArrayList<String>();
+		log.debug(String.format("idlist size is : %s", importedRecordIdList.size()));
 		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
@@ -87,9 +88,14 @@ public class MyceliumSideEffectService {
 		while (!queue.isEmpty()) {
 
 			SideEffect sideEffect = queue.poll();
-			if(sideEffect.getAffectedRegistryObjectId() != null && idList.contains(sideEffect.getAffectedRegistryObjectId())){
-				log.debug("No need to process record [ro_id={}]", sideEffect.getAffectedRegistryObjectId());
+			String roId = sideEffect.getAffectedRegistryObjectId();
+			// if the record is part of the imported records in this batch or already processed then can ignore it
+			if(roId != null && (importedRecordIdList.contains(roId) || processedRecordIdList.contains(roId))){
+				log.debug("No need to process record [ro_id={}]", roId);
 				continue;
+			}else{
+				// make sure record will be process only once
+				processedRecordIdList.add(roId);
 			}
 
 			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);

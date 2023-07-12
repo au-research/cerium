@@ -9,7 +9,7 @@ import java.util.List;
 
 public class FormUtils {
 
-    public static List<String> getListfromString(String importedRecordIds){
+    public static List<String> getListFromString(String importedRecordIds){
         List<String> idList = new ArrayList<String>();
         ObjectMapper mapper = new ObjectMapper();
         if(importedRecordIds == null){

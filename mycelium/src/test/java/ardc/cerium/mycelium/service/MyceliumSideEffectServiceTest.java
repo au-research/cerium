@@ -112,7 +112,7 @@ class MyceliumSideEffectServiceTest {
 
     @Test
     void testLoadIdListFromJsonString(){
-        List<String> idList = FormUtils.getListfromString("[33,44,55,66,77]");
+        List<String> idList = FormUtils.getListFromString("[33,44,55,66,77]");
         assertThat(idList.size()).isEqualTo(5);
     }
 

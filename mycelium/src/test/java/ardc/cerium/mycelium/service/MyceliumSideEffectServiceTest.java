@@ -8,6 +8,7 @@ import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.executor.Executor;
 import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
 import ardc.cerium.mycelium.rifcs.executor.ScholixRelationChangeExecutor;
+import ardc.cerium.mycelium.util.FormUtils;
 import org.apache.logging.log4j.core.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,8 +111,8 @@ class MyceliumSideEffectServiceTest {
     }
 
     @Test
-    void testLoadIdListfromJsonstring(){
-        List<String> idList = myceliumSideEffectService.getImportedIdsfromString("[33,44,55,66,77]");
+    void testLoadIdListFromJsonString(){
+        List<String> idList = FormUtils.getListfromString("[33,44,55,66,77]");
         assertThat(idList.size()).isEqualTo(5);
     }
 

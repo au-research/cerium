@@ -7,6 +7,6 @@ import lombok.Getter;
 @Getter
 public class DuplicateInheritanceSideEffect extends SideEffect {
 
-	private final String registryObjectId;
+	private final String affectedRegistryObjectId;
 
 }

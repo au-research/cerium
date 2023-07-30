@@ -71,7 +71,7 @@ public class PrimaryKeyDeletionExecutor extends Executor {
 		getMyceliumService().getGraphService().deletePrimaryKeyEdge(key);
 
 		// remove all PrimaryKey edge from/to the roVertex
-		String registryObjectId = sideEffect.getRegistryObjectId();
+		String registryObjectId = sideEffect.getAffectedRegistryObjectId();
 		getMyceliumService().getMyceliumIndexingService().deletePrimaryKeyEdges(registryObjectId);
 
 		// handle deletion of extra edges in SOLR when the relationType deleted is a

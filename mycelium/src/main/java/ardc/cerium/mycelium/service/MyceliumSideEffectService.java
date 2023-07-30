@@ -10,9 +10,10 @@ import ardc.cerium.mycelium.rifcs.executor.*;
 import ardc.cerium.mycelium.rifcs.model.datasource.DataSource;
 import ardc.cerium.mycelium.rifcs.model.datasource.settings.primarykey.PrimaryKey;
 import ardc.cerium.mycelium.util.DataSourceUtil;
+import ardc.cerium.mycelium.util.FormUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;  
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.redisson.api.RQueue;
@@ -71,11 +72,13 @@ public class MyceliumSideEffectService {
 		});
 	}
 
-	public void workQueue(String queueID, Request request) {
+	public void workQueue(String queueID, Request request, String importedRecordIds) {
 
 		request.setStatus(Request.Status.RUNNING);
 		myceliumRequestService.save(request);
-
+		List<String> importedRecordIdList = FormUtils.getListFromString(importedRecordIds);
+		List<String> processedRecordIdList = new ArrayList<String>();
+		log.debug(String.format("idlist size is : %s", importedRecordIdList.size()));
 		Logger requestLogger = myceliumService.getMyceliumRequestService().getRequestService().getLoggerFor(request);
 		RQueue<SideEffect> queue = getQueue(queueID);
 		requestLogger.info("Started working Queue[id={}, size={}]", queueID, queue.size());
@@ -85,6 +88,16 @@ public class MyceliumSideEffectService {
 		while (!queue.isEmpty()) {
 
 			SideEffect sideEffect = queue.poll();
+			String roId = sideEffect.getAffectedRegistryObjectId();
+			// if the record is part of the imported records in this batch or already processed then can ignore it
+			if(roId != null && (importedRecordIdList.contains(roId) || processedRecordIdList.contains(roId))){
+				log.debug("No need to process record [ro_id={}]", roId);
+				continue;
+			}else{
+				// make sure record will be process only once
+				processedRecordIdList.add(roId);
+			}
+
 			Executor executor = ExecutorFactory.get(sideEffect, myceliumService);
 
 			if (executor == null) {
@@ -119,13 +132,14 @@ public class MyceliumSideEffectService {
 	}
 
 	@Async
-	public void workQueueAsync(String queueID, Request request) {
-		this.workQueue(queueID, request);
+	public void workQueueAsync(String queueID, Request request, String importedRecordIds) {
+		this.workQueue(queueID, request, importedRecordIds);
 	}
+
 
 	@Async
 	public void workQueueAsync(String queueID, Request request, ApplicationEvent event) {
-		workQueue(queueID, request);
+		workQueue(queueID, request, null);
 		myceliumService.publishEvent(event);
 	}
 
@@ -365,7 +379,7 @@ public class MyceliumSideEffectService {
 							before.getRegistryObjectClass(), before.getRegistryObjectType(),
 							before.getTitle(), after.getTitle(), null));
 		}
-		
+
 		return sideEffects;
 	}
 

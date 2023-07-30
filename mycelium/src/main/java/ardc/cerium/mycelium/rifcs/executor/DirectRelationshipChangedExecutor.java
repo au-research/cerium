@@ -54,7 +54,7 @@ import java.util.List;
         public void handle() {
             String originRegistryObjectId = sideEffect.getRegistryObjectId();
             // added or removed
-            String relatedRegistryObjectId = sideEffect.getRelatedObjectId();
+            String relatedRegistryObjectId = sideEffect.getAffectedRegistryObjectId();
             String action = sideEffect.getAction();
             String recordTitle = sideEffect.getTitle();
             String recordClass = sideEffect.getRecordClass();

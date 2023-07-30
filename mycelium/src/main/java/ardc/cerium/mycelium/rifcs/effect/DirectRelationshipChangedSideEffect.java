@@ -10,7 +10,7 @@ public class DirectRelationshipChangedSideEffect extends SideEffect {
 
     public String registryObjectId;
 
-    public String relatedObjectId;
+    public String affectedRegistryObjectId;
     // delete || add
     public String action;
 

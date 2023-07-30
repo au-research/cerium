@@ -2,19 +2,17 @@ package ardc.cerium.mycelium.service;
 
 import ardc.cerium.core.common.entity.Request;
 import ardc.cerium.core.common.service.RequestService;
-import ardc.cerium.mycelium.rifcs.RecordState;
 import ardc.cerium.mycelium.rifcs.effect.DCIRelationChangeSideEffect;
 import ardc.cerium.mycelium.rifcs.effect.ScholixRelationChangeSideEffect;
 import ardc.cerium.mycelium.rifcs.effect.SideEffect;
 import ardc.cerium.mycelium.rifcs.executor.Executor;
 import ardc.cerium.mycelium.rifcs.executor.ExecutorFactory;
-import ardc.cerium.mycelium.rifcs.executor.PrimaryKeyDeletionExecutor;
 import ardc.cerium.mycelium.rifcs.executor.ScholixRelationChangeExecutor;
+import ardc.cerium.mycelium.util.FormUtils;
 import org.apache.logging.log4j.core.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.redisson.api.RQueue;
@@ -25,11 +23,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -111,7 +108,13 @@ class MyceliumSideEffectServiceTest {
      */
     private class RandomSideEffect extends SideEffect {
 
-    };
+    }
+
+    @Test
+    void testLoadIdListFromJsonString(){
+        List<String> idList = FormUtils.getListFromString("[33,44,55,66,77]");
+        assertThat(idList.size()).isEqualTo(5);
+    }
 
     @Test
 	void workQueue() {
@@ -140,7 +143,7 @@ class MyceliumSideEffectServiceTest {
         Executor executor = Mockito.mock(ScholixRelationChangeExecutor.class);
         try (MockedStatic<ExecutorFactory> utilities = Mockito.mockStatic(ExecutorFactory.class)){
             utilities.when(() -> ExecutorFactory.get(sideEffect, myceliumService)).thenReturn(executor);
-            myceliumSideEffectService.workQueue(queueID, request);
+            myceliumSideEffectService.workQueue(queueID, request, null);
             verify(executor, times(1)).handle();
         }
 	}

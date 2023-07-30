@@ -113,8 +113,8 @@ class MyceliumServiceTest {
 	void indexVertex() {
 		Vertex vertex = new Vertex(UUID.randomUUID().toString(), RIFCSGraphProvider.RIFCS_ID_IDENTIFIER_TYPE);
 		vertex.setStatus(Vertex.Status.PUBLISHED.name());
-		myceliumService.indexVertex(vertex, false);
-		verify(myceliumIndexingService, times(1)).indexVertex(vertex, false);
+		myceliumService.indexVertex(vertex);
+		verify(myceliumIndexingService, times(1)).indexVertex(vertex);
 	}
 
 	@Test

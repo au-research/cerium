@@ -75,7 +75,7 @@ public class IdentifierForgoExecutor extends Executor {
 
         String identifier = sideEffect.getDeletedIdentifier();
         String identifierType = sideEffect.getDeletedIdentifierType();
-        String registryObjectId = sideEffect.getRegistryObjectId();
+        String registryObjectId = sideEffect.getAffectedRegistryObjectId();
         String title = sideEffect.getSearchTitle();
         String objectClass = sideEffect.getRecordClass();
         String objetType = sideEffect.getRecordType();

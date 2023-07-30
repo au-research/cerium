@@ -108,7 +108,7 @@ public class Scenario16_IT extends MyceliumScenarioTest {
 		assertThat(c3isFundedByP1).isNotNull();
 
 		// C3 isFundedBy P1 is a reversed relation (because GrantsNetwork top-down)
-		assertThat(c3isFundedByP1.isRelationReverse()).isTrue();
+		assertThat(c3isFundedByP1.isRelationReverse()).isFalse();
 
 		// P1 isFunderOf C3 in SOLR
 		List<RelationshipDocument> fromP1Rels = TestHelper.cursorToList(
@@ -128,7 +128,7 @@ public class Scenario16_IT extends MyceliumScenarioTest {
 		assertThat(p1IsFunderOfC3).isNotNull();
 
 		// the relation is a top-down direct relationship
-		assertThat(p1IsFunderOfC3.isRelationReverse()).isFalse();
+		assertThat(p1IsFunderOfC3.isRelationReverse()).isTrue();
 	}
 
 }

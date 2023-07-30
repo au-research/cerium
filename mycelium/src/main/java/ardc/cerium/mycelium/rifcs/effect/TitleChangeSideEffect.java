@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Getter
 public class TitleChangeSideEffect extends SideEffect implements Serializable {
 
-	private final String registryObjectId;
+	private final String affectedRegistryObjectId;
 
 	private final String objectClass;
 

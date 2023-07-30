@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RelatedInfoRealisationSideEffect extends SideEffect {
 
-	private final String registryObjectId;
+	private final String affectedRegistryObjectId;
 	private final String identifier;
 	private final String identifierType;
 

@@ -87,7 +87,7 @@ public class RelatedInfoRealisationExecutor extends Executor {
 
 		String identifier = sideEffect.getIdentifier();
 		String identifierType = sideEffect.getIdentifierType();
-		String registryObjectId = sideEffect.getRegistryObjectId();
+		String registryObjectId = sideEffect.getAffectedRegistryObjectId();
 		String title = sideEffect.getTitle();
 		String objectClass = sideEffect.getRecordClass();
 		String objetType = sideEffect.getRecordType();
